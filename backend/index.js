@@ -34,14 +34,20 @@ function createRoom(roomId) {
     tips: [],
     votes: {}, // { playerId: { similar: count, funny: count } }
     timer: 0,
-    timerInterval: null
+    timerInterval: null,
+    settings: {
+      roundTime: 90,
+      maxRounds: 3
+    },
+    currentRound: 1,
+    isGameOver: false
   };
 }
 
 io.on('connection', (socket) => {
   console.log(`User connected: ${socket.id}`);
 
-  socket.on('join_room', ({ roomId, playerName }) => {
+  socket.on('join_room', ({ roomId, playerName, avatar }) => {
     if (!rooms[roomId]) {
       createRoom(roomId);
     }
@@ -57,6 +63,7 @@ io.on('connection', (socket) => {
     room.players[socket.id] = {
       id: socket.id,
       name: playerName,
+      avatar: avatar || '🎨',
       score: 0,
       isMaster: false,
       hasSubmitted: false
@@ -83,13 +90,15 @@ io.on('connection', (socket) => {
     playerIds.forEach(pid => {
       room.players[pid].isMaster = (pid === masterId);
       room.players[pid].hasSubmitted = false;
+      room.players[pid].hasVoted = false;
     });
     room.drawings = {};
     room.tips = [];
     room.votes = {};
+    room.character = null;
     
     room.state = GAME_STATES.PLAYING;
-    room.timer = 90; // 90 seconds to draw
+    room.timer = room.settings?.roundTime || 90; // Configured seconds to draw
 
     io.to(roomId).emit('room_update', getRoomPublicState(roomId));
     
@@ -105,6 +114,33 @@ io.on('connection', (socket) => {
     }, 1000);
   });
 
+  socket.on('update_settings', ({ roomId, roundTime, maxRounds }) => {
+    const room = rooms[roomId];
+    if (!room || room.state !== GAME_STATES.LOBBY) return;
+    if (roundTime) room.settings.roundTime = Number(roundTime);
+    if (maxRounds !== undefined) room.settings.maxRounds = Number(maxRounds);
+    io.to(roomId).emit('room_update', getRoomPublicState(roomId));
+  });
+
+  socket.on('send_reaction', ({ roomId, emoji }) => {
+    const room = rooms[roomId];
+    if (!room) return;
+    const player = room.players[socket.id];
+    io.to(roomId).emit('new_reaction', {
+      id: Date.now() + Math.random(),
+      emoji,
+      senderName: player?.name || '',
+      x: Math.floor(Math.random() * 70) + 15 // percentage from left
+    });
+  });
+
+  socket.on('set_character', ({ roomId, character }) => {
+    const room = rooms[roomId];
+    if (!room || room.state !== GAME_STATES.PLAYING) return;
+    if (socket.id !== room.masterId) return;
+    room.character = character;
+  });
+
   socket.on('send_tip', ({ roomId, tip }) => {
     const room = rooms[roomId];
     if (!room || room.state !== GAME_STATES.PLAYING) return;
@@ -112,6 +148,7 @@ io.on('connection', (socket) => {
 
     room.tips.push(tip);
     io.to(roomId).emit('new_tip', tip);
+    io.to(roomId).emit('room_update', getRoomPublicState(roomId));
   });
 
   // Client updates drawing periodically or just final
@@ -127,11 +164,13 @@ io.on('connection', (socket) => {
   socket.on('submit_drawing', ({ roomId, imageDataUrl }) => {
     const room = rooms[roomId];
     if (!room || room.state !== GAME_STATES.PLAYING) return;
+    if (!room.players[socket.id]) return;
     
     room.drawings[socket.id] = imageDataUrl;
     room.players[socket.id].hasSubmitted = true;
     
     io.to(roomId).emit('player_submitted', socket.id);
+    io.to(roomId).emit('room_update', getRoomPublicState(roomId));
     
     // Check if everyone submitted
     const allSubmitted = Object.values(room.players)
@@ -155,7 +194,11 @@ io.on('connection', (socket) => {
     room.votes[votedPlayerId][type]++;
     
     // Mark voter as done
-    room.players[socket.id].hasVoted = true;
+    if (room.players[socket.id]) {
+      room.players[socket.id].hasVoted = true;
+    }
+
+    io.to(roomId).emit('room_update', getRoomPublicState(roomId));
 
     // Check if everyone voted
     const allVoted = Object.values(room.players).every(p => p.hasVoted);
@@ -168,8 +211,34 @@ io.on('connection', (socket) => {
   socket.on('next_round', ({ roomId }) => {
     const room = rooms[roomId];
     if (!room || room.state !== GAME_STATES.RESULTS) return;
+
+    if (room.isGameOver) {
+      // Reset tournament
+      room.currentRound = 1;
+      room.isGameOver = false;
+      Object.values(room.players).forEach(p => p.score = 0);
+    } else {
+      room.currentRound++;
+    }
+
     room.state = GAME_STATES.LOBBY;
+    room.character = null;
     io.to(roomId).emit('room_update', getRoomPublicState(roomId));
+  });
+
+  socket.on('leave_room', ({ roomId }) => {
+    const room = rooms[roomId];
+    if (room && room.players[socket.id]) {
+      delete room.players[socket.id];
+      socket.leave(roomId);
+      
+      if (Object.keys(room.players).length === 0) {
+        clearInterval(room.timerInterval);
+        delete rooms[roomId];
+      } else {
+        io.to(roomId).emit('room_update', getRoomPublicState(roomId));
+      }
+    }
   });
 
   socket.on('disconnect', () => {
@@ -226,6 +295,13 @@ function endVotingPhase(roomId) {
     }
   });
 
+  // Check if tournament finished
+  if (room.settings?.maxRounds > 0 && room.currentRound >= room.settings.maxRounds) {
+    room.isGameOver = true;
+  } else {
+    room.isGameOver = false;
+  }
+
   io.to(roomId).emit('room_update', getRoomPublicState(roomId));
 }
 
@@ -237,9 +313,13 @@ function getRoomPublicState(roomId) {
     state: room.state,
     players: Object.values(room.players),
     masterId: room.masterId,
+    character: room.state === GAME_STATES.RESULTS ? room.character : null,
     tips: room.tips,
     drawings: room.state === GAME_STATES.PLAYING ? {} : room.drawings, // Hide drawings until voting
-    votes: room.votes
+    votes: room.votes,
+    settings: room.settings,
+    currentRound: room.currentRound,
+    isGameOver: room.isGameOver
   };
 }
 
