@@ -3,14 +3,15 @@ import { io, Socket } from 'socket.io-client';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Copy, Check, Volume2, VolumeX, Play, 
-  Crown, LogOut, Share2, Sliders, Link2 
+  Crown, LogOut, Share2, Sliders, Link2, MessageCircle 
 } from 'lucide-react';
 import Lobby from './components/Lobby';
 import Game from './components/Game';
 import Voting from './components/Voting';
 import Results from './components/Results';
 import FloatingReactions from './components/common/FloatingReactions';
-import type { GameState, ReactionItem } from './types';
+import PartyChat from './components/common/PartyChat';
+import type { GameState, ReactionItem, ChatMessage } from './types';
 import { sounds } from './utils/audioFx';
 
 // Connect to backend:
@@ -52,11 +53,33 @@ export default function App() {
   const [copiedLink, setCopiedLink] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [reactions, setReactions] = useState<ReactionItem[]>([]);
+  const [floatingChatOpen, setFloatingChatOpen] = useState(false);
+  const [unreadChatCount, setUnreadChatCount] = useState(0);
 
   useEffect(() => {
     socket.on('room_update', (state: GameState) => {
+      // Guard: Ensure user is an active participant in this room
+      const inRoom = state.players?.some((p) => p.id === socket.id);
+      if (!inRoom) {
+        setGameState(null);
+        setRoomId('');
+        return;
+      }
       setGameState(state);
       setError('');
+    });
+
+    socket.on('left_room_success', () => {
+      setGameState(null);
+      setRoomId('');
+      setFloatingChatOpen(false);
+      setUnreadChatCount(0);
+    });
+
+    socket.on('new_chat_message', (msg: ChatMessage) => {
+      if (msg.senderId !== socket.id) {
+        setUnreadChatCount((prev) => prev + 1);
+      }
     });
 
     socket.on('timer_update', (time: number) => {
@@ -79,6 +102,8 @@ export default function App() {
 
     return () => {
       socket.off('room_update');
+      socket.off('left_room_success');
+      socket.off('new_chat_message');
       socket.off('timer_update');
       socket.off('new_reaction');
       socket.off('error');
@@ -152,8 +177,24 @@ export default function App() {
       if (gameState?.id) {
         socket.emit('leave_room', { roomId: gameState.id });
       }
+      if (typeof window !== 'undefined') {
+        const url = new URL(window.location.href);
+        url.searchParams.delete('room');
+        window.history.replaceState({}, '', url.pathname + (url.search ? url.search : ''));
+      }
       setGameState(null);
+      setRoomId('');
+      setFloatingChatOpen(false);
+      setUnreadChatCount(0);
     }
+  };
+
+  const toggleFloatingChat = () => {
+    sounds.playClick();
+    if (!floatingChatOpen) {
+      setUnreadChatCount(0);
+    }
+    setFloatingChatOpen(!floatingChatOpen);
   };
 
   const toggleSound = () => {
@@ -164,7 +205,7 @@ export default function App() {
 
   const myPlayer = gameState?.players?.find((p) => p.id === socket.id);
 
-  if (!gameState) {
+  if (!gameState || !myPlayer) {
     return <Lobby onJoin={handleJoin} error={error} />;
   }
 
@@ -476,6 +517,48 @@ export default function App() {
             reactions={reactions} 
             onSendReaction={handleSendReaction} 
           />
+        )}
+
+        {/* Floating Chat Button & Drawer during Voting and Results */}
+        {(gameState.state === 'VOTING' || gameState.state === 'RESULTS') && (
+          <>
+            <div className="fixed bottom-4 left-4 z-40">
+              <button
+                type="button"
+                onClick={toggleFloatingChat}
+                className="relative flex items-center gap-2 bg-panel/95 hover:bg-panel border border-border/90 px-4 py-2.5 rounded-2xl text-white text-xs font-bold shadow-2xl backdrop-blur transition-all active:scale-95 group hover:border-accent-cyan/50"
+              >
+                <MessageCircle className="w-4 h-4 text-accent-cyan group-hover:scale-110 transition-transform" />
+                <span>Chat da Sala</span>
+                {unreadChatCount > 0 && (
+                  <span className="bg-accent-pink text-white text-[10px] font-black px-1.5 py-0.5 rounded-full animate-bounce shadow-md">
+                    {unreadChatCount}
+                  </span>
+                )}
+              </button>
+            </div>
+
+            <AnimatePresence>
+              {floatingChatOpen && (
+                <motion.div
+                  initial={{ opacity: 0, y: 30, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 30, scale: 0.95 }}
+                  className="fixed bottom-16 left-4 z-50 w-[calc(100vw-2rem)] max-w-sm h-96 shadow-2xl rounded-3xl overflow-hidden border border-border/90 bg-panel/98 backdrop-blur"
+                >
+                  <PartyChat
+                    socket={socket}
+                    roomId={gameState.id}
+                    messages={gameState.messages}
+                    myPlayer={myPlayer}
+                    isMaster={Boolean(myPlayer?.isMaster)}
+                    compact={true}
+                    onClose={() => setFloatingChatOpen(false)}
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </>
         )}
       </main>
     </div>

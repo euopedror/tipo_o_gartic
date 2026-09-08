@@ -45,6 +45,7 @@ function createRoom(roomId) {
     character: null,
     drawings: {}, // { playerId: imageDataUrl }
     tips: [],
+    messages: [], // Live chat messages for all players
     votes: {}, // { playerId: { similar: count, funny: count } }
     timer: 0,
     timerInterval: null,
@@ -61,45 +62,96 @@ io.on('connection', (socket) => {
   console.log(`User connected: ${socket.id}`);
 
   socket.on('join_room', ({ roomId, playerName, avatar }) => {
-    if (!rooms[roomId]) {
-      createRoom(roomId);
+    if (!roomId) return;
+    const cleanRoomId = String(roomId).trim().toUpperCase();
+    const cleanPlayerName = (playerName || 'Artista').trim().slice(0, 20);
+
+    if (!rooms[cleanRoomId]) {
+      createRoom(cleanRoomId);
     }
     
-    const room = rooms[roomId];
+    const room = rooms[cleanRoomId];
     if (room.state !== GAME_STATES.LOBBY) {
-      socket.emit('error', 'Game already in progress');
+      socket.emit('error', 'Partida em andamento nesta sala. Aguarde ela terminar para entrar.');
       return;
     }
 
-    socket.join(roomId);
+    socket.join(cleanRoomId);
     
     room.players[socket.id] = {
       id: socket.id,
-      name: playerName,
+      name: cleanPlayerName,
       avatar: avatar || '🎨',
       score: 0,
       isMaster: false,
-      hasSubmitted: false
+      hasSubmitted: false,
+      hasVoted: false
     };
 
-    io.to(roomId).emit('room_update', getRoomPublicState(roomId));
+    // Add entry message to chat
+    if (!room.messages) room.messages = [];
+    room.messages.push({
+      id: Date.now() + '-' + Math.random().toString(36).substring(2, 7),
+      senderId: 'system',
+      senderName: 'Sistema',
+      senderAvatar: '🎉',
+      text: `${cleanPlayerName} entrou na sala!`,
+      isSystem: true,
+      timestamp: Date.now()
+    });
+
+    io.to(cleanRoomId).emit('room_update', getRoomPublicState(cleanRoomId));
+  });
+
+  socket.on('send_chat_message', ({ roomId, text }) => {
+    if (!roomId || !text || typeof text !== 'string') return;
+    const cleanRoomId = String(roomId).trim().toUpperCase();
+    const room = rooms[cleanRoomId];
+    if (!room) return;
+
+    const player = room.players[socket.id];
+    if (!player) return;
+
+    const cleanText = text.trim().slice(0, 200);
+    if (!cleanText) return;
+
+    const message = {
+      id: Date.now() + '-' + Math.random().toString(36).substring(2, 7),
+      senderId: socket.id,
+      senderName: player.name,
+      senderAvatar: player.avatar || '🎨',
+      text: cleanText,
+      isMaster: Boolean(player.isMaster),
+      isTip: false,
+      timestamp: Date.now()
+    };
+
+    if (!room.messages) room.messages = [];
+    room.messages.push(message);
+    if (room.messages.length > 100) {
+      room.messages.shift();
+    }
+
+    io.to(cleanRoomId).emit('new_chat_message', message);
   });
 
   socket.on('start_game', ({ roomId }) => {
-    const room = rooms[roomId];
+    if (!roomId) return;
+    const cleanRoomId = String(roomId).trim().toUpperCase();
+    const room = rooms[cleanRoomId];
     if (!room || room.state !== GAME_STATES.LOBBY) return;
 
     // Pick a random master
     const playerIds = Object.keys(room.players);
     if (playerIds.length < 2) {
-      socket.emit('error', 'Need at least 2 players');
+      socket.emit('error', 'São necessários pelo menos 2 jogadores para iniciar.');
       return;
     }
 
     const masterId = playerIds[Math.floor(Math.random() * playerIds.length)];
     room.masterId = masterId;
     
-    // reset round state
+    // Reset round state
     playerIds.forEach(pid => {
       room.players[pid].isMaster = (pid === masterId);
       room.players[pid].hasSubmitted = false;
@@ -111,94 +163,141 @@ io.on('connection', (socket) => {
     room.character = null;
     
     room.state = GAME_STATES.PLAYING;
-    room.timer = room.settings?.roundTime || 90; // Configured seconds to draw
+    room.timer = room.settings?.roundTime || 90;
 
-    io.to(roomId).emit('room_update', getRoomPublicState(roomId));
+    const masterPlayer = room.players[masterId];
+    if (!room.messages) room.messages = [];
+    room.messages.push({
+      id: Date.now() + '-' + Math.random().toString(36).substring(2, 7),
+      senderId: 'system',
+      senderName: 'Sistema',
+      senderAvatar: '👑',
+      text: `Rodada iniciada! ${masterPlayer?.name || 'Um jogador'} é o Mestre desta rodada.`,
+      isSystem: true,
+      timestamp: Date.now()
+    });
+
+    io.to(cleanRoomId).emit('room_update', getRoomPublicState(cleanRoomId));
     
     // Start Timer
+    if (room.timerInterval) clearInterval(room.timerInterval);
     room.timerInterval = setInterval(() => {
       room.timer--;
-      io.to(roomId).emit('timer_update', room.timer);
+      io.to(cleanRoomId).emit('timer_update', room.timer);
       
       if (room.timer <= 0) {
         clearInterval(room.timerInterval);
-        endPlayingPhase(roomId);
+        endPlayingPhase(cleanRoomId);
       }
     }, 1000);
   });
 
   socket.on('update_settings', ({ roomId, roundTime, maxRounds }) => {
-    const room = rooms[roomId];
+    if (!roomId) return;
+    const cleanRoomId = String(roomId).trim().toUpperCase();
+    const room = rooms[cleanRoomId];
     if (!room || room.state !== GAME_STATES.LOBBY) return;
+
     if (roundTime) room.settings.roundTime = Number(roundTime);
     if (maxRounds !== undefined) room.settings.maxRounds = Number(maxRounds);
-    io.to(roomId).emit('room_update', getRoomPublicState(roomId));
+    io.to(cleanRoomId).emit('room_update', getRoomPublicState(cleanRoomId));
   });
 
   socket.on('send_reaction', ({ roomId, emoji }) => {
-    const room = rooms[roomId];
+    if (!roomId) return;
+    const cleanRoomId = String(roomId).trim().toUpperCase();
+    const room = rooms[cleanRoomId];
     if (!room) return;
     const player = room.players[socket.id];
-    io.to(roomId).emit('new_reaction', {
+    io.to(cleanRoomId).emit('new_reaction', {
       id: Date.now() + Math.random(),
       emoji,
       senderName: player?.name || '',
-      x: Math.floor(Math.random() * 70) + 15 // percentage from left
+      x: Math.floor(Math.random() * 70) + 15
     });
   });
 
   socket.on('set_character', ({ roomId, character }) => {
-    const room = rooms[roomId];
+    if (!roomId) return;
+    const cleanRoomId = String(roomId).trim().toUpperCase();
+    const room = rooms[cleanRoomId];
     if (!room || room.state !== GAME_STATES.PLAYING) return;
     if (socket.id !== room.masterId) return;
     room.character = character;
   });
 
   socket.on('send_tip', ({ roomId, tip }) => {
-    const room = rooms[roomId];
+    if (!roomId || !tip || typeof tip !== 'string') return;
+    const cleanRoomId = String(roomId).trim().toUpperCase();
+    const room = rooms[cleanRoomId];
     if (!room || room.state !== GAME_STATES.PLAYING) return;
     if (socket.id !== room.masterId) return;
 
-    room.tips.push(tip);
-    io.to(roomId).emit('new_tip', tip);
-    io.to(roomId).emit('room_update', getRoomPublicState(roomId));
+    const cleanTip = tip.trim().slice(0, 150);
+    if (!cleanTip) return;
+
+    room.tips.push(cleanTip);
+
+    const tipMessage = {
+      id: Date.now() + '-' + Math.random().toString(36).substring(2, 7),
+      senderId: socket.id,
+      senderName: room.players[socket.id]?.name || 'Mestre',
+      senderAvatar: '👑',
+      text: cleanTip,
+      isMaster: true,
+      isTip: true,
+      timestamp: Date.now()
+    };
+
+    if (!room.messages) room.messages = [];
+    room.messages.push(tipMessage);
+    if (room.messages.length > 100) {
+      room.messages.shift();
+    }
+
+    io.to(cleanRoomId).emit('new_tip', cleanTip);
+    io.to(cleanRoomId).emit('new_chat_message', tipMessage);
+    io.to(cleanRoomId).emit('room_update', getRoomPublicState(cleanRoomId));
   });
 
-  // Client updates drawing periodically or just final
   socket.on('draw_line', ({ roomId, line }) => {
-    const room = rooms[roomId];
+    if (!roomId) return;
+    const cleanRoomId = String(roomId).trim().toUpperCase();
+    const room = rooms[cleanRoomId];
     if (!room || room.state !== GAME_STATES.PLAYING) return;
-    if (socket.id === room.masterId) return; // Master doesn't draw
+    if (socket.id === room.masterId) return;
 
-    // Broadcast line to others (optional, if we want to see live drawing)
-    socket.to(roomId).emit('draw_line', { playerId: socket.id, line });
+    socket.to(cleanRoomId).emit('draw_line', { playerId: socket.id, line });
   });
 
   socket.on('submit_drawing', ({ roomId, imageDataUrl }) => {
-    const room = rooms[roomId];
+    if (!roomId) return;
+    const cleanRoomId = String(roomId).trim().toUpperCase();
+    const room = rooms[cleanRoomId];
     if (!room || room.state !== GAME_STATES.PLAYING) return;
     if (!room.players[socket.id]) return;
     
     room.drawings[socket.id] = imageDataUrl;
     room.players[socket.id].hasSubmitted = true;
     
-    io.to(roomId).emit('player_submitted', socket.id);
-    io.to(roomId).emit('room_update', getRoomPublicState(roomId));
+    io.to(cleanRoomId).emit('player_submitted', socket.id);
+    io.to(cleanRoomId).emit('room_update', getRoomPublicState(cleanRoomId));
     
-    // Check if everyone submitted
+    // Check if all artists submitted
     const allSubmitted = Object.values(room.players)
       .filter(p => !p.isMaster)
       .every(p => p.hasSubmitted);
       
     if (allSubmitted) {
-      clearInterval(room.timerInterval);
-      endPlayingPhase(roomId);
+      if (room.timerInterval) clearInterval(room.timerInterval);
+      endPlayingPhase(cleanRoomId);
     }
   });
 
   socket.on('submit_vote', ({ roomId, type, votedPlayerId }) => {
-    // type: 'similar' | 'funny'
-    const room = rooms[roomId];
+    if (!roomId) return;
+    const cleanRoomId = String(roomId).trim().toUpperCase();
+    const room = rooms[cleanRoomId];
     if (!room || room.state !== GAME_STATES.VOTING) return;
 
     if (!room.votes[votedPlayerId]) {
@@ -206,75 +305,164 @@ io.on('connection', (socket) => {
     }
     room.votes[votedPlayerId][type]++;
     
-    // Mark voter as done
     if (room.players[socket.id]) {
       room.players[socket.id].hasVoted = true;
     }
 
-    io.to(roomId).emit('room_update', getRoomPublicState(roomId));
+    io.to(cleanRoomId).emit('room_update', getRoomPublicState(cleanRoomId));
 
     // Check if everyone voted
     const allVoted = Object.values(room.players).every(p => p.hasVoted);
     if (allVoted) {
-      clearInterval(room.timerInterval);
-      endVotingPhase(roomId);
+      if (room.timerInterval) clearInterval(room.timerInterval);
+      endVotingPhase(cleanRoomId);
     }
   });
 
   socket.on('next_round', ({ roomId }) => {
-    const room = rooms[roomId];
+    if (!roomId) return;
+    const cleanRoomId = String(roomId).trim().toUpperCase();
+    const room = rooms[cleanRoomId];
     if (!room || room.state !== GAME_STATES.RESULTS) return;
+
+    if (room.timerInterval) clearInterval(room.timerInterval);
 
     if (room.isGameOver) {
       // Reset tournament
       room.currentRound = 1;
       room.isGameOver = false;
-      Object.values(room.players).forEach(p => p.score = 0);
+      Object.values(room.players).forEach(p => {
+        p.score = 0;
+        p.isMaster = false;
+        p.hasSubmitted = false;
+        p.hasVoted = false;
+      });
     } else {
       room.currentRound++;
+      Object.values(room.players).forEach(p => {
+        p.isMaster = false;
+        p.hasSubmitted = false;
+        p.hasVoted = false;
+      });
     }
 
     room.state = GAME_STATES.LOBBY;
+    room.masterId = null;
     room.character = null;
-    io.to(roomId).emit('room_update', getRoomPublicState(roomId));
+    room.drawings = {};
+    room.tips = [];
+    room.votes = {};
+
+    io.to(cleanRoomId).emit('room_update', getRoomPublicState(cleanRoomId));
   });
 
   socket.on('leave_room', ({ roomId }) => {
-    const room = rooms[roomId];
-    if (room && room.players[socket.id]) {
-      delete room.players[socket.id];
-      socket.leave(roomId);
-      
-      if (Object.keys(room.players).length === 0) {
-        clearInterval(room.timerInterval);
-        delete rooms[roomId];
-      } else {
-        io.to(roomId).emit('room_update', getRoomPublicState(roomId));
-      }
+    if (roomId) {
+      removePlayerFromRoom(socket, String(roomId).trim().toUpperCase());
     }
   });
 
   socket.on('disconnect', () => {
     console.log(`User disconnected: ${socket.id}`);
-    // Cleanup player from rooms
-    for (const roomId in rooms) {
-      const room = rooms[roomId];
-      if (room.players[socket.id]) {
-        delete room.players[socket.id];
-        
-        if (Object.keys(room.players).length === 0) {
-          clearInterval(room.timerInterval);
-          delete rooms[roomId];
-        } else {
-          io.to(roomId).emit('room_update', getRoomPublicState(roomId));
-        }
+    for (const rId in rooms) {
+      if (rooms[rId].players[socket.id]) {
+        removePlayerFromRoom(socket, rId);
       }
     }
   });
 });
 
+function removePlayerFromRoom(socket, roomId) {
+  const room = rooms[roomId];
+  if (!room || !room.players[socket.id]) return;
+
+  const leavingPlayer = room.players[socket.id];
+  delete room.players[socket.id];
+  socket.leave(roomId);
+  socket.emit('left_room_success');
+
+  // If no players remain, clean up room
+  if (Object.keys(room.players).length === 0) {
+    if (room.timerInterval) clearInterval(room.timerInterval);
+    delete rooms[roomId];
+    return;
+  }
+
+  // Add system message
+  if (!room.messages) room.messages = [];
+  room.messages.push({
+    id: Date.now() + '-' + Math.random().toString(36).substring(2, 7),
+    senderId: 'system',
+    senderName: 'Sistema',
+    senderAvatar: '👋',
+    text: `${leavingPlayer.name} saiu da sala.`,
+    isSystem: true,
+    timestamp: Date.now()
+  });
+
+  // If the leaving player was the Master during PLAYING or VOTING phase:
+  if (room.masterId === socket.id && (room.state === GAME_STATES.PLAYING || room.state === GAME_STATES.VOTING)) {
+    if (room.timerInterval) clearInterval(room.timerInterval);
+    room.state = GAME_STATES.LOBBY;
+    room.masterId = null;
+    room.character = null;
+    room.drawings = {};
+    room.tips = [];
+    room.votes = {};
+    Object.values(room.players).forEach(p => {
+      p.isMaster = false;
+      p.hasSubmitted = false;
+      p.hasVoted = false;
+    });
+
+    room.messages.push({
+      id: Date.now() + '-' + Math.random().toString(36).substring(2, 7),
+      senderId: 'system',
+      senderName: 'Sistema',
+      senderAvatar: '⚠️',
+      text: `O Mestre (${leavingPlayer.name}) saiu da partida. A rodada foi encerrada e a sala retornou ao Lobby.`,
+      isSystem: true,
+      timestamp: Date.now()
+    });
+
+    io.to(roomId).emit('room_update', getRoomPublicState(roomId));
+    return;
+  }
+
+  // If an artist left during PLAYING phase, check if remaining artists are all done
+  if (room.state === GAME_STATES.PLAYING) {
+    const remainingArtists = Object.values(room.players).filter(p => !p.isMaster);
+    if (remainingArtists.length === 0) {
+      if (room.timerInterval) clearInterval(room.timerInterval);
+      room.state = GAME_STATES.LOBBY;
+      io.to(roomId).emit('room_update', getRoomPublicState(roomId));
+      return;
+    }
+    const allSubmitted = remainingArtists.every(p => p.hasSubmitted);
+    if (allSubmitted) {
+      if (room.timerInterval) clearInterval(room.timerInterval);
+      endPlayingPhase(roomId);
+      return;
+    }
+  }
+
+  // If a player left during VOTING phase, check if remaining players all voted
+  if (room.state === GAME_STATES.VOTING) {
+    const remainingPlayers = Object.values(room.players);
+    const allVoted = remainingPlayers.every(p => p.hasVoted);
+    if (allVoted) {
+      if (room.timerInterval) clearInterval(room.timerInterval);
+      endVotingPhase(roomId);
+      return;
+    }
+  }
+
+  io.to(roomId).emit('room_update', getRoomPublicState(roomId));
+}
+
 function endPlayingPhase(roomId) {
   const room = rooms[roomId];
+  if (!room) return;
   room.state = GAME_STATES.VOTING;
   room.timer = 30; // 30 seconds to vote
   
@@ -283,6 +471,7 @@ function endPlayingPhase(roomId) {
   
   io.to(roomId).emit('room_update', getRoomPublicState(roomId));
 
+  if (room.timerInterval) clearInterval(room.timerInterval);
   room.timerInterval = setInterval(() => {
     room.timer--;
     io.to(roomId).emit('timer_update', room.timer);
@@ -296,12 +485,12 @@ function endPlayingPhase(roomId) {
 
 function endVotingPhase(roomId) {
   const room = rooms[roomId];
+  if (!room) return;
   room.state = GAME_STATES.RESULTS;
   
   // Calculate points
   Object.keys(room.votes).forEach(playerId => {
     if (room.players[playerId]) {
-      // e.g. 10 points for each vote
       const v = room.votes[playerId];
       const points = (v.similar * 10) + (v.funny * 5);
       room.players[playerId].score += points;
@@ -327,9 +516,10 @@ function getRoomPublicState(roomId) {
     players: Object.values(room.players),
     masterId: room.masterId,
     character: room.state === GAME_STATES.RESULTS ? room.character : null,
-    tips: room.tips,
-    drawings: room.state === GAME_STATES.PLAYING ? {} : room.drawings, // Hide drawings until voting
-    votes: room.votes,
+    tips: room.tips || [],
+    messages: room.messages || [],
+    drawings: room.state === GAME_STATES.PLAYING ? {} : room.drawings,
+    votes: room.votes || {},
     settings: room.settings,
     currentRound: room.currentRound,
     isGameOver: room.isGameOver

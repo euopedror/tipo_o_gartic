@@ -2,13 +2,14 @@ import { useState, useEffect, useRef } from 'react';
 import { Socket } from 'socket.io-client';
 import { motion } from 'framer-motion';
 import { 
-  Clock, Send, Sparkles, Crown, Eraser, Paintbrush, 
-  Trash2, CheckCircle2, Lightbulb, RefreshCw, Check
+  Clock, Send, Crown, Eraser, Paintbrush, 
+  Trash2, CheckCircle2, Lightbulb, RefreshCw, Check, MessageCircle
 } from 'lucide-react';
 import type { GameState, Player } from '../types';
 import { sounds } from '../utils/audioFx';
 import { getRandomIdea } from '../utils/characterIdeas';
 import type { CharacterIdea } from '../utils/characterIdeas';
+import PartyChat from './common/PartyChat';
 
 interface GameProps {
   socket: Socket;
@@ -33,13 +34,14 @@ const COLOR_PALETTE = [
 ];
 
 export default function Game({ socket, gameState, myPlayer, timer }: GameProps) {
+  const [activeSidebarTab, setActiveSidebarTab] = useState<'chat' | 'tips'>('chat');
   const isMaster = myPlayer?.isMaster;
   const artists = gameState.players.filter(p => !p.isMaster);
   const submittedCount = artists.filter(p => p.hasSubmitted).length;
 
   return (
     <div className="flex-1 flex flex-col md:flex-row p-3 md:p-6 gap-4 bg-bg-dark overflow-hidden">
-      {/* Sidebar: Timer, Progress & Tips */}
+      {/* Sidebar: Timer, Progress, Chat & Tips */}
       <div className="w-full md:w-88 flex flex-col gap-3 shrink-0">
         {/* Timer Card */}
         <div className="bg-panel rounded-3xl p-4 md:p-5 border border-border shadow-xl flex items-center justify-between">
@@ -63,45 +65,90 @@ export default function Game({ socket, gameState, myPlayer, timer }: GameProps) 
           </div>
         </div>
 
-        {/* Tips feed */}
-        <div className="flex-1 bg-panel rounded-3xl border border-border flex flex-col overflow-hidden shadow-xl min-h-[250px]">
-          <div className="p-4 border-b border-border/80 bg-black/20 flex items-center justify-between font-display">
-            <div className="flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-accent-yellow" />
-              <h3 className="font-bold text-sm text-white">Dicas do Mestre</h3>
+        {/* Chat / Tips Feed */}
+        <div className="flex-1 bg-panel rounded-3xl border border-border flex flex-col overflow-hidden shadow-xl min-h-[340px]">
+          {/* Tab Switcher */}
+          <div className="p-2 border-b border-border/80 bg-black/30 flex items-center justify-between">
+            <div className="flex items-center gap-1 bg-panel-light p-1 rounded-xl border border-border/60 w-full">
+              <button
+                type="button"
+                onClick={() => {
+                  sounds.playClick();
+                  setActiveSidebarTab('chat');
+                }}
+                className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+                  activeSidebarTab === 'chat'
+                    ? 'bg-primary text-white shadow-sm'
+                    : 'text-text-muted hover:text-white'
+                }`}
+              >
+                <MessageCircle className="w-3.5 h-3.5 text-accent-cyan" />
+                <span>Chat & Dicas</span>
+                <span className="text-[10px] bg-black/30 px-1.5 py-0.5 rounded-full font-bold">
+                  {gameState.messages?.length || 0}
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  sounds.playClick();
+                  setActiveSidebarTab('tips');
+                }}
+                className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+                  activeSidebarTab === 'tips'
+                    ? 'bg-accent-yellow text-black font-black shadow-sm'
+                    : 'text-text-muted hover:text-white'
+                }`}
+              >
+                <Lightbulb className="w-3.5 h-3.5" />
+                <span>Só Dicas</span>
+                <span className="text-[10px] bg-black/20 px-1.5 py-0.5 rounded-full font-bold">
+                  {gameState.tips.length}
+                </span>
+              </button>
             </div>
-            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-violet-500/20 text-violet-300">
-              {gameState.tips.length} {gameState.tips.length === 1 ? 'dica' : 'dicas'}
-            </span>
           </div>
 
-          <div className="flex-1 overflow-y-auto p-4 space-y-3">
-            {gameState.tips.length === 0 ? (
-              <div className="h-full flex flex-col items-center justify-center text-center text-text-muted text-xs p-4">
-                <span className="text-3xl mb-2">👂</span>
-                <p className="font-medium">O Mestre está preparando a primeira dica...</p>
-                <p className="text-[11px] opacity-70 mt-1">Fique de olho aqui!</p>
-              </div>
-            ) : (
-              gameState.tips.map((tip, idx) => (
-                <motion.div
-                  key={idx}
-                  initial={{ opacity: 0, x: -10, scale: 0.95 }}
-                  animate={{ opacity: 1, x: 0, scale: 1 }}
-                  className="bg-primary/15 border border-primary/30 p-3 rounded-2xl rounded-tl-sm text-white text-sm shadow-sm relative"
-                >
-                  <div className="text-[10px] text-accent-cyan font-bold uppercase tracking-wider mb-1 flex items-center gap-1">
-                    <span>👑 Mestre</span>
-                    <span className="text-text-muted">• Dica #{idx + 1}</span>
+          {activeSidebarTab === 'chat' ? (
+            <PartyChat
+              socket={socket}
+              roomId={gameState.id}
+              messages={gameState.messages}
+              myPlayer={myPlayer}
+              isMaster={Boolean(isMaster)}
+            />
+          ) : (
+            <div className="flex-1 flex flex-col overflow-hidden">
+              <div className="flex-1 overflow-y-auto p-4 space-y-3">
+                {gameState.tips.length === 0 ? (
+                  <div className="h-full flex flex-col items-center justify-center text-center text-text-muted text-xs p-4">
+                    <span className="text-3xl mb-2">👂</span>
+                    <p className="font-medium">O Mestre está preparando a primeira dica...</p>
+                    <p className="text-[11px] opacity-70 mt-1">Fique de olho aqui!</p>
                   </div>
-                  <p className="font-medium text-slate-100">{tip}</p>
-                </motion.div>
-              ))
-            )}
-          </div>
+                ) : (
+                  gameState.tips.map((tip, idx) => (
+                    <motion.div
+                      key={idx}
+                      initial={{ opacity: 0, x: -10, scale: 0.95 }}
+                      animate={{ opacity: 1, x: 0, scale: 1 }}
+                      className="bg-primary/15 border border-primary/30 p-3 rounded-2xl rounded-tl-sm text-white text-sm shadow-sm relative"
+                    >
+                      <div className="text-[10px] text-accent-cyan font-bold uppercase tracking-wider mb-1 flex items-center gap-1">
+                        <span>👑 Mestre</span>
+                        <span className="text-text-muted">• Dica #{idx + 1}</span>
+                      </div>
+                      <p className="font-medium text-slate-100">{tip}</p>
+                    </motion.div>
+                  ))
+                )}
+              </div>
 
-          {isMaster && (
-            <MasterTipInput socket={socket} roomId={gameState.id} />
+              {isMaster && (
+                <MasterTipInput socket={socket} roomId={gameState.id} />
+              )}
+            </div>
           )}
         </div>
       </div>

@@ -20,6 +20,18 @@ export interface GameSettings {
   maxRounds: number;
 }
 
+export interface ChatMessage {
+  id: string;
+  senderId: string;
+  senderName: string;
+  senderAvatar: string;
+  text: string;
+  isMaster?: boolean;
+  isTip?: boolean;
+  isSystem?: boolean;
+  timestamp: number;
+}
+
 export interface GameState {
   id: string;
   state: GamePhase;
@@ -27,6 +39,7 @@ export interface GameState {
   masterId: string | null;
   character?: string | null;
   tips: string[];
+  messages?: ChatMessage[];
   drawings: Record<string, string>; // { [playerId]: dataUrl }
   votes: Record<string, PlayerVotes>; // { [playerId]: { similar, funny } }
   timer?: number;
