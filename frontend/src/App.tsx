@@ -11,7 +11,6 @@ import Voting from './components/Voting';
 import Results from './components/Results';
 import FloatingReactions from './components/common/FloatingReactions';
 import PartyChat from './components/common/PartyChat';
-import VoiceChat from './components/common/VoiceChat';
 import type { GameState, ReactionItem, ChatMessage } from './types';
 import { sounds } from './utils/audioFx';
 
@@ -78,9 +77,30 @@ export default function App() {
     });
 
     socket.on('new_chat_message', (msg: ChatMessage) => {
+      setGameState((prev) => {
+        if (!prev) return prev;
+        const exists = prev.messages?.some((m) => m.id === msg.id);
+        if (exists) return prev;
+        return {
+          ...prev,
+          messages: [...(prev.messages || []), msg]
+        };
+      });
       if (msg.senderId !== socket.id) {
         setUnreadChatCount((prev) => prev + 1);
       }
+    });
+
+    socket.on('new_tip', (tip: string) => {
+      sounds.playPop();
+      setGameState((prev) => {
+        if (!prev) return prev;
+        if (prev.tips?.includes(tip)) return prev;
+        return {
+          ...prev,
+          tips: [...(prev.tips || []), tip]
+        };
+      });
     });
 
     socket.on('timer_update', (time: number) => {
@@ -105,6 +125,7 @@ export default function App() {
       socket.off('room_update');
       socket.off('left_room_success');
       socket.off('new_chat_message');
+      socket.off('new_tip');
       socket.off('timer_update');
       socket.off('new_reaction');
       socket.off('error');
@@ -257,14 +278,6 @@ export default function App() {
 
         {/* Right side controls */}
         <div className="flex items-center gap-2 sm:gap-3">
-          {/* Live Voice Chat Pill */}
-          <VoiceChat
-            socket={socket}
-            roomId={gameState.id}
-            players={gameState.players}
-            myPlayer={myPlayer}
-          />
-
           <button
             onClick={toggleSound}
             className="p-2 rounded-xl bg-panel-light hover:bg-border/60 border border-border transition-colors text-text-muted hover:text-white"

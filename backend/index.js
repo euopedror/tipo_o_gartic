@@ -53,7 +53,6 @@ function createRoom(roomId) {
       roundTime: 0, // 0 = Sem limite de tempo (modo padrão para descrição)
       maxRounds: 3
     },
-    voiceUsers: new Set(),
     currentRound: 1,
     isGameOver: false
   };
@@ -222,44 +221,6 @@ io.on('connection', (socket) => {
     endPlayingPhase(cleanRoomId);
   });
 
-  // WebRTC Live Voice Chat Signaling
-  socket.on('voice_join', ({ roomId }) => {
-    if (!roomId) return;
-    const cleanRoomId = String(roomId).trim().toUpperCase();
-    const room = rooms[cleanRoomId];
-    if (!room) return;
-    if (!room.voiceUsers) room.voiceUsers = new Set();
-
-    socket.to(cleanRoomId).emit('voice_user_joined', { userId: socket.id });
-    
-    const otherUsers = Array.from(room.voiceUsers).filter(id => id !== socket.id);
-    socket.emit('voice_users_list', { userIds: otherUsers });
-
-    room.voiceUsers.add(socket.id);
-  });
-
-  socket.on('voice_offer', ({ to, offer }) => {
-    io.to(to).emit('voice_offer', { from: socket.id, offer });
-  });
-
-  socket.on('voice_answer', ({ to, answer }) => {
-    io.to(to).emit('voice_answer', { from: socket.id, answer });
-  });
-
-  socket.on('voice_ice_candidate', ({ to, candidate }) => {
-    io.to(to).emit('voice_ice_candidate', { from: socket.id, candidate });
-  });
-
-  socket.on('voice_leave', ({ roomId }) => {
-    if (!roomId) return;
-    const cleanRoomId = String(roomId).trim().toUpperCase();
-    const room = rooms[cleanRoomId];
-    if (room && room.voiceUsers) {
-      room.voiceUsers.delete(socket.id);
-      socket.to(cleanRoomId).emit('voice_user_left', { userId: socket.id });
-    }
-  });
-
   socket.on('send_reaction', ({ roomId, emoji }) => {
     if (!roomId) return;
     const cleanRoomId = String(roomId).trim().toUpperCase();
@@ -279,7 +240,8 @@ io.on('connection', (socket) => {
     const cleanRoomId = String(roomId).trim().toUpperCase();
     const room = rooms[cleanRoomId];
     if (!room || room.state !== GAME_STATES.PLAYING) return;
-    if (socket.id !== room.masterId) return;
+    const isMaster = socket.id === room.masterId || Boolean(room.players[socket.id]?.isMaster);
+    if (!isMaster) return;
     room.character = character;
   });
 
@@ -288,11 +250,13 @@ io.on('connection', (socket) => {
     const cleanRoomId = String(roomId).trim().toUpperCase();
     const room = rooms[cleanRoomId];
     if (!room || room.state !== GAME_STATES.PLAYING) return;
-    if (socket.id !== room.masterId) return;
+    const isMaster = socket.id === room.masterId || Boolean(room.players[socket.id]?.isMaster);
+    if (!isMaster) return;
 
     const cleanTip = tip.trim().slice(0, 150);
     if (!cleanTip) return;
 
+    if (!room.tips) room.tips = [];
     room.tips.push(cleanTip);
 
     const tipMessage = {
@@ -437,12 +401,6 @@ function removePlayerFromRoom(socket, roomId) {
   delete room.players[socket.id];
   socket.leave(roomId);
   socket.emit('left_room_success');
-
-  // Clean up from voice chat if active
-  if (room.voiceUsers && room.voiceUsers.has(socket.id)) {
-    room.voiceUsers.delete(socket.id);
-    socket.to(roomId).emit('voice_user_left', { userId: socket.id });
-  }
 
   // If no players remain, clean up room
   if (Object.keys(room.players).length === 0) {

@@ -21,51 +21,78 @@ export default function PartyChat({
   socket,
   roomId,
   messages = [],
-  myPlayer: _myPlayer,
+  myPlayer,
   isMaster = false,
   compact = false,
   onClose
 }: PartyChatProps) {
   const [inputText, setInputText] = useState('');
   const [sendAsTip, setSendAsTip] = useState(isMaster);
-  const [localMessages, setLocalMessages] = useState<ChatMessage[]>(messages);
+  const [localMessages, setLocalMessages] = useState<ChatMessage[]>(() => messages);
   const chatScrollRef = useRef<HTMLDivElement>(null);
-  const lastMsgCountRef = useRef(messages.length);
 
-  // Sync with prop messages
+  // Sync external messages without wiping local additions
   useEffect(() => {
-    setLocalMessages(messages);
+    if (messages && messages.length > 0) {
+      setLocalMessages((prev) => {
+        const map = new Map<string, ChatMessage>();
+        prev.forEach((m) => map.set(m.id, m));
+        messages.forEach((m) => map.set(m.id, m));
+        return Array.from(map.values()).sort((a, b) => a.timestamp - b.timestamp);
+      });
+    }
   }, [messages]);
 
-  // Listen to new_chat_message in real time
+  // Listen to new_chat_message and new_tip in real time
   useEffect(() => {
     const handleNewMessage = (msg: ChatMessage) => {
       setLocalMessages((prev) => {
-        if (prev.some((m) => m.id === msg.id)) return prev;
+        if (prev.some((m) => m.id === msg.id || (m.senderId === msg.senderId && m.text === msg.text && Math.abs(m.timestamp - msg.timestamp) < 3000))) {
+          return prev;
+        }
         return [...prev, msg];
       });
 
-      // Play audio if message is not from self
       if (msg.senderId !== socket.id) {
         sounds.playPop();
       }
     };
 
+    const handleNewTip = (tipText: string) => {
+      setLocalMessages((prev) => {
+        if (prev.some((m) => m.isTip && m.text === tipText)) return prev;
+        return [
+          ...prev,
+          {
+            id: 'tip-' + Date.now() + '-' + Math.random().toString(36).substring(2, 6),
+            senderId: 'master',
+            senderName: 'Mestre',
+            senderAvatar: '👑',
+            text: tipText,
+            isMaster: true,
+            isTip: true,
+            timestamp: Date.now()
+          }
+        ];
+      });
+      sounds.playPop();
+    };
+
     socket.on('new_chat_message', handleNewMessage);
+    socket.on('new_tip', handleNewTip);
+
     return () => {
       socket.off('new_chat_message', handleNewMessage);
+      socket.off('new_tip', handleNewTip);
     };
   }, [socket]);
 
   // Auto-scroll on new message
   useEffect(() => {
-    if (localMessages.length > lastMsgCountRef.current) {
-      chatScrollRef.current?.scrollTo({
-        top: chatScrollRef.current.scrollHeight,
-        behavior: 'smooth'
-      });
-    }
-    lastMsgCountRef.current = localMessages.length;
+    chatScrollRef.current?.scrollTo({
+      top: chatScrollRef.current.scrollHeight,
+      behavior: 'smooth'
+    });
   }, [localMessages.length]);
 
   const handleSendMessage = (e?: React.FormEvent) => {
@@ -73,13 +100,38 @@ export default function PartyChat({
     const text = inputText.trim();
     if (!text) return;
 
+    const senderName = myPlayer?.name || 'Você';
+    const senderAvatar = myPlayer?.avatar || '🎨';
+
     if (isMaster && sendAsTip) {
       // Send as official tip
       sounds.playPop();
+      const tipMsg: ChatMessage = {
+        id: 'local-' + Date.now() + '-' + Math.random().toString(36).substring(2, 6),
+        senderId: socket.id || 'me',
+        senderName: senderName,
+        senderAvatar: '👑',
+        text: text,
+        isMaster: true,
+        isTip: true,
+        timestamp: Date.now()
+      };
+      setLocalMessages((prev) => [...prev, tipMsg]);
       socket.emit('send_tip', { roomId, tip: text });
     } else {
       // Normal chat message
       sounds.playClick();
+      const chatMsg: ChatMessage = {
+        id: 'local-' + Date.now() + '-' + Math.random().toString(36).substring(2, 6),
+        senderId: socket.id || 'me',
+        senderName: senderName,
+        senderAvatar: senderAvatar,
+        text: text,
+        isMaster: Boolean(isMaster),
+        isTip: false,
+        timestamp: Date.now()
+      };
+      setLocalMessages((prev) => [...prev, chatMsg]);
       socket.emit('send_chat_message', { roomId, text });
     }
 
@@ -88,16 +140,29 @@ export default function PartyChat({
 
   const handleQuickEmoji = (emoji: string) => {
     sounds.playPop();
+    const senderName = myPlayer?.name || 'Você';
+    const senderAvatar = myPlayer?.avatar || '🎨';
+    const chatMsg: ChatMessage = {
+      id: 'local-' + Date.now() + '-' + Math.random().toString(36).substring(2, 6),
+      senderId: socket.id || 'me',
+      senderName: senderName,
+      senderAvatar: senderAvatar,
+      text: emoji,
+      isMaster: Boolean(isMaster),
+      isTip: false,
+      timestamp: Date.now()
+    };
+    setLocalMessages((prev) => [...prev, chatMsg]);
     socket.emit('send_chat_message', { roomId, text: emoji });
   };
 
   return (
     <div className={`flex flex-col h-full bg-panel ${compact ? 'border border-border/80 rounded-2xl shadow-2xl overflow-hidden' : ''}`}>
       {/* Header */}
-      <div className="p-3.5 bg-black/30 border-b border-border/70 flex items-center justify-between">
+      <div className="p-3 bg-black/40 border-b border-border/70 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <MessageCircle className="w-4 h-4 text-accent-cyan" />
-          <h3 className="font-bold text-sm text-white font-display">Chat da Sala</h3>
+          <h3 className="font-bold text-xs md:text-sm text-white font-display">Chat da Sala</h3>
           <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-violet-500/20 text-violet-300">
             {localMessages.length}
           </span>
@@ -116,17 +181,17 @@ export default function PartyChat({
       {/* Messages stream */}
       <div 
         ref={chatScrollRef}
-        className="flex-1 overflow-y-auto p-3.5 space-y-2.5 min-h-[160px] text-xs"
+        className="flex-1 overflow-y-auto p-3 space-y-2 min-h-[140px] text-xs"
       >
         {localMessages.length === 0 ? (
           <div className="h-full flex flex-col items-center justify-center text-center text-text-muted py-6">
             <span className="text-2xl mb-1">💬</span>
-            <p className="font-semibold text-xs">O chat está silencioso...</p>
-            <p className="text-[11px] opacity-70">Mande um "Oi" ou dê uma dica!</p>
+            <p className="font-semibold text-xs">O chat está pronto!</p>
+            <p className="text-[11px] opacity-70">Mande uma mensagem ou uma dica visual.</p>
           </div>
         ) : (
           localMessages.map((msg) => {
-            const isMe = msg.senderId === socket.id;
+            const isMe = msg.senderId === socket.id || msg.senderId === 'me';
 
             // System Message
             if (msg.isSystem) {
@@ -147,7 +212,7 @@ export default function PartyChat({
                   key={msg.id}
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  className="p-2.5 bg-gradient-to-r from-amber-500/20 via-yellow-500/15 to-amber-500/20 border border-accent-yellow/50 rounded-2xl shadow-md text-white my-1"
+                  className="p-2.5 bg-gradient-to-r from-amber-500/20 via-yellow-500/15 to-amber-500/20 border-2 border-accent-yellow/60 rounded-2xl shadow-md text-white my-1"
                 >
                   <div className="flex items-center gap-1.5 text-[10px] font-bold text-accent-yellow uppercase tracking-wider mb-1">
                     <Crown className="w-3.5 h-3.5 fill-current" />
@@ -169,7 +234,7 @@ export default function PartyChat({
 
                 {/* Bubble */}
                 <div
-                  className={`max-w-[78%] rounded-2xl px-3 py-2 ${
+                  className={`max-w-[80%] rounded-2xl px-3 py-2 ${
                     isMe
                       ? 'bg-primary text-white rounded-tr-sm shadow-md'
                       : 'bg-black/40 border border-border/70 text-slate-100 rounded-tl-sm shadow-sm'
@@ -191,7 +256,7 @@ export default function PartyChat({
       </div>
 
       {/* Quick Reaction Emojis */}
-      <div className="px-3 py-1.5 bg-black/20 border-t border-border/50 flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+      <div className="px-3 py-1 bg-black/20 border-t border-border/50 flex items-center gap-1.5 overflow-x-auto no-scrollbar">
         <span className="text-[10px] text-text-muted font-bold mr-1 shrink-0">Reagir:</span>
         {QUICK_EMOJIS.map((emoji) => (
           <button
@@ -208,8 +273,8 @@ export default function PartyChat({
 
       {/* Master Toggle: Send as Tip or Chat */}
       {isMaster && (
-        <div className="px-3 py-1.5 bg-accent-yellow/10 border-t border-accent-yellow/20 flex items-center justify-between text-xs">
-          <span className="text-[11px] font-bold text-accent-yellow flex items-center gap-1">
+        <div className="px-3 py-1 bg-accent-yellow/10 border-t border-accent-yellow/20 flex items-center justify-between text-xs">
+          <span className="text-[10px] font-bold text-accent-yellow flex items-center gap-1">
             <Crown className="w-3 h-3" /> Modo Mestre:
           </span>
           <div className="flex items-center gap-1 bg-black/40 p-0.5 rounded-lg border border-border/60">

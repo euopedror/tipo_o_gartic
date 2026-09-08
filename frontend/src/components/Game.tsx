@@ -3,7 +3,7 @@ import { Socket } from 'socket.io-client';
 import { motion } from 'framer-motion';
 import { 
   Clock, Send, Crown, Eraser, Paintbrush, 
-  Trash2, CheckCircle2, Lightbulb, RefreshCw, Check, MessageCircle
+  Trash2, CheckCircle2, Lightbulb, RefreshCw, Check, MessageCircle, Sparkles
 } from 'lucide-react';
 import type { GameState, Player } from '../types';
 import { sounds } from '../utils/audioFx';
@@ -187,9 +187,20 @@ export default function Game({ socket, gameState, myPlayer, timer }: GameProps) 
       {/* Main Canvas / Master Center Area */}
       <div className="flex-1 bg-panel rounded-3xl border border-border overflow-hidden relative shadow-2xl flex flex-col min-h-[420px]">
         {isMaster ? (
-          <MasterDashboard socket={socket} roomId={gameState.id} submittedCount={submittedCount} totalArtists={artists.length} />
+          <MasterDashboard 
+            socket={socket} 
+            roomId={gameState.id} 
+            submittedCount={submittedCount} 
+            totalArtists={artists.length} 
+            tips={gameState.tips}
+          />
         ) : (
-          <DrawingBoard socket={socket} roomId={gameState.id} myPlayer={myPlayer} />
+          <DrawingBoard 
+            socket={socket} 
+            roomId={gameState.id} 
+            myPlayer={myPlayer} 
+            tips={gameState.tips}
+          />
         )}
       </div>
     </div>
@@ -233,15 +244,18 @@ function MasterDashboard({
   socket, 
   roomId, 
   submittedCount, 
-  totalArtists 
+  totalArtists,
+  tips = []
 }: { 
   socket: Socket; 
   roomId: string; 
   submittedCount: number; 
   totalArtists: number; 
+  tips?: string[];
 }) {
   const [currentIdea, setCurrentIdea] = useState<CharacterIdea>(() => getRandomIdea());
   const [customWord, setCustomWord] = useState('');
+  const [manualTip, setManualTip] = useState('');
 
   const handleShuffle = () => {
     sounds.playPop();
@@ -256,6 +270,15 @@ function MasterDashboard({
   const handleSendStarterTip = (tip: string) => {
     sounds.playPop();
     socket.emit('send_tip', { roomId, tip });
+  };
+
+  const handleSendManualTip = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (manualTip.trim()) {
+      sounds.playPop();
+      socket.emit('send_tip', { roomId, tip: manualTip.trim() });
+      setManualTip('');
+    }
   };
 
   const handleSetCustomWord = (e: React.FormEvent) => {
@@ -334,6 +357,42 @@ function MasterDashboard({
           </div>
         </div>
 
+        {/* Manual Custom Tip Input */}
+        <form onSubmit={handleSendManualTip} className="mt-4 pt-3 border-t border-border/60 flex items-center gap-2">
+          <input
+            type="text"
+            value={manualTip}
+            onChange={(e) => setManualTip(e.target.value)}
+            placeholder="Ou escreva sua própria dica (ex: 'Orelhas pontudas')..."
+            className="flex-1 bg-bg-dark border border-border rounded-xl px-3 py-2 text-xs text-white placeholder:text-gray-500 focus:outline-none focus:border-accent-yellow"
+            maxLength={120}
+          />
+          <button
+            type="submit"
+            disabled={!manualTip.trim()}
+            className="bg-accent-yellow hover:bg-yellow-400 disabled:opacity-40 text-black font-bold text-xs px-3.5 py-2 rounded-xl transition-all shadow-md active:scale-95 flex items-center gap-1.5 shrink-0"
+          >
+            <Send className="w-3.5 h-3.5" /> Enviar Dica
+          </button>
+        </form>
+
+        {/* Tips Sent in this Round */}
+        {tips.length > 0 && (
+          <div className="mt-4 pt-3 border-t border-border/60">
+            <span className="text-[11px] font-bold text-accent-yellow uppercase tracking-wider block mb-2">
+              Dicas enviadas aos artistas nesta rodada ({tips.length}):
+            </span>
+            <div className="flex flex-col gap-1.5 max-h-28 overflow-y-auto pr-1">
+              {tips.map((tip, idx) => (
+                <div key={idx} className="bg-bg-dark border border-accent-yellow/30 px-3 py-1.5 rounded-xl text-xs text-white flex items-start gap-2">
+                  <span className="text-accent-yellow font-bold text-[10px] shrink-0 mt-0.5">#{idx + 1}</span>
+                  <span className="text-slate-100">{tip}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Custom secret character input */}
         <form onSubmit={handleSetCustomWord} className="mt-4 pt-3 border-t border-border/60 flex items-center gap-2">
           <input
@@ -383,11 +442,13 @@ function MasterDashboard({
 function DrawingBoard({ 
   socket, 
   roomId, 
-  myPlayer: _myPlayer 
+  myPlayer: _myPlayer,
+  tips = []
 }: { 
   socket: Socket; 
   roomId: string; 
   myPlayer?: Player; 
+  tips?: string[];
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
@@ -633,11 +694,35 @@ function DrawingBoard({
         </button>
       </div>
 
-      {/* Friendly Rule Hint */}
-      <div className="absolute top-16 left-1/2 -translate-x-1/2 pointer-events-none z-10 hidden sm:block">
-        <span className="bg-black/60 backdrop-blur border border-border/80 text-text-muted text-[10px] px-3 py-1 rounded-full font-medium">
-          💡 Sem Ctrl+Z: no Desenho Cego o erro faz parte da arte!
-        </span>
+      {/* Pinned Master Tips Banner on Canvas */}
+      <div className="absolute top-16 left-3 right-3 sm:left-6 sm:right-6 z-10 pointer-events-auto flex flex-col items-center">
+        {tips.length === 0 ? (
+          <div className="bg-black/80 backdrop-blur-md border border-accent-yellow/40 px-4 py-2 rounded-2xl shadow-xl flex items-center gap-2 text-xs text-amber-200 animate-pulse">
+            <Sparkles className="w-4 h-4 text-accent-yellow shrink-0" />
+            <span className="font-semibold">Aguardando o Mestre enviar a primeira pista visual...</span>
+          </div>
+        ) : (
+          <div className="max-w-xl w-full bg-black/85 backdrop-blur-md border border-accent-yellow/50 rounded-2xl p-2.5 shadow-2xl">
+            <div className="flex items-center justify-between gap-2 pb-1 border-b border-white/10 mb-1">
+              <div className="flex items-center gap-1.5 text-accent-yellow text-xs font-black uppercase tracking-wider">
+                <Crown className="w-3.5 h-3.5" />
+                <span>Dicas do Mestre</span>
+                <span className="bg-accent-yellow/20 text-accent-yellow text-[10px] px-2 py-0.2 rounded-full font-mono">
+                  {tips.length}
+                </span>
+              </div>
+              <span className="text-[10px] text-text-muted hidden sm:inline">Desenhe seguindo as instruções:</span>
+            </div>
+            <div className="flex flex-col gap-1 max-h-24 overflow-y-auto pr-1">
+              {tips.map((tip, idx) => (
+                <div key={idx} className="bg-white/5 border border-white/10 rounded-xl px-2.5 py-1 text-xs text-slate-100 font-medium flex items-start gap-2">
+                  <span className="text-accent-yellow font-bold text-[10px] shrink-0 mt-0.5">#{idx + 1}</span>
+                  <span className="break-words leading-tight">{tip}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Canvas Area */}
