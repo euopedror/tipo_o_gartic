@@ -50,9 +50,10 @@ function createRoom(roomId) {
     timer: 0,
     timerInterval: null,
     settings: {
-      roundTime: 90,
+      roundTime: 0, // 0 = Sem limite de tempo (modo padrão para descrição)
       maxRounds: 3
     },
+    voiceUsers: new Set(),
     currentRound: 1,
     isGameOver: false
   };
@@ -163,7 +164,7 @@ io.on('connection', (socket) => {
     room.character = null;
     
     room.state = GAME_STATES.PLAYING;
-    room.timer = room.settings?.roundTime || 90;
+    room.timer = Number(room.settings?.roundTime ?? 0);
 
     const masterPlayer = room.players[masterId];
     if (!room.messages) room.messages = [];
@@ -179,17 +180,21 @@ io.on('connection', (socket) => {
 
     io.to(cleanRoomId).emit('room_update', getRoomPublicState(cleanRoomId));
     
-    // Start Timer
+    // Start Timer only if roundTime > 0
     if (room.timerInterval) clearInterval(room.timerInterval);
-    room.timerInterval = setInterval(() => {
-      room.timer--;
-      io.to(cleanRoomId).emit('timer_update', room.timer);
-      
-      if (room.timer <= 0) {
-        clearInterval(room.timerInterval);
-        endPlayingPhase(cleanRoomId);
-      }
-    }, 1000);
+    if (room.timer > 0) {
+      room.timerInterval = setInterval(() => {
+        room.timer--;
+        io.to(cleanRoomId).emit('timer_update', room.timer);
+        
+        if (room.timer <= 0) {
+          clearInterval(room.timerInterval);
+          endPlayingPhase(cleanRoomId);
+        }
+      }, 1000);
+    } else {
+      io.to(cleanRoomId).emit('timer_update', 0);
+    }
   });
 
   socket.on('update_settings', ({ roomId, roundTime, maxRounds }) => {
@@ -198,9 +203,61 @@ io.on('connection', (socket) => {
     const room = rooms[cleanRoomId];
     if (!room || room.state !== GAME_STATES.LOBBY) return;
 
-    if (roundTime) room.settings.roundTime = Number(roundTime);
+    if (roundTime !== undefined) room.settings.roundTime = Number(roundTime);
     if (maxRounds !== undefined) room.settings.maxRounds = Number(maxRounds);
     io.to(cleanRoomId).emit('room_update', getRoomPublicState(cleanRoomId));
+  });
+
+  socket.on('finish_round_early', ({ roomId }) => {
+    if (!roomId) return;
+    const cleanRoomId = String(roomId).trim().toUpperCase();
+    const room = rooms[cleanRoomId];
+    if (!room || room.state !== GAME_STATES.PLAYING) return;
+    
+    const isMaster = socket.id === room.masterId;
+    const isHost = Object.keys(room.players)[0] === socket.id;
+    if (!isMaster && !isHost) return;
+
+    if (room.timerInterval) clearInterval(room.timerInterval);
+    endPlayingPhase(cleanRoomId);
+  });
+
+  // WebRTC Live Voice Chat Signaling
+  socket.on('voice_join', ({ roomId }) => {
+    if (!roomId) return;
+    const cleanRoomId = String(roomId).trim().toUpperCase();
+    const room = rooms[cleanRoomId];
+    if (!room) return;
+    if (!room.voiceUsers) room.voiceUsers = new Set();
+
+    socket.to(cleanRoomId).emit('voice_user_joined', { userId: socket.id });
+    
+    const otherUsers = Array.from(room.voiceUsers).filter(id => id !== socket.id);
+    socket.emit('voice_users_list', { userIds: otherUsers });
+
+    room.voiceUsers.add(socket.id);
+  });
+
+  socket.on('voice_offer', ({ to, offer }) => {
+    io.to(to).emit('voice_offer', { from: socket.id, offer });
+  });
+
+  socket.on('voice_answer', ({ to, answer }) => {
+    io.to(to).emit('voice_answer', { from: socket.id, answer });
+  });
+
+  socket.on('voice_ice_candidate', ({ to, candidate }) => {
+    io.to(to).emit('voice_ice_candidate', { from: socket.id, candidate });
+  });
+
+  socket.on('voice_leave', ({ roomId }) => {
+    if (!roomId) return;
+    const cleanRoomId = String(roomId).trim().toUpperCase();
+    const room = rooms[cleanRoomId];
+    if (room && room.voiceUsers) {
+      room.voiceUsers.delete(socket.id);
+      socket.to(cleanRoomId).emit('voice_user_left', { userId: socket.id });
+    }
   });
 
   socket.on('send_reaction', ({ roomId, emoji }) => {
@@ -380,6 +437,12 @@ function removePlayerFromRoom(socket, roomId) {
   delete room.players[socket.id];
   socket.leave(roomId);
   socket.emit('left_room_success');
+
+  // Clean up from voice chat if active
+  if (room.voiceUsers && room.voiceUsers.has(socket.id)) {
+    room.voiceUsers.delete(socket.id);
+    socket.to(roomId).emit('voice_user_left', { userId: socket.id });
+  }
 
   // If no players remain, clean up room
   if (Object.keys(room.players).length === 0) {

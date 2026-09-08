@@ -44,24 +44,55 @@ export default function Game({ socket, gameState, myPlayer, timer }: GameProps) 
       {/* Sidebar: Timer, Progress, Chat & Tips */}
       <div className="w-full md:w-88 flex flex-col gap-3 shrink-0">
         {/* Timer Card */}
-        <div className="bg-panel rounded-3xl p-4 md:p-5 border border-border shadow-xl flex items-center justify-between">
+        <div className="bg-panel rounded-3xl p-4 md:p-5 border border-border shadow-xl flex items-center justify-between gap-2">
           <div className="flex items-center gap-3">
-            <div className={`p-3 rounded-2xl ${timer <= 20 ? 'bg-red-500/20 text-red-400' : 'bg-primary/20 text-primary'}`}>
-              <Clock className={`w-6 h-6 ${timer <= 20 ? 'animate-bounce' : ''}`} />
-            </div>
-            <div>
-              <span className="text-[10px] uppercase font-bold tracking-widest text-text-muted font-display">Tempo Restante</span>
-              <div className={`text-3xl font-mono font-black ${timer <= 20 ? 'text-red-400 animate-pulse' : 'text-white'}`}>
-                {timer}s
-              </div>
-            </div>
+            {timer > 0 ? (
+              <>
+                <div className={`p-3 rounded-2xl ${timer <= 20 ? 'bg-red-500/20 text-red-400' : 'bg-primary/20 text-primary'}`}>
+                  <Clock className={`w-6 h-6 ${timer <= 20 ? 'animate-bounce' : ''}`} />
+                </div>
+                <div>
+                  <span className="text-[10px] uppercase font-bold tracking-widest text-text-muted font-display">Tempo Restante</span>
+                  <div className={`text-3xl font-mono font-black ${timer <= 20 ? 'text-red-400 animate-pulse' : 'text-white'}`}>
+                    {timer}s
+                  </div>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="p-3 rounded-2xl bg-emerald-500/20 text-emerald-400">
+                  <span className="text-2xl leading-none">♾️</span>
+                </div>
+                <div>
+                  <span className="text-[10px] uppercase font-bold tracking-widest text-emerald-400 font-display">Sem Pressa</span>
+                  <div className="text-sm font-black text-white font-display">
+                    Tempo Livre
+                  </div>
+                </div>
+              </>
+            )}
           </div>
 
-          <div className="text-right">
+          <div className="text-right flex flex-col items-end gap-1">
             <span className="text-[10px] uppercase font-bold tracking-widest text-text-muted font-display">Entregas</span>
             <div className="text-base font-bold text-accent-cyan font-display">
               {submittedCount} / {artists.length}
             </div>
+            {isMaster && (
+              <button
+                type="button"
+                onClick={() => {
+                  sounds.playPop();
+                  if (window.confirm('Deseja encerrar o tempo de desenho e abrir a votação agora?')) {
+                    socket.emit('finish_round_early', { roomId: gameState.id });
+                  }
+                }}
+                title="Avançar imediatamente para a votação"
+                className="bg-accent-yellow/20 hover:bg-accent-yellow/30 border border-accent-yellow/40 text-accent-yellow px-2 py-1 rounded-lg text-[10px] font-bold transition-all active:scale-95"
+              >
+                🏁 Ir p/ Voto
+              </button>
+            )}
           </div>
         </div>
 
@@ -323,12 +354,27 @@ function MasterDashboard({
         </form>
       </div>
 
-      {/* Progress status */}
-      <div className="text-center p-4 bg-black/20 rounded-2xl border border-border/60 max-w-xl mx-auto w-full flex items-center justify-between">
-        <span className="text-xs font-bold text-text-muted">Artistas que já finalizaram:</span>
-        <span className="font-mono font-bold text-accent-green text-sm bg-accent-green/10 px-3 py-1 rounded-xl border border-accent-green/30">
-          {submittedCount} de {totalArtists} prontos
-        </span>
+      {/* Progress status & Advance Round CTA */}
+      <div className="p-4 bg-black/30 rounded-3xl border border-border/80 max-w-xl mx-auto w-full flex flex-col sm:flex-row items-center justify-between gap-3 shadow-lg">
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-bold text-text-muted">Artistas prontos:</span>
+          <span className="font-mono font-bold text-accent-green text-sm bg-accent-green/10 px-3 py-1 rounded-xl border border-accent-green/30">
+            {submittedCount} de {totalArtists}
+          </span>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => {
+            sounds.playPop();
+            if (window.confirm('Deseja encerrar o tempo de desenho e abrir a votação agora?')) {
+              socket.emit('finish_round_early', { roomId });
+            }
+          }}
+          className="w-full sm:w-auto bg-gradient-to-r from-violet-600 to-pink-600 hover:from-violet-500 hover:to-pink-500 text-white font-extrabold text-xs px-4 py-2.5 rounded-xl shadow-md transition-all active:scale-95 flex items-center justify-center gap-1.5"
+        >
+          <span>🏁 Encerrar Desenho & Ir p/ Votação</span>
+        </button>
       </div>
     </div>
   );

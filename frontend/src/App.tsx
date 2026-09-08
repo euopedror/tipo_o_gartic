@@ -11,6 +11,7 @@ import Voting from './components/Voting';
 import Results from './components/Results';
 import FloatingReactions from './components/common/FloatingReactions';
 import PartyChat from './components/common/PartyChat';
+import VoiceChat from './components/common/VoiceChat';
 import type { GameState, ReactionItem, ChatMessage } from './types';
 import { sounds } from './utils/audioFx';
 
@@ -160,7 +161,7 @@ export default function App() {
     sounds.playClick();
     socket.emit('update_settings', {
       roomId: gameState?.id,
-      roundTime: roundTime ?? gameState?.settings?.roundTime ?? 90,
+      roundTime: roundTime !== undefined ? roundTime : (gameState?.settings?.roundTime ?? 0),
       maxRounds: maxRounds !== undefined ? maxRounds : (gameState?.settings?.maxRounds ?? 3)
     });
   };
@@ -256,6 +257,14 @@ export default function App() {
 
         {/* Right side controls */}
         <div className="flex items-center gap-2 sm:gap-3">
+          {/* Live Voice Chat Pill */}
+          <VoiceChat
+            socket={socket}
+            roomId={gameState.id}
+            players={gameState.players}
+            myPlayer={myPlayer}
+          />
+
           <button
             onClick={toggleSound}
             className="p-2 rounded-xl bg-panel-light hover:bg-border/60 border border-border transition-colors text-text-muted hover:text-white"
@@ -353,8 +362,9 @@ export default function App() {
                       {/* Round Time */}
                       <div>
                         <span className="text-[10px] text-text-muted font-bold uppercase block mb-1">⏱️ Tempo por Rodada:</span>
-                        <div className="grid grid-cols-3 gap-1 bg-panel-light p-1 rounded-xl border border-border/60">
+                        <div className="grid grid-cols-4 gap-1 bg-panel-light p-1 rounded-xl border border-border/60">
                           {[
+                            { label: 'Sem Limite', val: 0 },
                             { label: '60s', val: 60 },
                             { label: '90s', val: 90 },
                             { label: '120s', val: 120 },
@@ -364,7 +374,7 @@ export default function App() {
                               type="button"
                               onClick={() => handleUpdateSettings(opt.val, undefined)}
                               className={`py-1.5 rounded-lg text-xs font-bold transition-all ${
-                                (gameState.settings?.roundTime || 90) === opt.val
+                                (gameState.settings?.roundTime ?? 0) === opt.val
                                   ? 'bg-primary text-white shadow-sm font-black'
                                   : 'text-text-muted hover:text-white'
                               }`}
@@ -405,7 +415,9 @@ export default function App() {
                   <div className="mb-5 py-2 px-4 bg-black/25 rounded-2xl border border-border/60 flex items-center justify-around text-xs">
                     <div className="flex items-center gap-1.5 text-text-muted">
                       <span>⏱️ Tempo:</span>
-                      <span className="font-bold text-white">{gameState.settings?.roundTime || 90}s</span>
+                      <span className="font-bold text-white">
+                        {(gameState.settings?.roundTime ?? 0) === 0 ? 'Sem Limite (♾️)' : `${gameState.settings?.roundTime}s`}
+                      </span>
                     </div>
                     <div className="w-px h-4 bg-border" />
                     <div className="flex items-center gap-1.5 text-text-muted">
