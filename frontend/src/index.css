@@ -29,7 +29,7 @@ body {
   /* Radiant party game illustrated background */
   background: 
     linear-gradient(180deg, rgba(12, 14, 32, 0.72) 0%, rgba(9, 11, 24, 0.88) 100%),
-    url('/wallpaper.jpg') center/cover no-repeat fixed;
+    url('./assets/wallpaper.jpg') center/cover no-repeat fixed;
   overflow-x: hidden;
 }
 

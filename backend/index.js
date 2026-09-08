@@ -6,6 +6,19 @@ import cors from 'cors';
 const app = express();
 app.use(cors());
 
+// Health check and root route (avoids 404 on Render and browser navigation)
+app.get('/', (req, res) => {
+  res.json({
+    status: 'online',
+    game: 'Desenho Cego Server',
+    activeRooms: Object.keys(rooms).length
+  });
+});
+
+app.get('/health', (req, res) => {
+  res.status(200).send('OK');
+});
+
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
   cors: {

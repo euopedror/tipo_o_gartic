@@ -4,6 +4,7 @@ import { Dices, ArrowRight, Palette, EyeOff, Trophy, AlertCircle, Sparkles, Volu
 import AvatarPicker from './common/AvatarPicker';
 import { AVATARS } from '../types';
 import { sounds } from '../utils/audioFx';
+import bannerImg from '../assets/banner.jpg';
 
 interface LobbyProps {
   onJoin: (roomId: string, name: string, avatar: string) => void;
@@ -118,7 +119,7 @@ export default function Lobby({ onJoin, error }: LobbyProps) {
         >
           <div className="relative rounded-3xl overflow-hidden border-4 border-amber-400 shadow-2xl shadow-amber-500/30 bg-slate-950">
             <img 
-              src="/banner.jpg" 
+              src={bannerImg} 
               alt="Desenho Cego - Festa do Desenho" 
               className="w-full aspect-[16/9] object-cover object-center"
             />
