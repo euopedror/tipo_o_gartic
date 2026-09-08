@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
 import { Socket } from 'socket.io-client';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Clock, Send, Crown, Eraser, Paintbrush, 
-  Trash2, CheckCircle2, Lightbulb, RefreshCw, Check, MessageCircle, Sparkles
+  Trash2, CheckCircle2, Lightbulb, RefreshCw, Check, MessageCircle, Sparkles,
+  ChevronDown, ChevronUp, X
 } from 'lucide-react';
 import type { GameState, Player } from '../types';
 import { sounds } from '../utils/audioFx';
@@ -458,6 +459,23 @@ function DrawingBoard({
   const [lineWidth, setLineWidth] = useState(4);
   const [isEraser, setIsEraser] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [tipsMinimized, setTipsMinimized] = useState(true);
+  const [newTipAlert, setNewTipAlert] = useState<string | null>(null);
+  const prevTipsCount = useRef(tips.length);
+
+  // Show a sleek non-intrusive toast alert whenever the Master sends a new tip
+  useEffect(() => {
+    if (tips.length > prevTipsCount.current && tips.length > 0) {
+      const latest = tips[tips.length - 1];
+      setNewTipAlert(latest);
+      sounds.playPop();
+      const timer = setTimeout(() => {
+        setNewTipAlert(null);
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+    prevTipsCount.current = tips.length;
+  }, [tips.length]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -537,6 +555,9 @@ function DrawingBoard({
 
   const startDrawing = (e: React.MouseEvent | React.TouchEvent) => {
     if (submitted) return;
+    if (!tipsMinimized) {
+      setTipsMinimized(true);
+    }
     setIsDrawing(true);
     const { x, y } = getCoordinates(e);
     const ctx = canvasRef.current?.getContext('2d');
@@ -696,34 +717,113 @@ function DrawingBoard({
         </button>
       </div>
 
-      {/* Pinned Master Tips Banner on Canvas */}
-      <div className="absolute top-16 left-3 right-3 sm:left-6 sm:right-6 z-10 pointer-events-auto flex flex-col items-center">
-        {tips.length === 0 ? (
-          <div className="bg-black/80 backdrop-blur-md border border-accent-yellow/40 px-4 py-2 rounded-2xl shadow-xl flex items-center gap-2 text-xs text-amber-200 animate-pulse">
-            <Sparkles className="w-4 h-4 text-accent-yellow shrink-0" />
-            <span className="font-semibold">Aguardando o Mestre enviar a primeira pista visual...</span>
-          </div>
+      {/* Toast Notification for New Tip (auto-dismisses after 5s) */}
+      <AnimatePresence>
+        {newTipAlert && (
+          <motion.div
+            initial={{ opacity: 0, y: -20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -20, scale: 0.95 }}
+            className="absolute top-16 left-1/2 -translate-x-1/2 z-30 bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 text-slate-950 px-4 py-2.5 rounded-2xl shadow-2xl flex items-center gap-3 max-w-md w-[90%] border border-white/40 pointer-events-auto cursor-pointer"
+            onClick={() => {
+              setNewTipAlert(null);
+              setTipsMinimized(false);
+            }}
+            title="Clique para abrir todas as dicas"
+          >
+            <div className="p-1.5 bg-black/20 rounded-xl shrink-0">
+              <Crown className="w-4 h-4 text-black" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="text-[10px] font-black uppercase tracking-wider text-black/70">
+                Nova Dica #{tips.length}!
+              </div>
+              <div className="text-xs font-black truncate text-black">{newTipAlert}</div>
+            </div>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setNewTipAlert(null);
+              }}
+              className="p-1 text-black/60 hover:text-black rounded-lg transition-colors"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Floating Master Tips Toggle & Panel (in top-right corner to never block canvas center) */}
+      <div className="absolute top-16 right-3 sm:right-5 z-20 pointer-events-auto">
+        {tipsMinimized ? (
+          <button
+            type="button"
+            onClick={() => {
+              sounds.playClick();
+              setTipsMinimized(false);
+            }}
+            className="bg-panel/95 hover:bg-panel text-accent-yellow border border-accent-yellow/50 hover:border-accent-yellow px-3.5 py-1.5 rounded-2xl shadow-xl flex items-center gap-2 text-xs font-bold backdrop-blur transition-all active:scale-95 hover:scale-105"
+            title="Abrir painel de dicas do Mestre"
+          >
+            <Crown className="w-3.5 h-3.5 text-accent-yellow" />
+            <span>Dicas ({tips.length})</span>
+            <ChevronDown className="w-3.5 h-3.5 text-text-muted" />
+          </button>
         ) : (
-          <div className="max-w-xl w-full bg-black/85 backdrop-blur-md border border-accent-yellow/50 rounded-2xl p-2.5 shadow-2xl">
-            <div className="flex items-center justify-between gap-2 pb-1 border-b border-white/10 mb-1">
+          <motion.div
+            initial={{ opacity: 0, y: -10, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            className="w-80 max-w-[calc(100vw-2.5rem)] bg-panel/98 backdrop-blur-md border-2 border-accent-yellow/60 rounded-3xl p-3 shadow-2xl"
+          >
+            <div className="flex items-center justify-between gap-2 pb-2 border-b border-border/80 mb-2">
               <div className="flex items-center gap-1.5 text-accent-yellow text-xs font-black uppercase tracking-wider">
-                <Crown className="w-3.5 h-3.5" />
+                <Crown className="w-4 h-4 fill-accent-yellow/20" />
                 <span>Dicas do Mestre</span>
-                <span className="bg-accent-yellow/20 text-accent-yellow text-[10px] px-2 py-0.2 rounded-full font-mono">
+                <span className="bg-accent-yellow/20 text-accent-yellow text-[10px] px-2 py-0.2 rounded-full font-mono font-bold">
                   {tips.length}
                 </span>
               </div>
-              <span className="text-[10px] text-text-muted hidden sm:inline">Desenhe seguindo as instruções:</span>
+              <button
+                type="button"
+                onClick={() => {
+                  sounds.playClick();
+                  setTipsMinimized(true);
+                }}
+                className="text-text-muted hover:text-white bg-white/5 hover:bg-white/10 px-2 py-1 rounded-xl transition-colors flex items-center gap-1 text-[10px] font-bold"
+                title="Ocultar painel para desenhar livremente"
+              >
+                <ChevronUp className="w-3.5 h-3.5" />
+                <span>Ocultar</span>
+              </button>
             </div>
-            <div className="flex flex-col gap-1 max-h-24 overflow-y-auto pr-1">
-              {tips.map((tip, idx) => (
-                <div key={idx} className="bg-white/5 border border-white/10 rounded-xl px-2.5 py-1 text-xs text-slate-100 font-medium flex items-start gap-2">
-                  <span className="text-accent-yellow font-bold text-[10px] shrink-0 mt-0.5">#{idx + 1}</span>
-                  <span className="break-words leading-tight">{tip}</span>
-                </div>
-              ))}
+
+            {tips.length === 0 ? (
+              <div className="py-4 text-center text-xs text-text-muted">
+                <Sparkles className="w-4 h-4 text-accent-yellow mx-auto mb-1.5 opacity-70 animate-pulse" />
+                <p className="font-medium">O Mestre ainda não enviou dicas.</p>
+                <p className="text-[10px] opacity-70 mt-0.5">Fique atento à tela!</p>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-1.5 max-h-48 overflow-y-auto pr-1 text-xs">
+                {tips.map((tip, idx) => (
+                  <div
+                    key={idx}
+                    className="bg-black/40 border border-border/80 rounded-xl p-2 text-slate-100 flex items-start gap-2"
+                  >
+                    <span className="text-accent-yellow font-black text-[10px] shrink-0 mt-0.5">
+                      #{idx + 1}
+                    </span>
+                    <span className="break-words leading-tight">{tip}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className="mt-2 pt-1.5 border-t border-border/50 text-[10px] text-text-muted text-center flex items-center justify-center gap-1">
+              <span>💡 Dica: Dicas também disponíveis no chat ao lado</span>
             </div>
-          </div>
+          </motion.div>
         )}
       </div>
 
