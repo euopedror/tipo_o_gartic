@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Socket } from 'socket.io-client';
 import { motion } from 'framer-motion';
-import { Send, Crown, Sparkles, MessageCircle, X } from 'lucide-react';
+import { Send, Crown, Sparkles, MessageCircle, X, Volume2, VolumeX } from 'lucide-react';
 import type { ChatMessage, Player } from '../../types';
 import { sounds } from '../../utils/audioFx';
 
@@ -11,6 +11,8 @@ interface PartyChatProps {
   messages?: ChatMessage[];
   myPlayer?: Player;
   isMaster?: boolean;
+  isHost?: boolean;
+  isChatMuted?: boolean;
   compact?: boolean;
   onClose?: () => void;
 }
@@ -23,6 +25,8 @@ export default function PartyChat({
   messages = [],
   myPlayer,
   isMaster = false,
+  isHost = false,
+  isChatMuted = false,
   compact = false,
   onClose
 }: PartyChatProps) {
@@ -95,8 +99,15 @@ export default function PartyChat({
     });
   }, [localMessages.length]);
 
+  const handleToggleMute = () => {
+    sounds.playPop();
+    socket.emit('toggle_chat_mute', { roomId });
+  };
+
   const handleSendMessage = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
+    if (!isHost && isChatMuted) return;
+
     const text = inputText.trim();
     if (!text) return;
 
@@ -113,6 +124,7 @@ export default function PartyChat({
         senderAvatar: '👑',
         text: text,
         isMaster: true,
+        isHost: Boolean(isHost),
         isTip: true,
         timestamp: Date.now()
       };
@@ -128,6 +140,7 @@ export default function PartyChat({
         senderAvatar: senderAvatar,
         text: text,
         isMaster: Boolean(isMaster),
+        isHost: Boolean(isHost),
         isTip: false,
         timestamp: Date.now()
       };
@@ -139,6 +152,7 @@ export default function PartyChat({
   };
 
   const handleQuickEmoji = (emoji: string) => {
+    if (!isHost && isChatMuted) return;
     sounds.playPop();
     const senderName = myPlayer?.name || 'Você';
     const senderAvatar = myPlayer?.avatar || '🎨';
@@ -149,6 +163,7 @@ export default function PartyChat({
       senderAvatar: senderAvatar,
       text: emoji,
       isMaster: Boolean(isMaster),
+      isHost: Boolean(isHost),
       isTip: false,
       timestamp: Date.now()
     };
@@ -159,7 +174,7 @@ export default function PartyChat({
   return (
     <div className={`flex flex-col h-full bg-panel ${compact ? 'border border-border/80 rounded-2xl shadow-2xl overflow-hidden' : ''}`}>
       {/* Header */}
-      <div className="p-3 bg-black/40 border-b border-border/70 flex items-center justify-between">
+      <div className="p-3 bg-black/40 border-b border-border/70 flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <MessageCircle className="w-4 h-4 text-accent-cyan" />
           <h3 className="font-bold text-xs md:text-sm text-white font-display">Chat da Sala</h3>
@@ -168,15 +183,62 @@ export default function PartyChat({
           </span>
         </div>
 
-        {onClose && (
-          <button
-            onClick={onClose}
-            className="p-1 rounded-lg hover:bg-panel-light text-text-muted hover:text-white transition-colors"
-          >
-            <X className="w-4 h-4" />
-          </button>
-        )}
+        <div className="flex items-center gap-1.5">
+          {/* Host Mute/Unmute Control */}
+          {isHost && (
+            <button
+              type="button"
+              onClick={handleToggleMute}
+              title={isChatMuted ? 'Liberar chat para todos os jogadores' : 'Silenciar chat para não-hosts'}
+              className={`px-2.5 py-1 rounded-xl text-[10px] font-bold transition-all flex items-center gap-1.5 border shadow-sm active:scale-95 ${
+                isChatMuted 
+                  ? 'bg-red-500/25 hover:bg-red-500/35 text-red-200 border-red-500/50 animate-pulse' 
+                  : 'bg-panel-light hover:bg-border text-text-muted hover:text-white border-border/80'
+              }`}
+            >
+              {isChatMuted ? (
+                <>
+                  <VolumeX className="w-3.5 h-3.5 text-red-400" />
+                  <span>Reativar Chat</span>
+                </>
+              ) : (
+                <>
+                  <Volume2 className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>Silenciar Sala</span>
+                </>
+              )}
+            </button>
+          )}
+
+          {onClose && (
+            <button
+              onClick={onClose}
+              className="p-1 rounded-lg hover:bg-panel-light text-text-muted hover:text-white transition-colors"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
+        </div>
       </div>
+
+      {/* Mute Notification Banner */}
+      {isChatMuted && (
+        <div className="px-3 py-1.5 bg-red-500/20 border-b border-red-500/40 flex items-center justify-between text-[11px] text-red-300 font-bold shrink-0">
+          <span className="flex items-center gap-1.5">
+            <VolumeX className="w-3.5 h-3.5 text-red-400 shrink-0" />
+            <span>Chat silenciado pelo Host{isHost ? ' (você pode digitar)' : ''}</span>
+          </span>
+          {isHost && (
+            <button 
+              type="button"
+              onClick={handleToggleMute}
+              className="text-[10px] bg-red-500/30 hover:bg-red-500/50 text-white font-black px-2 py-0.5 rounded-md transition-colors"
+            >
+              Reativar
+            </button>
+          )}
+        </div>
+      )}
 
       {/* Messages stream */}
       <div 
@@ -223,27 +285,50 @@ export default function PartyChat({
               );
             }
 
-            // Regular Player Message
+            // Regular or Host Message
+            const isHostSender = Boolean(msg.isHost);
+
             return (
               <div
                 key={msg.id}
                 className={`flex gap-2 items-start ${isMe ? 'flex-row-reverse' : 'flex-row'}`}
               >
                 {/* Avatar */}
-                <span className="text-base shrink-0 select-none">{msg.senderAvatar || '🎨'}</span>
+                <div className="relative shrink-0 select-none">
+                  <span className="text-base">{msg.senderAvatar || '🎨'}</span>
+                  {isHostSender && (
+                    <span 
+                      title="Host da Sala" 
+                      className="absolute -bottom-1 -right-1 text-[8px] bg-amber-400 text-black font-black rounded-full px-0.5 leading-tight shadow-sm"
+                    >
+                      👑
+                    </span>
+                  )}
+                </div>
 
                 {/* Bubble */}
                 <div
                   className={`max-w-[80%] rounded-2xl px-3 py-2 ${
                     isMe
-                      ? 'bg-primary text-white rounded-tr-sm shadow-md'
+                      ? isHostSender
+                        ? 'bg-gradient-to-r from-violet-600 via-primary to-amber-600 text-white rounded-tr-sm shadow-md border border-amber-400/30'
+                        : 'bg-primary text-white rounded-tr-sm shadow-md'
+                      : isHostSender
+                      ? 'bg-gradient-to-r from-amber-500/20 via-black/60 to-purple-500/20 border-2 border-amber-400/60 text-slate-100 rounded-tl-sm shadow-md'
                       : 'bg-black/40 border border-border/70 text-slate-100 rounded-tl-sm shadow-sm'
                   }`}
                 >
-                  <div className={`flex items-center gap-1 text-[10px] font-bold mb-0.5 ${isMe ? 'text-violet-200' : 'text-accent-cyan'}`}>
+                  <div className={`flex items-center gap-1.5 text-[10px] font-bold mb-0.5 ${
+                    isMe ? 'text-violet-200' : isHostSender ? 'text-amber-300' : 'text-accent-cyan'
+                  }`}>
                     <span className="truncate">{msg.senderName}</span>
-                    {msg.isMaster && (
-                      <span title="Mestre da rodada" className="text-accent-yellow text-[9px] font-black">👑</span>
+                    {isHostSender && (
+                      <span className="bg-amber-400/25 border border-amber-400/50 text-amber-300 text-[8px] font-black px-1.5 py-0.2 rounded-md uppercase tracking-wider">
+                        HOST
+                      </span>
+                    )}
+                    {msg.isMaster && !isHostSender && (
+                      <span title="Mestre da rodada" className="text-accent-yellow text-[9px] font-black">👑 Mestre</span>
                     )}
                     {isMe && <span className="opacity-70">(Você)</span>}
                   </div>
@@ -262,8 +347,9 @@ export default function PartyChat({
           <button
             key={emoji}
             type="button"
+            disabled={!isHost && isChatMuted}
             onClick={() => handleQuickEmoji(emoji)}
-            className="hover:scale-125 transition-transform text-sm p-1 rounded-md hover:bg-white/10 active:scale-95"
+            className="hover:scale-125 transition-transform text-sm p-1 rounded-md hover:bg-white/10 active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed"
             title={`Enviar ${emoji}`}
           >
             {emoji}
@@ -305,18 +391,21 @@ export default function PartyChat({
         <input
           type="text"
           value={inputText}
+          disabled={!isHost && isChatMuted}
           onChange={(e) => setInputText(e.target.value)}
           placeholder={
-            isMaster && sendAsTip
+            !isHost && isChatMuted
+              ? '🔇 Chat silenciado pelo Host...'
+              : isMaster && sendAsTip
               ? 'Digite uma dica visual clara...'
               : 'Digite sua mensagem no chat...'
           }
           maxLength={150}
-          className="flex-1 bg-bg-dark border border-border rounded-xl px-3 py-2 text-xs text-white placeholder:text-text-muted focus:outline-none focus:border-primary transition-colors"
+          className="flex-1 bg-bg-dark border border-border rounded-xl px-3 py-2 text-xs text-white placeholder:text-text-muted focus:outline-none focus:border-primary transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
         />
         <button
           type="submit"
-          disabled={!inputText.trim()}
+          disabled={(!isHost && isChatMuted) || !inputText.trim()}
           className={`p-2 rounded-xl font-bold transition-all active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed ${
             isMaster && sendAsTip
               ? 'bg-accent-yellow hover:bg-yellow-400 text-black shadow-md'

@@ -226,6 +226,10 @@ export default function App() {
   };
 
   const myPlayer = gameState?.players?.find((p) => p.id === socket.id);
+  const isHost = Boolean(
+    myPlayer?.isHost || 
+    (gameState?.hostId ? myPlayer?.id === gameState.hostId : gameState?.players[0]?.id === socket.id)
+  );
 
   if (!gameState || !myPlayer) {
     return <Lobby onJoin={handleJoin} error={error} />;
@@ -314,195 +318,220 @@ export default function App() {
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.98 }}
-              className="flex-1 flex flex-col items-center justify-center p-4 md:p-8"
+              className="flex-1 p-3 sm:p-6 flex items-center justify-center overflow-y-auto"
             >
-              <div className="bg-panel border border-border/90 rounded-3xl max-w-xl w-full p-6 md:p-8 shadow-2xl backdrop-blur relative overflow-hidden text-center">
-                {/* Header */}
-                <div className="flex items-center justify-center gap-2 mb-1">
-                  <span className="text-3xl">🎪</span>
-                  <h2 className="text-2xl md:text-3xl font-black text-white font-display">Sala de Espera</h2>
-                </div>
-                <p className="text-text-muted text-xs md:text-sm">
-                  Jogue com <strong className="text-white">2 a 12+ amigos</strong>! Mínimo de 2 para começar.
-                </p>
-
-                {/* Big Room Code Badge */}
-                <div className="inline-flex items-center gap-2.5 bg-black/40 border border-violet-500/30 px-5 py-2 rounded-2xl my-4 shadow-inner">
-                  <span className="text-xs font-bold text-violet-300 uppercase tracking-wider">Código da Sala:</span>
-                  <span className="text-2xl font-mono font-black text-accent-yellow tracking-widest">{gameState.id}</span>
-                  <button
-                    onClick={handleCopyCode}
-                    title="Copiar código da sala"
-                    className="p-1.5 rounded-xl bg-violet-500/20 hover:bg-violet-500/30 text-violet-300 hover:text-white transition-all ml-1"
-                  >
-                    {copied ? <Check className="w-4 h-4 text-accent-green" /> : <Copy className="w-4 h-4" />}
-                  </button>
-                </div>
-
-                {/* Simplified Invite Bar */}
-                <div className="mb-5 p-3.5 bg-violet-500/10 border border-violet-400/25 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-3 text-left">
-                  <div>
-                    <span className="text-xs font-bold text-white block font-display">Convidar Amigos</span>
-                    <span className="text-[11px] text-text-muted">Envie o link direto para a galera</span>
+              <div className="w-full max-w-5xl grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+                {/* Left Column: Waiting Room Card */}
+                <div className="lg:col-span-7 bg-panel border border-border/90 rounded-3xl p-5 sm:p-7 shadow-2xl backdrop-blur relative overflow-hidden text-center">
+                  {/* Header */}
+                  <div className="flex items-center justify-center gap-2 mb-1">
+                    <span className="text-3xl">🎪</span>
+                    <h2 className="text-2xl md:text-3xl font-black text-white font-display">Sala de Espera</h2>
                   </div>
-                  <div className="flex items-center gap-2 w-full sm:w-auto">
+                  <p className="text-text-muted text-xs md:text-sm">
+                    Jogue com <strong className="text-white">2 a 12+ amigos</strong>! Mínimo de 2 para começar.
+                  </p>
+
+                  {/* Big Room Code Badge */}
+                  <div className="inline-flex items-center gap-2.5 bg-black/40 border border-violet-500/30 px-5 py-2 rounded-2xl my-4 shadow-inner">
+                    <span className="text-xs font-bold text-violet-300 uppercase tracking-wider">Código da Sala:</span>
+                    <span className="text-2xl font-mono font-black text-accent-yellow tracking-widest">{gameState.id}</span>
                     <button
-                      onClick={handleCopyInviteLink}
-                      className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 bg-panel-light hover:bg-border border border-border text-xs font-bold px-3.5 py-2.5 rounded-xl text-white transition-all active:scale-95 shadow-sm"
+                      onClick={handleCopyCode}
+                      title="Copiar código da sala"
+                      className="p-1.5 rounded-xl bg-violet-500/20 hover:bg-violet-500/30 text-violet-300 hover:text-white transition-all ml-1"
                     >
-                      {copiedLink ? <Check className="w-4 h-4 text-accent-green" /> : <Link2 className="w-4 h-4 text-accent-cyan" />}
-                      <span>{copiedLink ? 'Link Copiado! ✓' : 'Copiar Link'}</span>
-                    </button>
-                    <button
-                      onClick={handleShareWhatsApp}
-                      className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 bg-[#25D366] hover:bg-[#20bd5a] text-black text-xs font-black px-4 py-2.5 rounded-xl transition-all shadow-md active:scale-95"
-                    >
-                      <Share2 className="w-4 h-4 stroke-[2.5]" />
-                      <span>WhatsApp</span>
+                      {copied ? <Check className="w-4 h-4 text-accent-green" /> : <Copy className="w-4 h-4" />}
                     </button>
                   </div>
-                </div>
 
-                {/* Host Settings (Sleek Segmented Controls) */}
-                {gameState.players[0]?.id === socket.id ? (
-                  <div className="mb-5 p-3.5 bg-black/25 rounded-2xl border border-border/70 text-left">
-                    <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-accent-cyan mb-2.5">
-                      <Sliders className="w-3.5 h-3.5" />
-                      <span>Regras da Partida (Host)</span>
+                  {/* Simplified Invite Bar */}
+                  <div className="mb-5 p-3.5 bg-violet-500/10 border border-violet-400/25 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-3 text-left">
+                    <div>
+                      <span className="text-xs font-bold text-white block font-display">Convidar Amigos</span>
+                      <span className="text-[11px] text-text-muted">Envie o link direto para a galera</span>
                     </div>
+                    <div className="flex items-center gap-2 w-full sm:w-auto">
+                      <button
+                        onClick={handleCopyInviteLink}
+                        className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 bg-panel-light hover:bg-border border border-border text-xs font-bold px-3.5 py-2.5 rounded-xl text-white transition-all active:scale-95 shadow-sm"
+                      >
+                        {copiedLink ? <Check className="w-4 h-4 text-accent-green" /> : <Link2 className="w-4 h-4 text-accent-cyan" />}
+                        <span>{copiedLink ? 'Link Copiado! ✓' : 'Copiar Link'}</span>
+                      </button>
+                      <button
+                        onClick={handleShareWhatsApp}
+                        className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 bg-[#25D366] hover:bg-[#20bd5a] text-black text-xs font-black px-4 py-2.5 rounded-xl transition-all shadow-md active:scale-95"
+                      >
+                        <Share2 className="w-4 h-4 stroke-[2.5]" />
+                        <span>WhatsApp</span>
+                      </button>
+                    </div>
+                  </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                      {/* Round Time */}
-                      <div>
-                        <span className="text-[10px] text-text-muted font-bold uppercase block mb-1">⏱️ Tempo por Rodada:</span>
-                        <div className="grid grid-cols-4 gap-1 bg-panel-light p-1 rounded-xl border border-border/60">
-                          {[
-                            { label: 'Sem Limite', val: 0 },
-                            { label: '60s', val: 60 },
-                            { label: '90s', val: 90 },
-                            { label: '120s', val: 120 },
-                          ].map((opt) => (
-                            <button
-                              key={opt.val}
-                              type="button"
-                              onClick={() => handleUpdateSettings(opt.val, undefined)}
-                              className={`py-1.5 rounded-lg text-xs font-bold transition-all ${
-                                (gameState.settings?.roundTime ?? 0) === opt.val
-                                  ? 'bg-primary text-white shadow-sm font-black'
-                                  : 'text-text-muted hover:text-white'
-                              }`}
-                            >
-                              {opt.label}
-                            </button>
-                          ))}
-                        </div>
+                  {/* Host Settings (Sleek Segmented Controls) */}
+                  {isHost ? (
+                    <div className="mb-5 p-3.5 bg-black/25 rounded-2xl border border-border/70 text-left">
+                      <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-accent-cyan mb-2.5">
+                        <Sliders className="w-3.5 h-3.5" />
+                        <span>Regras da Partida (Host)</span>
                       </div>
 
-                      {/* Total Rounds */}
-                      <div>
-                        <span className="text-[10px] text-text-muted font-bold uppercase block mb-1">🏁 Duração do Torneio:</span>
-                        <div className="grid grid-cols-3 gap-1 bg-panel-light p-1 rounded-xl border border-border/60">
-                          {[
-                            { label: '3 Rod.', val: 3 },
-                            { label: '5 Rod.', val: 5 },
-                            { label: 'Sem Fim', val: 0 },
-                          ].map((opt) => (
-                            <button
-                              key={opt.val}
-                              type="button"
-                              onClick={() => handleUpdateSettings(undefined, opt.val)}
-                              className={`py-1.5 rounded-lg text-xs font-bold transition-all ${
-                                (gameState.settings?.maxRounds ?? 3) === opt.val
-                                  ? 'bg-accent-yellow text-black shadow-sm font-black'
-                                  : 'text-text-muted hover:text-white'
-                              }`}
-                            >
-                              {opt.label}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="mb-5 py-2 px-4 bg-black/25 rounded-2xl border border-border/60 flex items-center justify-around text-xs">
-                    <div className="flex items-center gap-1.5 text-text-muted">
-                      <span>⏱️ Tempo:</span>
-                      <span className="font-bold text-white">
-                        {(gameState.settings?.roundTime ?? 0) === 0 ? 'Sem Limite (♾️)' : `${gameState.settings?.roundTime}s`}
-                      </span>
-                    </div>
-                    <div className="w-px h-4 bg-border" />
-                    <div className="flex items-center gap-1.5 text-text-muted">
-                      <span>🏁 Torneio:</span>
-                      <span className="font-bold text-white">
-                        {gameState.settings?.maxRounds ? `${gameState.settings.maxRounds} Rodadas` : 'Sem Limite'}
-                      </span>
-                    </div>
-                  </div>
-                )}
-
-                {/* Player list grid */}
-                <div className="mb-6">
-                  <div className="flex items-center justify-between text-xs font-bold text-text-muted uppercase tracking-wider mb-2.5 px-1">
-                    <span>Amigos Conectados</span>
-                    <span className="bg-primary/20 text-primary px-2.5 py-0.5 rounded-full font-bold">
-                      {gameState.players.length} {gameState.players.length === 1 ? 'amigo' : 'amigos'}
-                    </span>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-48 overflow-y-auto pr-1">
-                    {gameState.players.map((p, idx) => {
-                      const isMe = p.id === socket.id;
-                      const isFirst = idx === 0;
-                      return (
-                        <motion.div
-                          key={p.id}
-                          initial={{ opacity: 0, scale: 0.9 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          className={`flex items-center justify-between px-3.5 py-2.5 rounded-2xl border transition-all ${
-                            isMe 
-                              ? 'bg-primary/15 border-primary/40 ring-1 ring-primary/30' 
-                              : 'bg-black/30 border-border/80'
-                          }`}
-                        >
-                          <div className="flex items-center gap-2.5 min-w-0">
-                            <span className="text-2xl">{p.avatar || '🎨'}</span>
-                            <span className="font-bold text-sm text-white truncate">
-                              {p.name} {isMe && <span className="text-primary text-xs">(Você)</span>}
-                            </span>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                        {/* Round Time */}
+                        <div>
+                          <span className="text-[10px] text-text-muted font-bold uppercase block mb-1">⏱️ Tempo por Rodada:</span>
+                          <div className="grid grid-cols-4 gap-1 bg-panel-light p-1 rounded-xl border border-border/60">
+                            {[
+                              { label: 'Sem Limite', val: 0 },
+                              { label: '60s', val: 60 },
+                              { label: '90s', val: 90 },
+                              { label: '120s', val: 120 },
+                            ].map((opt) => (
+                              <button
+                                key={opt.val}
+                                type="button"
+                                onClick={() => handleUpdateSettings(opt.val, undefined)}
+                                className={`py-1.5 rounded-lg text-xs font-bold transition-all ${
+                                  (gameState.settings?.roundTime ?? 0) === opt.val
+                                    ? 'bg-primary text-white shadow-sm font-black'
+                                    : 'text-text-muted hover:text-white'
+                                }`}
+                              >
+                                {opt.label}
+                              </button>
+                            ))}
                           </div>
+                        </div>
 
-                          {isFirst && (
-                            <span title="Criador da sala" className="flex items-center gap-1 text-[10px] font-bold text-accent-yellow bg-accent-yellow/10 px-2 py-0.5 rounded-lg border border-accent-yellow/30">
-                              <Crown className="w-3 h-3" /> Host
-                            </span>
-                          )}
-                        </motion.div>
-                      );
-                    })}
-
-                    {/* Dotted placeholder if only 1 player */}
-                    {gameState.players.length < 2 && (
-                      <div className="flex items-center justify-center p-3 rounded-2xl border-2 border-dashed border-border/60 text-text-muted text-xs font-semibold gap-2">
-                        <span className="animate-pulse">⏳</span>
-                        <span>Esperando mais 1 amigo entrar...</span>
+                        {/* Total Rounds */}
+                        <div>
+                          <span className="text-[10px] text-text-muted font-bold uppercase block mb-1">🏁 Duração do Torneio:</span>
+                          <div className="grid grid-cols-3 gap-1 bg-panel-light p-1 rounded-xl border border-border/60">
+                            {[
+                              { label: '3 Rod.', val: 3 },
+                              { label: '5 Rod.', val: 5 },
+                              { label: 'Sem Fim', val: 0 },
+                            ].map((opt) => (
+                              <button
+                                key={opt.val}
+                                type="button"
+                                onClick={() => handleUpdateSettings(undefined, opt.val)}
+                                className={`py-1.5 rounded-lg text-xs font-bold transition-all ${
+                                  (gameState.settings?.maxRounds ?? 3) === opt.val
+                                    ? 'bg-accent-yellow text-black shadow-sm font-black'
+                                    : 'text-text-muted hover:text-white'
+                                }`}
+                              >
+                                {opt.label}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
                       </div>
-                    )}
+                    </div>
+                  ) : (
+                    <div className="mb-5 py-2 px-4 bg-black/25 rounded-2xl border border-border/60 flex items-center justify-around text-xs">
+                      <div className="flex items-center gap-1.5 text-text-muted">
+                        <span>⏱️ Tempo:</span>
+                        <span className="font-bold text-white">
+                          {(gameState.settings?.roundTime ?? 0) === 0 ? 'Sem Limite (♾️)' : `${gameState.settings?.roundTime}s`}
+                        </span>
+                      </div>
+                      <div className="w-px h-4 bg-border" />
+                      <div className="flex items-center gap-1.5 text-text-muted">
+                        <span>🏁 Torneio:</span>
+                        <span className="font-bold text-white">
+                          {gameState.settings?.maxRounds ? `${gameState.settings.maxRounds} Rodadas` : 'Sem Limite'}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Player list grid */}
+                  <div className="mb-6">
+                    <div className="flex items-center justify-between text-xs font-bold text-text-muted uppercase tracking-wider mb-2.5 px-1">
+                      <span>Amigos Conectados</span>
+                      <span className="bg-primary/20 text-primary px-2.5 py-0.5 rounded-full font-bold">
+                        {gameState.players.length} {gameState.players.length === 1 ? 'amigo' : 'amigos'}
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-48 overflow-y-auto pr-1">
+                      {gameState.players.map((p) => {
+                        const isMe = p.id === socket.id;
+                        const isPlayerHost = Boolean(p.isHost || (gameState.hostId ? p.id === gameState.hostId : false));
+                        return (
+                          <motion.div
+                            key={p.id}
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            className={`flex items-center justify-between px-3.5 py-2.5 rounded-2xl border transition-all ${
+                              isMe 
+                                ? 'bg-primary/15 border-primary/40 ring-1 ring-primary/30' 
+                                : 'bg-black/30 border-border/80'
+                            }`}
+                          >
+                            <div className="flex items-center gap-2.5 min-w-0">
+                              <span className="text-2xl">{p.avatar || '🎨'}</span>
+                              <span className="font-bold text-sm text-white truncate">
+                                {p.name} {isMe && <span className="text-primary text-xs">(Você)</span>}
+                              </span>
+                            </div>
+
+                            {isPlayerHost && (
+                              <span title="Criador da sala" className="flex items-center gap-1 text-[10px] font-bold text-accent-yellow bg-accent-yellow/10 px-2 py-0.5 rounded-lg border border-accent-yellow/30">
+                                <Crown className="w-3 h-3" /> Host
+                              </span>
+                            )}
+                          </motion.div>
+                        );
+                      })}
+
+                      {/* Dotted placeholder if only 1 player */}
+                      {gameState.players.length < 2 && (
+                        <div className="flex items-center justify-center p-3 rounded-2xl border-2 border-dashed border-border/60 text-text-muted text-xs font-semibold gap-2">
+                          <span className="animate-pulse">⏳</span>
+                          <span>Esperando mais 1 amigo entrar...</span>
+                        </div>
+                      )}
+                    </div>
                   </div>
+
+                  {/* Start Game button (Host Only) vs Waiting for Host (Non-Hosts) */}
+                  {isHost ? (
+                    <button
+                      onClick={handleStartGame}
+                      disabled={gameState.players.length < 2}
+                      className="w-full btn-party-cta py-4 px-6 rounded-2xl flex items-center justify-center gap-2 text-lg tracking-wide disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none"
+                    >
+                      <Play className="w-5 h-5 fill-current" />
+                      {gameState.players.length < 2
+                        ? 'Aguardando mais 1 jogador (Mín. 2)'
+                        : `Começar Partida! (${gameState.players.length} jogadores)`}
+                    </button>
+                  ) : (
+                    <div className="w-full bg-black/40 border border-violet-500/40 p-4 rounded-2xl flex items-center justify-center gap-2.5 text-center text-sm font-bold text-violet-200 shadow-inner">
+                      <span className="text-xl animate-bounce">👑</span>
+                      <span>
+                        Aguardando o Host ({gameState.players.find(p => p.isHost || p.id === gameState.hostId)?.name || 'Host'}) iniciar a partida...
+                      </span>
+                    </div>
+                  )}
                 </div>
 
-                {/* Start Game button */}
-                <button
-                  onClick={handleStartGame}
-                  disabled={gameState.players.length < 2}
-                  className="w-full btn-party-cta py-4 px-6 rounded-2xl flex items-center justify-center gap-2 text-lg tracking-wide disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none"
-                >
-                  <Play className="w-5 h-5 fill-current" />
-                  {gameState.players.length < 2
-                    ? 'Aguardando mais 1 jogador (Mín. 2)'
-                    : `Começar Partida! (${gameState.players.length} jogadores)`}
-                </button>
+                {/* Right Column: Waiting Room Chat */}
+                <div className="lg:col-span-5 bg-panel border border-border/90 rounded-3xl overflow-hidden shadow-2xl h-[460px] sm:h-[520px] lg:h-[600px] flex flex-col">
+                  <PartyChat
+                    socket={socket}
+                    roomId={gameState.id}
+                    messages={gameState.messages}
+                    myPlayer={myPlayer}
+                    isMaster={false}
+                    isHost={isHost}
+                    isChatMuted={Boolean(gameState.isChatMuted)}
+                  />
+                </div>
               </div>
             </motion.div>
           )}
@@ -577,6 +606,8 @@ export default function App() {
                     messages={gameState.messages}
                     myPlayer={myPlayer}
                     isMaster={Boolean(myPlayer?.isMaster)}
+                    isHost={isHost}
+                    isChatMuted={Boolean(gameState.isChatMuted)}
                     compact={true}
                     onClose={() => setFloatingChatOpen(false)}
                   />

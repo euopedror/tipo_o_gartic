@@ -148,6 +148,8 @@ export default function Game({ socket, gameState, myPlayer, timer }: GameProps) 
               messages={gameState.messages}
               myPlayer={myPlayer}
               isMaster={Boolean(isMaster)}
+              isHost={Boolean(myPlayer?.isHost || myPlayer?.id === gameState.hostId)}
+              isChatMuted={Boolean(gameState.isChatMuted)}
             />
           ) : (
             <div className="flex-1 flex flex-col overflow-hidden">

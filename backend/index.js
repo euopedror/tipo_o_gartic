@@ -41,6 +41,8 @@ function createRoom(roomId) {
     id: roomId,
     state: GAME_STATES.LOBBY,
     players: {},
+    hostId: null,
+    isChatMuted: false,
     masterId: null,
     character: null,
     drawings: {}, // { playerId: imageDataUrl }
@@ -78,12 +80,19 @@ io.on('connection', (socket) => {
 
     socket.join(cleanRoomId);
     
+    // Set host if this is the first player or hostId is missing
+    const isFirstPlayer = Object.keys(room.players).length === 0;
+    if (!room.hostId || isFirstPlayer) {
+      room.hostId = socket.id;
+    }
+
     room.players[socket.id] = {
       id: socket.id,
       name: cleanPlayerName,
       avatar: avatar || '🎨',
       score: 0,
       isMaster: false,
+      isHost: (socket.id === room.hostId),
       hasSubmitted: false,
       hasVoted: false
     };
@@ -109,10 +118,16 @@ io.on('connection', (socket) => {
     const room = rooms[cleanRoomId];
     if (!room) return;
 
+    const isHost = socket.id === room.hostId;
+    if (room.isChatMuted && !isHost) {
+      socket.emit('error', 'O chat está silenciado pelo Host.');
+      return;
+    }
+
     const player = room.players[socket.id];
     if (!player) return;
 
-    const cleanText = text.trim().slice(0, 200);
+    const cleanText = text.trim().slice(0, 250);
     if (!cleanText) return;
 
     const message = {
@@ -122,6 +137,7 @@ io.on('connection', (socket) => {
       senderAvatar: player.avatar || '🎨',
       text: cleanText,
       isMaster: Boolean(player.isMaster),
+      isHost: isHost,
       isTip: false,
       timestamp: Date.now()
     };
@@ -135,11 +151,47 @@ io.on('connection', (socket) => {
     io.to(cleanRoomId).emit('new_chat_message', message);
   });
 
+  socket.on('toggle_chat_mute', ({ roomId }) => {
+    if (!roomId) return;
+    const cleanRoomId = String(roomId).trim().toUpperCase();
+    const room = rooms[cleanRoomId];
+    if (!room) return;
+    if (socket.id !== room.hostId) {
+      socket.emit('error', 'Apenas o Host pode silenciar ou liberar o chat.');
+      return;
+    }
+
+    room.isChatMuted = !room.isChatMuted;
+    const hostPlayer = room.players[socket.id];
+    const muteNotice = {
+      id: Date.now() + '-' + Math.random().toString(36).substring(2, 7),
+      senderId: 'system',
+      senderName: 'Sistema',
+      senderAvatar: room.isChatMuted ? '🔇' : '🔊',
+      text: room.isChatMuted
+        ? `🔇 O Host (${hostPlayer?.name || 'Host'}) silenciou o chat da sala.`
+        : `🔊 O Host (${hostPlayer?.name || 'Host'}) liberou o chat para todos!`,
+      isSystem: true,
+      timestamp: Date.now()
+    };
+
+    if (!room.messages) room.messages = [];
+    room.messages.push(muteNotice);
+
+    io.to(cleanRoomId).emit('new_chat_message', muteNotice);
+    io.to(cleanRoomId).emit('room_update', getRoomPublicState(cleanRoomId));
+  });
+
   socket.on('start_game', ({ roomId }) => {
     if (!roomId) return;
     const cleanRoomId = String(roomId).trim().toUpperCase();
     const room = rooms[cleanRoomId];
     if (!room || room.state !== GAME_STATES.LOBBY) return;
+
+    if (socket.id !== room.hostId) {
+      socket.emit('error', 'Apenas o Host pode iniciar a partida.');
+      return;
+    }
 
     // Pick a random master
     const playerIds = Object.keys(room.players);
@@ -409,6 +461,20 @@ function removePlayerFromRoom(socket, roomId) {
     return;
   }
 
+  // If host left, pass host to next remaining player
+  let newHostName = '';
+  if (room.hostId === socket.id) {
+    const remainingIds = Object.keys(room.players);
+    if (remainingIds.length > 0) {
+      room.hostId = remainingIds[0];
+      const newHost = room.players[room.hostId];
+      if (newHost) {
+        newHost.isHost = true;
+        newHostName = newHost.name;
+      }
+    }
+  }
+
   // Add system message
   if (!room.messages) room.messages = [];
   room.messages.push({
@@ -416,7 +482,7 @@ function removePlayerFromRoom(socket, roomId) {
     senderId: 'system',
     senderName: 'Sistema',
     senderAvatar: '👋',
-    text: `${leavingPlayer.name} saiu da sala.`,
+    text: `${leavingPlayer.name} saiu da sala.${newHostName ? ` 👑 ${newHostName} agora é o Host da sala.` : ''}`,
     isSystem: true,
     timestamp: Date.now()
   });
@@ -534,8 +600,13 @@ function getRoomPublicState(roomId) {
   return {
     id: room.id,
     state: room.state,
-    players: Object.values(room.players),
+    players: Object.values(room.players).map(p => ({
+      ...p,
+      isHost: (p.id === room.hostId)
+    })),
     masterId: room.masterId,
+    hostId: room.hostId,
+    isChatMuted: Boolean(room.isChatMuted),
     character: room.state === GAME_STATES.RESULTS ? room.character : null,
     tips: room.tips || [],
     messages: room.messages || [],

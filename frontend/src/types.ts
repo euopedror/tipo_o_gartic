@@ -6,6 +6,7 @@ export interface Player {
   avatar: string;
   score: number;
   isMaster: boolean;
+  isHost?: boolean;
   hasSubmitted: boolean;
   hasVoted?: boolean;
 }
@@ -27,6 +28,7 @@ export interface ChatMessage {
   senderAvatar: string;
   text: string;
   isMaster?: boolean;
+  isHost?: boolean;
   isTip?: boolean;
   isSystem?: boolean;
   timestamp: number;
@@ -37,6 +39,8 @@ export interface GameState {
   state: GamePhase;
   players: Player[];
   masterId: string | null;
+  hostId?: string | null;
+  isChatMuted?: boolean;
   character?: string | null;
   tips: string[];
   messages?: ChatMessage[];
