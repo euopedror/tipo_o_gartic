@@ -41,7 +41,15 @@ export default function PartyChat({
       setLocalMessages((prev) => {
         const map = new Map<string, ChatMessage>();
         prev.forEach((m) => map.set(m.id, m));
-        messages.forEach((m) => map.set(m.id, m));
+        messages.forEach((m) => {
+          // Replace matching optimistic local message if present
+          for (const [key, val] of map.entries()) {
+            if (key.startsWith('local-') && val.text === m.text && (val.senderName === m.senderName || val.senderId === m.senderId)) {
+              map.delete(key);
+            }
+          }
+          map.set(m.id, m);
+        });
         return Array.from(map.values()).sort((a, b) => a.timestamp - b.timestamp);
       });
     }
@@ -51,13 +59,25 @@ export default function PartyChat({
   useEffect(() => {
     const handleNewMessage = (msg: ChatMessage) => {
       setLocalMessages((prev) => {
-        if (prev.some((m) => m.id === msg.id || (m.senderId === msg.senderId && m.text === msg.text && Math.abs(m.timestamp - msg.timestamp) < 3000))) {
+        // Replace matching optimistic local message if present
+        const hasMatchingLocal = prev.some(
+          (m) => m.id.startsWith('local-') && m.text === msg.text && (m.senderName === msg.senderName || m.senderId === msg.senderId)
+        );
+        if (hasMatchingLocal) {
+          return prev.map((m) =>
+            m.id.startsWith('local-') && m.text === msg.text && (m.senderName === msg.senderName || m.senderId === msg.senderId)
+              ? msg
+              : m
+          );
+        }
+        if (prev.some((m) => m.id === msg.id)) {
           return prev;
         }
         return [...prev, msg];
       });
 
-      if (msg.senderId !== socket.id) {
+      const isMyMessage = msg.senderId === socket.id || (Boolean(myPlayer?.name) && msg.senderName === myPlayer?.name);
+      if (!isMyMessage) {
         sounds.playPop();
       }
     };
@@ -89,7 +109,7 @@ export default function PartyChat({
       socket.off('new_chat_message', handleNewMessage);
       socket.off('new_tip', handleNewTip);
     };
-  }, [socket]);
+  }, [socket, myPlayer?.name]);
 
   // Auto-scroll on new message
   useEffect(() => {
@@ -145,7 +165,12 @@ export default function PartyChat({
         timestamp: Date.now()
       };
       setLocalMessages((prev) => [...prev, chatMsg]);
-      socket.emit('send_chat_message', { roomId, text });
+      socket.emit('send_chat_message', { 
+        roomId, 
+        text, 
+        playerName: senderName, 
+        avatar: senderAvatar 
+      });
     }
 
     setInputText('');
@@ -168,7 +193,12 @@ export default function PartyChat({
       timestamp: Date.now()
     };
     setLocalMessages((prev) => [...prev, chatMsg]);
-    socket.emit('send_chat_message', { roomId, text: emoji });
+    socket.emit('send_chat_message', { 
+      roomId, 
+      text: emoji, 
+      playerName: senderName, 
+      avatar: senderAvatar 
+    });
   };
 
   return (
@@ -253,7 +283,7 @@ export default function PartyChat({
           </div>
         ) : (
           localMessages.map((msg) => {
-            const isMe = msg.senderId === socket.id || msg.senderId === 'me';
+            const isMe = msg.senderId === socket.id || msg.senderId === 'me' || (Boolean(myPlayer?.name) && msg.senderName === myPlayer?.name);
 
             // System Message
             if (msg.isSystem) {

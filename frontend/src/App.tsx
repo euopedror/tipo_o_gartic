@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -56,10 +56,33 @@ export default function App() {
   const [floatingChatOpen, setFloatingChatOpen] = useState(false);
   const [unreadChatCount, setUnreadChatCount] = useState(0);
 
+  // Keep fresh references for socket events
+  const roomIdRef = useRef(roomId);
+  roomIdRef.current = roomId;
+  const playerNameRef = useRef(playerName);
+  playerNameRef.current = playerName;
+  const playerAvatarRef = useRef(playerAvatar);
+  playerAvatarRef.current = playerAvatar;
+
   useEffect(() => {
+    const handleConnect = () => {
+      console.log('Socket connected/reconnected:', socket.id);
+      if (roomIdRef.current && playerNameRef.current) {
+        socket.emit('join_room', {
+          roomId: roomIdRef.current,
+          playerName: playerNameRef.current,
+          avatar: playerAvatarRef.current
+        });
+      }
+    };
+
+    socket.on('connect', handleConnect);
+
     socket.on('room_update', (state: GameState) => {
-      // Guard: Ensure user is an active participant in this room
-      const inRoom = state.players?.some((p) => p.id === socket.id);
+      // Guard: Ensure user is an active participant in this room (by socket.id or playerName)
+      const inRoom = state.players?.some(
+        (p) => p.id === socket.id || (Boolean(playerNameRef.current) && p.name === playerNameRef.current)
+      );
       if (!inRoom) {
         setGameState(null);
         setRoomId('');
@@ -122,6 +145,7 @@ export default function App() {
     });
 
     return () => {
+      socket.off('connect', handleConnect);
       socket.off('room_update');
       socket.off('left_room_success');
       socket.off('new_chat_message');
@@ -225,10 +249,12 @@ export default function App() {
     if (!soundEnabled) sounds.playPop();
   };
 
-  const myPlayer = gameState?.players?.find((p) => p.id === socket.id);
+  const myPlayer = gameState?.players?.find(
+    (p) => p.id === socket.id || (Boolean(playerName) && p.name === playerName)
+  );
   const isHost = Boolean(
     myPlayer?.isHost || 
-    (gameState?.hostId ? myPlayer?.id === gameState.hostId : gameState?.players[0]?.id === socket.id)
+    (gameState?.hostId ? myPlayer?.id === gameState.hostId : (gameState?.players[0]?.id === socket.id || (Boolean(playerName) && gameState?.players[0]?.name === playerName)))
   );
 
   if (!gameState || !myPlayer) {

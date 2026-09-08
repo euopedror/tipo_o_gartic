@@ -28,6 +28,7 @@ const io = new Server(httpServer, {
 });
 
 const rooms = {};
+const pendingDisconnects = new Map();
 
 const GAME_STATES = {
   LOBBY: 'LOBBY',
@@ -73,12 +74,46 @@ io.on('connection', (socket) => {
     }
     
     const room = rooms[cleanRoomId];
-    if (room.state !== GAME_STATES.LOBBY) {
+
+    // Check if this player is reconnecting
+    const existingPlayer = Object.values(room.players).find(p => p.name === cleanPlayerName);
+    if (room.state !== GAME_STATES.LOBBY && !existingPlayer) {
       socket.emit('error', 'Partida em andamento nesta sala. Aguarde ela terminar para entrar.');
       return;
     }
 
     socket.join(cleanRoomId);
+
+    // Cancel any pending disconnect removal for this player
+    const timerKey = `${cleanRoomId}:${cleanPlayerName}`;
+    if (pendingDisconnects.has(timerKey)) {
+      clearTimeout(pendingDisconnects.get(timerKey));
+      pendingDisconnects.delete(timerKey);
+    }
+
+    if (existingPlayer) {
+      // Re-bind to the new socket ID seamlessly
+      const oldId = existingPlayer.id;
+      if (oldId !== socket.id) {
+        delete room.players[oldId];
+        existingPlayer.id = socket.id;
+        if (avatar) existingPlayer.avatar = avatar;
+        if (room.hostId === oldId) {
+          room.hostId = socket.id;
+          existingPlayer.isHost = true;
+        }
+        if (room.masterId === oldId) {
+          room.masterId = socket.id;
+        }
+        if (room.drawings && room.drawings[oldId]) {
+          room.drawings[socket.id] = room.drawings[oldId];
+          delete room.drawings[oldId];
+        }
+        room.players[socket.id] = existingPlayer;
+      }
+      io.to(cleanRoomId).emit('room_update', getRoomPublicState(cleanRoomId));
+      return;
+    }
     
     // Set host if this is the first player or hostId is missing
     const isFirstPlayer = Object.keys(room.players).length === 0;
@@ -112,20 +147,46 @@ io.on('connection', (socket) => {
     io.to(cleanRoomId).emit('room_update', getRoomPublicState(cleanRoomId));
   });
 
-  socket.on('send_chat_message', ({ roomId, text }) => {
+  socket.on('send_chat_message', ({ roomId, text, playerName, avatar }) => {
     if (!roomId || !text || typeof text !== 'string') return;
     const cleanRoomId = String(roomId).trim().toUpperCase();
     const room = rooms[cleanRoomId];
     if (!room) return;
 
-    const isHost = socket.id === room.hostId;
+    // Ensure socket is joined to room
+    socket.join(cleanRoomId);
+
+    // Find player by socket.id or re-bind by playerName if socket reconnected
+    let player = room.players[socket.id];
+    if (!player && playerName) {
+      const existingPlayer = Object.values(room.players).find(p => p.name === playerName);
+      if (existingPlayer) {
+        delete room.players[existingPlayer.id];
+        existingPlayer.id = socket.id;
+        room.players[socket.id] = existingPlayer;
+        player = existingPlayer;
+      }
+    }
+
+    if (!player) {
+      player = {
+        id: socket.id,
+        name: (playerName || 'Artista').trim().slice(0, 20),
+        avatar: avatar || '🎨',
+        score: 0,
+        isMaster: false,
+        isHost: (socket.id === room.hostId),
+        hasSubmitted: false,
+        hasVoted: false
+      };
+      room.players[socket.id] = player;
+    }
+
+    const isHost = (socket.id === room.hostId || Boolean(player.isHost));
     if (room.isChatMuted && !isHost) {
       socket.emit('error', 'O chat está silenciado pelo Host.');
       return;
     }
-
-    const player = room.players[socket.id];
-    if (!player) return;
 
     const cleanText = text.trim().slice(0, 250);
     if (!cleanText) return;
@@ -148,7 +209,9 @@ io.on('connection', (socket) => {
       room.messages.shift();
     }
 
+    // Broadcast both new_chat_message and room_update so every participant is 100% synchronized
     io.to(cleanRoomId).emit('new_chat_message', message);
+    io.to(cleanRoomId).emit('room_update', getRoomPublicState(cleanRoomId));
   });
 
   socket.on('toggle_chat_mute', ({ roomId }) => {
@@ -431,15 +494,37 @@ io.on('connection', (socket) => {
 
   socket.on('leave_room', ({ roomId }) => {
     if (roomId) {
-      removePlayerFromRoom(socket, String(roomId).trim().toUpperCase());
+      const cleanRoomId = String(roomId).trim().toUpperCase();
+      const room = rooms[cleanRoomId];
+      if (room && room.players[socket.id]) {
+        const p = room.players[socket.id];
+        const timerKey = `${cleanRoomId}:${p.name}`;
+        if (pendingDisconnects.has(timerKey)) {
+          clearTimeout(pendingDisconnects.get(timerKey));
+          pendingDisconnects.delete(timerKey);
+        }
+      }
+      removePlayerFromRoom(socket, cleanRoomId);
     }
   });
 
-  socket.on('disconnect', () => {
-    console.log(`User disconnected: ${socket.id}`);
+  socket.on('disconnect', (reason) => {
+    console.log(`User disconnected: ${socket.id}, reason: ${reason}`);
     for (const rId in rooms) {
-      if (rooms[rId].players[socket.id]) {
-        removePlayerFromRoom(socket, rId);
+      const room = rooms[rId];
+      if (room && room.players[socket.id]) {
+        const p = room.players[socket.id];
+        const timerKey = `${rId}:${p.name}`;
+        if (pendingDisconnects.has(timerKey)) {
+          clearTimeout(pendingDisconnects.get(timerKey));
+        }
+        const timer = setTimeout(() => {
+          pendingDisconnects.delete(timerKey);
+          if (rooms[rId] && rooms[rId].players[socket.id]) {
+            removePlayerFromRoom(socket, rId);
+          }
+        }, 4000);
+        pendingDisconnects.set(timerKey, timer);
       }
     }
   });

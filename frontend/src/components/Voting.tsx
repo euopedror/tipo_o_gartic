@@ -28,7 +28,7 @@ export default function Voting({ socket, gameState, myPlayer: _myPlayer, timer }
   const handleVote = (type: 'similar' | 'funny', playerId: string) => {
     if (type === 'similar' && hasVotedSimilar) return;
     if (type === 'funny' && hasVotedFunny) return;
-    if (playerId === socket.id) return; // Cannot vote for oneself
+    if (playerId === socket.id || (_myPlayer?.id && playerId === _myPlayer.id)) return; // Cannot vote for oneself
 
     sounds.playPop();
     socket.emit('submit_vote', { roomId: gameState.id, type, votedPlayerId: playerId });
