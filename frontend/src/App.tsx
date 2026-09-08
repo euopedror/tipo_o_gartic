@@ -104,9 +104,21 @@ export default function App() {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const getShareUrl = () => {
+    const base = `${window.location.origin}${window.location.pathname}?room=${gameState?.id || roomId}`;
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      const queryBackend = urlParams.get('backend');
+      if (queryBackend) {
+        return `${base}&backend=${encodeURIComponent(queryBackend)}`;
+      }
+    }
+    return base;
+  };
+
   const handleCopyInviteLink = () => {
     sounds.playClick();
-    const url = `${window.location.origin}${window.location.pathname}?room=${gameState?.id || roomId}`;
+    const url = getShareUrl();
     navigator.clipboard.writeText(url);
     setCopiedLink(true);
     setTimeout(() => setCopiedLink(false), 2000);
@@ -114,7 +126,7 @@ export default function App() {
 
   const handleShareWhatsApp = () => {
     sounds.playClick();
-    const url = `${window.location.origin}${window.location.pathname}?room=${gameState?.id || roomId}`;
+    const url = getShareUrl();
     const text = encodeURIComponent(`🎨 Vem jogar Desenho Cego comigo! A sala já tá pronta. Clique no link para entrar direto: ${url}`);
     window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
   };

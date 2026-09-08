@@ -1,6 +1,9 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Dices, ArrowRight, Palette, EyeOff, Trophy, AlertCircle, Sparkles, Volume2, VolumeX } from 'lucide-react';
+import { 
+  Dices, ArrowRight, Palette, EyeOff, Trophy, AlertCircle, 
+  Sparkles, Volume2, VolumeX, Settings2 
+} from 'lucide-react';
 import AvatarPicker from './common/AvatarPicker';
 import { AVATARS } from '../types';
 import { sounds } from '../utils/audioFx';
@@ -41,6 +44,18 @@ export default function Lobby({ onJoin, error }: LobbyProps) {
   const [nameShake, setNameShake] = useState(false);
   const [showNameWarning, setShowNameWarning] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(() => sounds.enabled);
+  const [showServerModal, setShowServerModal] = useState(false);
+  const [customServer, setCustomServer] = useState(() => {
+    return (typeof window !== 'undefined' ? localStorage.getItem('backend_url') : '') || 'https://desenho-cego-backend.onrender.com';
+  });
+
+  const handleSaveServer = () => {
+    sounds.playClick();
+    if (customServer.trim()) {
+      localStorage.setItem('backend_url', customServer.trim());
+      window.location.reload();
+    }
+  };
 
   const toggleSound = () => {
     sounds.enabled = !soundEnabled;
@@ -89,9 +104,18 @@ export default function Lobby({ onJoin, error }: LobbyProps) {
 
   return (
     <div className="min-h-screen w-full flex items-center justify-center p-3 sm:p-6 relative overflow-hidden">
-      {/* Floating Sound Toggle */}
-      <div className="absolute top-4 right-4 z-50">
+      {/* Floating Sound & Server Config Toggles */}
+      <div className="absolute top-4 right-4 z-50 flex items-center gap-2">
         <button
+          type="button"
+          onClick={() => setShowServerModal(true)}
+          className="p-2.5 rounded-2xl bg-slate-900/90 border border-slate-700/80 hover:border-accent-cyan text-slate-300 hover:text-white shadow-xl backdrop-blur-md transition-all active:scale-95"
+          title="Configurar Servidor Online"
+        >
+          <Settings2 className="w-5 h-5 text-accent-cyan" />
+        </button>
+        <button
+          type="button"
           onClick={toggleSound}
           className="p-2.5 rounded-2xl bg-slate-900/90 border border-slate-700/80 hover:border-amber-400 text-slate-300 hover:text-white shadow-xl backdrop-blur-md transition-all active:scale-95"
           title={soundEnabled ? 'Silenciar som' : 'Ativar som'}
@@ -312,6 +336,47 @@ export default function Lobby({ onJoin, error }: LobbyProps) {
           </form>
         </motion.div>
       </div>
+
+      {/* Server Config Modal */}
+      {showServerModal && (
+        <div className="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-panel border border-border rounded-3xl p-6 max-w-md w-full shadow-2xl"
+          >
+            <h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2">
+              <Settings2 className="w-5 h-5 text-accent-cyan" /> Servidor Multiplayer Online
+            </h3>
+            <p className="text-xs text-text-muted mb-3 leading-relaxed">
+              O jogo se conecta automaticamente ao backend no Render. Se você estiver usando uma URL personalizada, pode salvá-la aqui:
+            </p>
+            <input
+              type="text"
+              value={customServer}
+              onChange={(e) => setCustomServer(e.target.value)}
+              placeholder="https://desenho-cego-backend.onrender.com"
+              className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white mb-4 focus:outline-none focus:border-accent-cyan font-mono"
+            />
+            <div className="flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setShowServerModal(false)}
+                className="px-4 py-2 rounded-xl text-xs font-bold text-text-muted hover:text-white"
+              >
+                Fechar
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveServer}
+                className="bg-primary hover:bg-primary-hover text-white text-xs font-bold px-4 py-2 rounded-xl transition-all shadow-md active:scale-95"
+              >
+                Salvar e Conectar
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 }
