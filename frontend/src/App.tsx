@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  Copy, Check, Volume2, VolumeX, Users, Play, 
+  Copy, Check, Volume2, VolumeX, Play, 
   Crown, LogOut, Share2, Sliders, Link2 
 } from 'lucide-react';
 import Lobby from './components/Lobby';
@@ -241,103 +241,115 @@ export default function App() {
               exit={{ opacity: 0, scale: 0.98 }}
               className="flex-1 flex flex-col items-center justify-center p-4 md:p-8"
             >
-              <div className="bg-panel border border-border/80 rounded-3xl max-w-xl w-full p-6 md:p-8 shadow-2xl backdrop-blur relative overflow-hidden text-center">
-                <div className="flex items-center justify-center gap-2 mb-2">
-                  <Users className="w-5 h-5 text-primary" />
-                  <h2 className="text-2xl md:text-3xl font-black text-white">Sala de Espera</h2>
+              <div className="bg-panel border border-border/90 rounded-3xl max-w-xl w-full p-6 md:p-8 shadow-2xl backdrop-blur relative overflow-hidden text-center">
+                {/* Header */}
+                <div className="flex items-center justify-center gap-2 mb-1">
+                  <span className="text-3xl">🎪</span>
+                  <h2 className="text-2xl md:text-3xl font-black text-white font-display">Sala de Espera</h2>
                 </div>
-                <p className="text-text-muted text-sm mb-5">
-                  Reúna seus amigos! O jogo começa com no mínimo 2 participantes.
+                <p className="text-text-muted text-xs md:text-sm">
+                  Jogue com <strong className="text-white">2 a 12+ amigos</strong>! Mínimo de 2 para começar.
                 </p>
 
-                {/* Invite Friends Banner */}
-                <div className="mb-5 p-3.5 bg-violet-500/10 border border-violet-500/30 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-3 text-left">
+                {/* Big Room Code Badge */}
+                <div className="inline-flex items-center gap-2.5 bg-black/40 border border-violet-500/30 px-5 py-2 rounded-2xl my-4 shadow-inner">
+                  <span className="text-xs font-bold text-violet-300 uppercase tracking-wider">Código da Sala:</span>
+                  <span className="text-2xl font-mono font-black text-accent-yellow tracking-widest">{gameState.id}</span>
+                  <button
+                    onClick={handleCopyCode}
+                    title="Copiar código da sala"
+                    className="p-1.5 rounded-xl bg-violet-500/20 hover:bg-violet-500/30 text-violet-300 hover:text-white transition-all ml-1"
+                  >
+                    {copied ? <Check className="w-4 h-4 text-accent-green" /> : <Copy className="w-4 h-4" />}
+                  </button>
+                </div>
+
+                {/* Simplified Invite Bar */}
+                <div className="mb-5 p-3.5 bg-violet-500/10 border border-violet-400/25 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-3 text-left">
                   <div>
-                    <span className="text-xs font-bold text-violet-300 block font-display">Convide seus amigos!</span>
-                    <span className="text-[11px] text-text-muted">Envie o link da sala direto no zap</span>
+                    <span className="text-xs font-bold text-white block font-display">Convidar Amigos</span>
+                    <span className="text-[11px] text-text-muted">Envie o link direto para a galera</span>
                   </div>
                   <div className="flex items-center gap-2 w-full sm:w-auto">
                     <button
                       onClick={handleCopyInviteLink}
-                      className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 bg-panel-light hover:bg-border border border-border text-xs font-bold px-3 py-2 rounded-xl text-white transition-colors"
+                      className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 bg-panel-light hover:bg-border border border-border text-xs font-bold px-3.5 py-2.5 rounded-xl text-white transition-all active:scale-95 shadow-sm"
                     >
-                      {copiedLink ? <Check className="w-3.5 h-3.5 text-accent-green" /> : <Link2 className="w-3.5 h-3.5" />}
-                      <span>{copiedLink ? 'Copiado!' : 'Copiar Link'}</span>
+                      {copiedLink ? <Check className="w-4 h-4 text-accent-green" /> : <Link2 className="w-4 h-4 text-accent-cyan" />}
+                      <span>{copiedLink ? 'Link Copiado! ✓' : 'Copiar Link'}</span>
                     </button>
                     <button
                       onClick={handleShareWhatsApp}
-                      className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 bg-[#25D366] hover:bg-[#20bd5a] text-black text-xs font-black px-3 py-2 rounded-xl transition-all shadow-md active:scale-95"
+                      className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 bg-[#25D366] hover:bg-[#20bd5a] text-black text-xs font-black px-4 py-2.5 rounded-xl transition-all shadow-md active:scale-95"
                     >
-                      <Share2 className="w-3.5 h-3.5 stroke-[2.5]" />
+                      <Share2 className="w-4 h-4 stroke-[2.5]" />
                       <span>WhatsApp</span>
                     </button>
                   </div>
                 </div>
 
-                {/* Host Settings Controls / Guest View */}
+                {/* Host Settings (Sleek Segmented Controls) */}
                 {gameState.players[0]?.id === socket.id ? (
-                  <div className="mb-6 p-4 bg-black/30 rounded-2xl border border-border text-left">
-                    <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-accent-cyan mb-3">
-                      <Sliders className="w-4 h-4" />
-                      <span>Configurações da Sala (Host)</span>
+                  <div className="mb-5 p-3.5 bg-black/25 rounded-2xl border border-border/70 text-left">
+                    <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-accent-cyan mb-2.5">
+                      <Sliders className="w-3.5 h-3.5" />
+                      <span>Regras da Partida (Host)</span>
                     </div>
 
-                    {/* Round Time */}
-                    <div className="mb-3">
-                      <span className="text-[10px] font-bold text-text-muted uppercase tracking-wider block mb-1.5">
-                        Tempo de Desenho por Rodada:
-                      </span>
-                      <div className="grid grid-cols-3 gap-2">
-                        {[
-                          { label: '60s Rápido', val: 60 },
-                          { label: '90s Padrão', val: 90 },
-                          { label: '120s Calmo', val: 120 },
-                        ].map((opt) => (
-                          <button
-                            key={opt.val}
-                            type="button"
-                            onClick={() => handleUpdateSettings(opt.val, undefined)}
-                            className={`py-1.5 px-2 rounded-xl text-xs font-bold border transition-all ${
-                              (gameState.settings?.roundTime || 90) === opt.val
-                                ? 'bg-primary text-white border-primary shadow-sm font-black'
-                                : 'bg-panel-light text-text-muted border-border hover:text-white'
-                            }`}
-                          >
-                            {opt.label}
-                          </button>
-                        ))}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                      {/* Round Time */}
+                      <div>
+                        <span className="text-[10px] text-text-muted font-bold uppercase block mb-1">⏱️ Tempo por Rodada:</span>
+                        <div className="grid grid-cols-3 gap-1 bg-panel-light p-1 rounded-xl border border-border/60">
+                          {[
+                            { label: '60s', val: 60 },
+                            { label: '90s', val: 90 },
+                            { label: '120s', val: 120 },
+                          ].map((opt) => (
+                            <button
+                              key={opt.val}
+                              type="button"
+                              onClick={() => handleUpdateSettings(opt.val, undefined)}
+                              className={`py-1.5 rounded-lg text-xs font-bold transition-all ${
+                                (gameState.settings?.roundTime || 90) === opt.val
+                                  ? 'bg-primary text-white shadow-sm font-black'
+                                  : 'text-text-muted hover:text-white'
+                              }`}
+                            >
+                              {opt.label}
+                            </button>
+                          ))}
+                        </div>
                       </div>
-                    </div>
 
-                    {/* Total Rounds */}
-                    <div>
-                      <span className="text-[10px] font-bold text-text-muted uppercase tracking-wider block mb-1.5">
-                        Duração do Torneio:
-                      </span>
-                      <div className="grid grid-cols-3 gap-2">
-                        {[
-                          { label: '3 Rodadas', val: 3 },
-                          { label: '5 Rodadas', val: 5 },
-                          { label: 'Sem Limite', val: 0 },
-                        ].map((opt) => (
-                          <button
-                            key={opt.val}
-                            type="button"
-                            onClick={() => handleUpdateSettings(undefined, opt.val)}
-                            className={`py-1.5 px-2 rounded-xl text-xs font-bold border transition-all ${
-                              (gameState.settings?.maxRounds ?? 3) === opt.val
-                                ? 'bg-accent-yellow text-black border-accent-yellow shadow-sm font-black'
-                                : 'bg-panel-light text-text-muted border-border hover:text-white'
-                            }`}
-                          >
-                            {opt.label}
-                          </button>
-                        ))}
+                      {/* Total Rounds */}
+                      <div>
+                        <span className="text-[10px] text-text-muted font-bold uppercase block mb-1">🏁 Duração do Torneio:</span>
+                        <div className="grid grid-cols-3 gap-1 bg-panel-light p-1 rounded-xl border border-border/60">
+                          {[
+                            { label: '3 Rod.', val: 3 },
+                            { label: '5 Rod.', val: 5 },
+                            { label: 'Sem Fim', val: 0 },
+                          ].map((opt) => (
+                            <button
+                              key={opt.val}
+                              type="button"
+                              onClick={() => handleUpdateSettings(undefined, opt.val)}
+                              className={`py-1.5 rounded-lg text-xs font-bold transition-all ${
+                                (gameState.settings?.maxRounds ?? 3) === opt.val
+                                  ? 'bg-accent-yellow text-black shadow-sm font-black'
+                                  : 'text-text-muted hover:text-white'
+                              }`}
+                            >
+                              {opt.label}
+                            </button>
+                          ))}
+                        </div>
                       </div>
                     </div>
                   </div>
                 ) : (
-                  <div className="mb-6 p-3 bg-black/25 rounded-2xl border border-border/60 flex items-center justify-around text-xs">
+                  <div className="mb-5 py-2 px-4 bg-black/25 rounded-2xl border border-border/60 flex items-center justify-around text-xs">
                     <div className="flex items-center gap-1.5 text-text-muted">
                       <span>⏱️ Tempo:</span>
                       <span className="font-bold text-white">{gameState.settings?.roundTime || 90}s</span>
@@ -353,24 +365,24 @@ export default function App() {
                 )}
 
                 {/* Player list grid */}
-                <div className="mb-8">
-                  <div className="flex items-center justify-between text-xs font-bold text-text-muted uppercase tracking-wider mb-3 px-1">
-                    <span>Jogadores Conectados</span>
-                    <span className="bg-primary/20 text-primary px-2 py-0.5 rounded-full">
+                <div className="mb-6">
+                  <div className="flex items-center justify-between text-xs font-bold text-text-muted uppercase tracking-wider mb-2.5 px-1">
+                    <span>Amigos Conectados</span>
+                    <span className="bg-primary/20 text-primary px-2.5 py-0.5 rounded-full font-bold">
                       {gameState.players.length} {gameState.players.length === 1 ? 'amigo' : 'amigos'}
                     </span>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-60 overflow-y-auto pr-1">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-48 overflow-y-auto pr-1">
                     {gameState.players.map((p, idx) => {
                       const isMe = p.id === socket.id;
-                      const isFirst = idx === 0; // Room creator
+                      const isFirst = idx === 0;
                       return (
                         <motion.div
                           key={p.id}
                           initial={{ opacity: 0, scale: 0.9 }}
                           animate={{ opacity: 1, scale: 1 }}
-                          className={`flex items-center justify-between px-3.5 py-2.5 rounded-2xl border ${
+                          className={`flex items-center justify-between px-3.5 py-2.5 rounded-2xl border transition-all ${
                             isMe 
                               ? 'bg-primary/15 border-primary/40 ring-1 ring-primary/30' 
                               : 'bg-black/30 border-border/80'
@@ -391,6 +403,14 @@ export default function App() {
                         </motion.div>
                       );
                     })}
+
+                    {/* Dotted placeholder if only 1 player */}
+                    {gameState.players.length < 2 && (
+                      <div className="flex items-center justify-center p-3 rounded-2xl border-2 border-dashed border-border/60 text-text-muted text-xs font-semibold gap-2">
+                        <span className="animate-pulse">⏳</span>
+                        <span>Esperando mais 1 amigo entrar...</span>
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -402,8 +422,8 @@ export default function App() {
                 >
                   <Play className="w-5 h-5 fill-current" />
                   {gameState.players.length < 2
-                    ? 'Aguardando mais 1 jogador...'
-                    : 'Iniciar Rodada!'}
+                    ? 'Aguardando mais 1 jogador (Mín. 2)'
+                    : `Começar Partida! (${gameState.players.length} jogadores)`}
                 </button>
               </div>
             </motion.div>
