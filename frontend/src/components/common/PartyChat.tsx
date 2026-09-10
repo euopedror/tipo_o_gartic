@@ -82,32 +82,10 @@ export default function PartyChat({
       }
     };
 
-    const handleNewTip = (tipText: string) => {
-      setLocalMessages((prev) => {
-        if (prev.some((m) => m.isTip && m.text === tipText)) return prev;
-        return [
-          ...prev,
-          {
-            id: 'tip-' + Date.now() + '-' + Math.random().toString(36).substring(2, 6),
-            senderId: 'master',
-            senderName: 'Mestre',
-            senderAvatar: '👑',
-            text: tipText,
-            isMaster: true,
-            isTip: true,
-            timestamp: Date.now()
-          }
-        ];
-      });
-      sounds.playPop();
-    };
-
     socket.on('new_chat_message', handleNewMessage);
-    socket.on('new_tip', handleNewTip);
 
     return () => {
       socket.off('new_chat_message', handleNewMessage);
-      socket.off('new_tip', handleNewTip);
     };
   }, [socket, myPlayer?.name]);
 

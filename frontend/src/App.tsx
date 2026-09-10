@@ -40,7 +40,9 @@ const getBackendUrl = () => {
 };
 
 const backendUrl = getBackendUrl();
-const socket: Socket = io(backendUrl);
+const socket: Socket = io(backendUrl, {
+  transports: ['websocket', 'polling']
+});
 
 export default function App() {
   const [gameState, setGameState] = useState<GameState | null>(null);
