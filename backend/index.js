@@ -77,10 +77,6 @@ io.on('connection', (socket) => {
 
     // Check if this player is reconnecting
     const existingPlayer = Object.values(room.players).find(p => p.name === cleanPlayerName);
-    if (room.state !== GAME_STATES.LOBBY && !existingPlayer) {
-      socket.emit('error', 'Partida em andamento nesta sala. Aguarde ela terminar para entrar.');
-      return;
-    }
 
     socket.join(cleanRoomId);
 
