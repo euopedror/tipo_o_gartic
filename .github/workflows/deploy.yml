@@ -50,3 +50,11 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
+      - name: Trigger Render Backend Deploy
+        if: env.RENDER_DEPLOY_HOOK_URL != ''
+        env:
+          RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+        run: |
+          echo "Disparando deploy automatico no Render..."
+          curl -s -X POST "$RENDER_DEPLOY_HOOK_URL"
