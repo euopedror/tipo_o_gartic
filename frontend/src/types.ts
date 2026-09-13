@@ -48,6 +48,7 @@ export interface GameState {
   votes: Record<string, PlayerVotes>; // { [playerId]: { similar, funny } }
   timer?: number;
   settings?: GameSettings;
+  voiceUserIds?: string[];
   currentRound?: number;
   isGameOver?: boolean;
 }

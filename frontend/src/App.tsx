@@ -11,6 +11,7 @@ import Voting from './components/Voting';
 import Results from './components/Results';
 import FloatingReactions from './components/common/FloatingReactions';
 import PartyChat from './components/common/PartyChat';
+import VoiceChat from './components/common/VoiceChat';
 import type { GameState, ReactionItem, ChatMessage } from './types';
 import { sounds } from './utils/audioFx';
 
@@ -310,6 +311,15 @@ export default function App() {
 
         {/* Right side controls */}
         <div className="flex items-center gap-2 sm:gap-3">
+          {/* WebRTC Live Voice Chat */}
+          <VoiceChat
+            socket={socket}
+            roomId={gameState.id}
+            players={gameState.players}
+            myPlayer={myPlayer}
+            voiceUserIds={gameState.voiceUserIds}
+          />
+
           <button
             onClick={toggleSound}
             className="p-2 rounded-xl bg-panel-light hover:bg-border/60 border border-border transition-colors text-text-muted hover:text-white"
