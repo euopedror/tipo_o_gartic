@@ -46,49 +46,49 @@ export default function Voting({ socket, gameState, myPlayer: _myPlayer, timer }
   const hasVotedAll = hasVotedSimilar && hasVotedFunny;
 
   return (
-    <div className="flex-1 flex flex-col p-4 md:p-8 overflow-y-auto bg-gradient-to-b from-bg-dark via-panel/50 to-bg-dark">
+    <div className="flex-1 flex flex-col p-2.5 sm:p-4 md:p-8 overflow-y-auto bg-gradient-to-b from-bg-dark via-panel/50 to-bg-dark">
       {/* Header Banner */}
       <motion.div 
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="text-center max-w-2xl mx-auto mb-8"
+        className="text-center max-w-2xl mx-auto mb-4 sm:mb-8"
       >
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-violet-500/20 border border-violet-400/40 text-violet-300 font-bold text-xs uppercase tracking-wider mb-3 font-display">
-          <Sparkles className="w-4 h-4 text-accent-yellow" />
+        <div className="inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1 sm:py-1.5 rounded-full bg-violet-500/20 border border-violet-400/40 text-violet-300 font-bold text-[11px] sm:text-xs uppercase tracking-wider mb-2 sm:mb-3 font-display">
+          <Sparkles className="w-3.5 h-3.5 text-accent-yellow" />
           Galeria de Arte da Rodada
         </div>
 
-        <h2 className="text-3xl md:text-5xl font-black text-white font-display">
+        <h2 className="text-2xl sm:text-4xl md:text-5xl font-black text-white font-display">
           Hora de Votar! 🗳️
         </h2>
-        <p className="text-text-muted text-sm md:text-base mt-2">
+        <p className="text-text-muted text-xs sm:text-sm md:text-base mt-1.5 sm:mt-2">
           Vote em quem desenhou <strong className="text-accent-cyan">mais parecido</strong> e em quem produziu a <strong className="text-accent-pink">maior atrocidade</strong>!
         </p>
 
         {/* Timer Bar */}
-        <div className="mt-4 inline-flex items-center gap-3 bg-panel border border-border px-5 py-2.5 rounded-2xl shadow-lg">
-          <Clock className={`w-5 h-5 ${timer <= 10 ? 'text-red-400 animate-spin' : 'text-accent-yellow'}`} />
-          <span className="text-text-muted text-xs font-bold uppercase tracking-wider">Tempo:</span>
-          <span className={`text-2xl font-mono font-black ${timer <= 10 ? 'text-red-400 animate-pulse' : 'text-white'}`}>
+        <div className="mt-3 sm:mt-4 inline-flex items-center gap-2.5 sm:gap-3 bg-panel border border-border px-4 sm:px-5 py-1.5 sm:py-2.5 rounded-xl sm:rounded-2xl shadow-lg">
+          <Clock className={`w-4 h-4 sm:w-5 sm:h-5 ${timer <= 10 ? 'text-red-400 animate-spin' : 'text-accent-yellow'}`} />
+          <span className="text-text-muted text-[10px] sm:text-xs font-bold uppercase tracking-wider">Tempo:</span>
+          <span className={`text-xl sm:text-2xl font-mono font-black ${timer <= 10 ? 'text-red-400 animate-pulse' : 'text-white'}`}>
             {timer}s
           </span>
         </div>
       </motion.div>
 
       {/* Voting Status feedback */}
-      <div className="max-w-md mx-auto w-full mb-6 text-center">
+      <div className="max-w-md mx-auto w-full mb-4 sm:mb-6 text-center">
         {hasVotedAll ? (
-          <div className="bg-accent-green/15 border border-accent-green/40 text-accent-green font-bold py-3 px-4 rounded-2xl text-sm flex items-center justify-center gap-2">
-            <Check className="w-5 h-5" />
+          <div className="bg-accent-green/15 border border-accent-green/40 text-accent-green font-bold py-2.5 sm:py-3 px-3 sm:px-4 rounded-xl sm:rounded-2xl text-xs sm:text-sm flex items-center justify-center gap-2">
+            <Check className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
             <span>Todos os seus votos foram registrados! Aguardando o timer...</span>
           </div>
         ) : (
-          <div className="flex items-center justify-center gap-3 text-xs">
-            <span className={`px-3 py-1.5 rounded-xl border font-semibold ${hasVotedSimilar ? 'bg-accent-cyan/20 border-accent-cyan text-accent-cyan' : 'bg-black/30 border-border text-text-muted'}`}>
-              {hasVotedSimilar ? '✓ Mais Parecido' : '🎨 Falta votar: Mais Parecido'}
+          <div className="flex flex-wrap items-center justify-center gap-2 text-xs">
+            <span className={`px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg sm:rounded-xl border font-semibold ${hasVotedSimilar ? 'bg-accent-cyan/20 border-accent-cyan text-accent-cyan' : 'bg-black/30 border-border text-text-muted'}`}>
+              {hasVotedSimilar ? '✓ Mais Parecido' : '🎨 Falta: Mais Parecido'}
             </span>
-            <span className={`px-3 py-1.5 rounded-xl border font-semibold ${hasVotedFunny ? 'bg-accent-pink/20 border-accent-pink text-accent-pink' : 'bg-black/30 border-border text-text-muted'}`}>
-              {hasVotedFunny ? '✓ Atrocidade' : '😂 Falta votar: Atrocidade'}
+            <span className={`px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg sm:rounded-xl border font-semibold ${hasVotedFunny ? 'bg-accent-pink/20 border-accent-pink text-accent-pink' : 'bg-black/30 border-border text-text-muted'}`}>
+              {hasVotedFunny ? '✓ Atrocidade' : '😂 Falta: Atrocidade'}
             </span>
           </div>
         )}
@@ -96,9 +96,9 @@ export default function Voting({ socket, gameState, myPlayer: _myPlayer, timer }
 
       {/* Empty state if no drawings were submitted */}
       {drawings.length === 0 && (
-        <div className="max-w-md mx-auto w-full p-8 bg-panel/90 border border-border rounded-3xl text-center shadow-2xl mb-8">
-          <Sparkles className="w-10 h-10 text-accent-yellow mx-auto mb-3 opacity-75 animate-bounce" />
-          <h3 className="text-xl font-black text-white mb-2">Nenhum desenho nesta rodada</h3>
+        <div className="max-w-md mx-auto w-full p-6 sm:p-8 bg-panel/90 border border-border rounded-2xl sm:rounded-3xl text-center shadow-2xl mb-8">
+          <Sparkles className="w-8 h-8 sm:w-10 sm:h-10 text-accent-yellow mx-auto mb-2 sm:mb-3 opacity-75 animate-bounce" />
+          <h3 className="text-lg sm:text-xl font-black text-white mb-1.5">Nenhum desenho nesta rodada</h3>
           <p className="text-xs text-text-muted">
             Os artistas não entregaram desenhos a tempo. Aguardando o término do tempo para prosseguir!
           </p>
@@ -106,7 +106,7 @@ export default function Voting({ socket, gameState, myPlayer: _myPlayer, timer }
       )}
 
       {/* Gallery Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto w-full pb-10">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 max-w-6xl mx-auto w-full pb-10">
         {drawings.map(({ playerId, player, dataUrl }) => {
           const isMe = playerId === socket.id;
           const isSimilarVoted = votedSimilarId === playerId;
@@ -171,9 +171,9 @@ export default function Voting({ socket, gameState, myPlayer: _myPlayer, timer }
               </div>
 
               {/* Voting Actions */}
-              <div className="p-3.5 bg-black/20 border-t border-border flex gap-2">
+              <div className="p-2.5 sm:p-3.5 bg-black/20 border-t border-border flex gap-1.5 sm:gap-2">
                 {isMe ? (
-                  <div className="w-full text-center py-2 text-xs font-semibold text-text-muted bg-white/5 rounded-xl">
+                  <div className="w-full text-center py-2.5 text-xs font-semibold text-text-muted bg-white/5 rounded-xl">
                     Seu próprio desenho 😉
                   </div>
                 ) : (
@@ -181,7 +181,7 @@ export default function Voting({ socket, gameState, myPlayer: _myPlayer, timer }
                     <button
                       onClick={() => handleVote('similar', playerId)}
                       disabled={hasVotedSimilar}
-                      className={`flex-1 btn-3d py-2.5 px-2 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 ${
+                      className={`flex-1 btn-3d py-3 sm:py-2.5 px-2 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 min-h-[44px] ${
                         isSimilarVoted
                           ? 'bg-accent-cyan text-black shadow-[0_3px_0_0_#0891b2]'
                           : hasVotedSimilar
@@ -189,14 +189,14 @@ export default function Voting({ socket, gameState, myPlayer: _myPlayer, timer }
                           : 'bg-blue-600 hover:bg-blue-500 text-white shadow-[0_4px_0_0_#1d4ed8]'
                       }`}
                     >
-                      <Sparkles className="w-3.5 h-3.5" />
-                      <span>{isSimilarVoted ? 'Parecido ✓' : 'Mais Parecido'}</span>
+                      <Sparkles className="w-3.5 h-3.5 shrink-0" />
+                      <span className="truncate">{isSimilarVoted ? 'Parecido ✓' : 'Mais Parecido'}</span>
                     </button>
 
                     <button
                       onClick={() => handleVote('funny', playerId)}
                       disabled={hasVotedFunny}
-                      className={`flex-1 btn-3d py-2.5 px-2 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 ${
+                      className={`flex-1 btn-3d py-3 sm:py-2.5 px-2 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 min-h-[44px] ${
                         isFunnyVoted
                           ? 'bg-accent-pink text-white shadow-[0_3px_0_0_#be123c]'
                           : hasVotedFunny
@@ -204,8 +204,8 @@ export default function Voting({ socket, gameState, myPlayer: _myPlayer, timer }
                           : 'bg-fuchsia-600 hover:bg-fuchsia-500 text-white shadow-[0_4px_0_0_#a21caf]'
                       }`}
                     >
-                      <Laugh className="w-3.5 h-3.5" />
-                      <span>{isFunnyVoted ? 'Atrocidade 😂' : 'Atrocidade'}</span>
+                      <Laugh className="w-3.5 h-3.5 shrink-0" />
+                      <span className="truncate">{isFunnyVoted ? 'Atrocidade 😂' : 'Atrocidade'}</span>
                     </button>
                   </>
                 )}
@@ -215,10 +215,10 @@ export default function Voting({ socket, gameState, myPlayer: _myPlayer, timer }
         })}
 
         {drawings.length === 0 && (
-          <div className="col-span-full text-center text-text-muted py-16 bg-panel/50 rounded-3xl border border-border">
-            <span className="text-4xl mb-3 block">😢</span>
-            <h3 className="text-xl font-bold text-white mb-1">Nenhum desenho foi enviado a tempo!</h3>
-            <p className="text-sm">A rodada vai avançar automaticamente.</p>
+          <div className="col-span-full text-center text-text-muted py-12 sm:py-16 bg-panel/50 rounded-2xl sm:rounded-3xl border border-border">
+            <span className="text-3xl sm:text-4xl mb-2 sm:mb-3 block">😢</span>
+            <h3 className="text-lg sm:text-xl font-bold text-white mb-1">Nenhum desenho foi enviado a tempo!</h3>
+            <p className="text-xs sm:text-sm">A rodada vai avançar automaticamente.</p>
           </div>
         )}
       </div>
@@ -231,35 +231,37 @@ export default function Voting({ socket, gameState, myPlayer: _myPlayer, timer }
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setZoomImage(null)}
-            className="fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex flex-col items-center justify-center p-4 cursor-zoom-out"
+            className="fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex flex-col items-center justify-center p-2.5 sm:p-4 cursor-zoom-out"
           >
-            <div className="relative max-w-3xl w-full bg-panel border border-border rounded-3xl overflow-hidden shadow-2xl p-4">
-              <div className="flex items-center justify-between pb-3 border-b border-border mb-3">
-                <h3 className="text-lg font-bold text-white">Desenho de {zoomImage.name}</h3>
-                <div className="flex items-center gap-2">
+            <div className="relative max-w-3xl w-full bg-panel border border-border rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl p-3 sm:p-4">
+              <div className="flex items-center justify-between pb-2.5 sm:pb-3 border-b border-border mb-2.5 sm:mb-3">
+                <h3 className="text-sm sm:text-lg font-bold text-white truncate max-w-[200px] sm:max-w-none">
+                  Desenho de {zoomImage.name}
+                </h3>
+                <div className="flex items-center gap-1.5 sm:gap-2">
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
                       downloadDrawing(zoomImage.url, zoomImage.name, gameState.character);
                     }}
-                    className="flex items-center gap-1.5 bg-primary hover:bg-primary-hover text-white text-xs font-bold px-3 py-1.5 rounded-xl transition-all shadow-md active:scale-95"
+                    className="flex items-center gap-1.5 bg-primary hover:bg-primary-hover text-white text-xs font-bold px-3 py-1.5 rounded-xl transition-all shadow-md active:scale-95 min-h-[36px]"
                   >
-                    <Download className="w-3.5 h-3.5" />
+                    <Download className="w-3.5 h-3.5 shrink-0" />
                     <span>Baixar PNG</span>
                   </button>
                   <button
                     onClick={() => setZoomImage(null)}
-                    className="p-1.5 rounded-xl bg-panel-light hover:bg-border text-text-muted hover:text-white"
+                    className="p-2 rounded-xl bg-panel-light hover:bg-border text-text-muted hover:text-white min-h-[36px] min-w-[36px] flex items-center justify-center"
                   >
-                    <X className="w-5 h-5" />
+                    <X className="w-4 h-4 sm:w-5 sm:h-5" />
                   </button>
                 </div>
               </div>
-              <div className="bg-[#0a0e1a] rounded-2xl overflow-hidden flex items-center justify-center max-h-[70vh]">
+              <div className="bg-[#0a0e1a] rounded-xl sm:rounded-2xl overflow-hidden flex items-center justify-center max-h-[65vh] sm:max-h-[70vh]">
                 <img
                   src={zoomImage.url}
                   alt="Zoom"
-                  className="w-full h-full object-contain max-h-[70vh]"
+                  className="w-full h-full object-contain max-h-[65vh] sm:max-h-[70vh]"
                 />
               </div>
             </div>

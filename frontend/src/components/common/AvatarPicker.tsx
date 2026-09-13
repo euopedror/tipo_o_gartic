@@ -40,7 +40,7 @@ export default function AvatarPicker({ selectedAvatar, onSelect }: AvatarPickerP
         </span>
       </div>
 
-      <div className="grid grid-cols-6 gap-2 bg-slate-950/70 p-2.5 rounded-2xl border border-slate-800 shadow-inner">
+      <div className="grid grid-cols-6 gap-1 sm:gap-2 bg-slate-950/70 p-1.5 sm:p-2.5 rounded-2xl border border-slate-800 shadow-inner">
         {AVATARS.map((avatar) => {
           const isSelected = selectedAvatar === avatar;
           const colorClass = AVATAR_COLORS[avatar] || 'bg-slate-800/80 border-slate-700/80';
@@ -49,23 +49,23 @@ export default function AvatarPicker({ selectedAvatar, onSelect }: AvatarPickerP
             <motion.button
               key={avatar}
               type="button"
-              whileHover={{ scale: 1.16, y: -2 }}
-              whileTap={{ scale: 0.88 }}
+              whileHover={{ scale: 1.12, y: -1 }}
+              whileTap={{ scale: 0.9 }}
               animate={{ 
-                scale: isSelected ? 1.14 : 1,
+                scale: isSelected ? 1.1 : 1,
               }}
               transition={{ type: "spring", stiffness: 500, damping: 20 }}
               onClick={() => {
                 sounds.playPop();
                 onSelect(avatar);
               }}
-              className={`text-2xl sm:text-3xl h-12 w-full rounded-2xl flex items-center justify-center transition-all relative border-2 ${
+              className={`text-xl sm:text-2xl md:text-3xl h-10 sm:h-12 w-full rounded-xl sm:rounded-2xl flex items-center justify-center transition-all relative border sm:border-2 ${
                 isSelected
-                  ? 'bg-amber-400/25 border-amber-400 ring-3 ring-amber-400 ring-offset-2 ring-offset-[#0b0d1e] shadow-lg shadow-amber-400/40 z-10'
+                  ? 'bg-amber-400/25 border-amber-400 ring-2 sm:ring-3 ring-amber-400 ring-offset-1 sm:ring-offset-2 ring-offset-[#0b0d1e] shadow-md shadow-amber-400/40 z-10'
                   : colorClass
               }`}
             >
-              <span className="drop-shadow-sm">{avatar}</span>
+              <span className="drop-shadow-sm select-none">{avatar}</span>
             </motion.button>
           );
         })}

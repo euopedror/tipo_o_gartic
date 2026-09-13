@@ -349,7 +349,7 @@ export default function PartyChat({
       </div>
 
       {/* Quick Reaction Emojis */}
-      <div className="px-3 py-1 bg-black/20 border-t border-border/50 flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+      <div className="px-3 py-1.5 bg-black/20 border-t border-border/50 flex items-center gap-1.5 overflow-x-auto no-scrollbar">
         <span className="text-[10px] text-text-muted font-bold mr-1 shrink-0">Reagir:</span>
         {QUICK_EMOJIS.map((emoji) => (
           <button
@@ -357,7 +357,7 @@ export default function PartyChat({
             type="button"
             disabled={!isHost && isChatMuted}
             onClick={() => handleQuickEmoji(emoji)}
-            className="hover:scale-125 transition-transform text-sm p-1 rounded-md hover:bg-white/10 active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed"
+            className="hover:scale-125 transition-transform text-base sm:text-sm p-1.5 sm:p-1 rounded-md hover:bg-white/10 active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed min-w-[32px] min-h-[32px] flex items-center justify-center shrink-0"
             title={`Enviar ${emoji}`}
           >
             {emoji}
@@ -395,7 +395,7 @@ export default function PartyChat({
       )}
 
       {/* Input Box */}
-      <form onSubmit={handleSendMessage} className="p-2.5 bg-black/40 border-t border-border/80 flex items-center gap-2">
+      <form onSubmit={handleSendMessage} className="p-2 sm:p-2.5 bg-black/40 border-t border-border/80 flex items-center gap-2">
         <input
           type="text"
           value={inputText}
@@ -406,15 +406,15 @@ export default function PartyChat({
               ? '🔇 Chat silenciado pelo Host...'
               : isMaster && sendAsTip
               ? 'Digite uma dica visual clara...'
-              : 'Digite sua mensagem no chat...'
+              : 'Digite sua mensagem...'
           }
           maxLength={150}
-          className="flex-1 bg-bg-dark border border-border rounded-xl px-3 py-2 text-xs text-white placeholder:text-text-muted focus:outline-none focus:border-primary transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+          className="flex-1 bg-bg-dark border border-border rounded-xl px-3 py-2 text-base sm:text-xs text-white placeholder:text-text-muted focus:outline-none focus:border-primary transition-colors disabled:opacity-40 disabled:cursor-not-allowed min-h-[40px]"
         />
         <button
           type="submit"
           disabled={(!isHost && isChatMuted) || !inputText.trim()}
-          className={`p-2 rounded-xl font-bold transition-all active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed ${
+          className={`p-2.5 sm:p-2 rounded-xl font-bold transition-all active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed min-w-[40px] min-h-[40px] flex items-center justify-center shrink-0 ${
             isMaster && sendAsTip
               ? 'bg-accent-yellow hover:bg-yellow-400 text-black shadow-md'
               : 'bg-primary hover:bg-primary-hover text-white shadow-md'

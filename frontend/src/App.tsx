@@ -281,40 +281,40 @@ export default function App() {
   return (
     <div className="min-h-screen bg-bg-dark text-text-main flex flex-col font-sans selection:bg-primary selection:text-white">
       {/* App Header */}
-      <header className="bg-panel/90 backdrop-blur border-b border-border/80 px-4 py-3 md:px-8 flex justify-between items-center sticky top-0 z-50 shadow-md">
-        <div className="flex items-center gap-3 font-display">
-          <span className="text-2xl md:text-3xl float-bounce">🎨</span>
+      <header className="bg-panel/90 backdrop-blur border-b border-border/80 px-2.5 py-2 sm:px-4 sm:py-3 md:px-8 flex justify-between items-center sticky top-0 z-50 shadow-md">
+        <div className="flex items-center gap-1.5 sm:gap-3 font-display shrink-0">
+          <span className="text-xl sm:text-2xl md:text-3xl float-bounce">🎨</span>
           <div>
-            <h1 className="text-lg md:text-xl font-black tracking-tight text-white flex items-center gap-1.5">
+            <h1 className="text-base sm:text-lg md:text-xl font-black tracking-tight text-white flex items-center gap-1">
               <span>Desenho</span>
               <span className="bg-clip-text text-transparent bg-gradient-to-r from-violet-400 to-pink-400">
                 Cego
               </span>
             </h1>
-            <div className="text-[10px] text-accent-cyan font-bold uppercase tracking-wider hidden sm:block font-sans">
+            <div className="text-[9px] sm:text-[10px] text-accent-cyan font-bold uppercase tracking-wider hidden sm:block font-sans">
               Party Edition
             </div>
           </div>
         </div>
 
         {/* Center Room Code Pill & Round Badge */}
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-1.5 sm:gap-2.5">
           <button
             onClick={handleCopyCode}
             title="Clique para copiar o código da sala"
-            className="flex items-center gap-2 bg-black/40 hover:bg-black/60 border border-border px-3 py-1.5 rounded-full transition-all text-xs md:text-sm font-mono font-bold"
+            className="flex items-center gap-1.5 sm:gap-2 bg-black/40 hover:bg-black/60 border border-border px-2 sm:px-3 py-1 sm:py-1.5 rounded-full transition-all text-xs md:text-sm font-mono font-bold"
           >
-            <span className="text-text-muted">SALA:</span>
+            <span className="text-text-muted hidden xs:inline">SALA:</span>
             <span className="text-accent-yellow tracking-wider">{gameState.id}</span>
             {copied ? (
-              <Check className="w-3.5 h-3.5 text-green-400" />
+              <Check className="w-3.5 h-3.5 text-green-400 shrink-0" />
             ) : (
-              <Copy className="w-3.5 h-3.5 text-text-muted hover:text-white" />
+              <Copy className="w-3.5 h-3.5 text-text-muted hover:text-white shrink-0" />
             )}
           </button>
 
           {gameState.state !== 'LOBBY' && (
-            <div className="hidden sm:flex items-center gap-1.5 bg-violet-500/15 border border-violet-400/30 px-3 py-1.5 rounded-full text-xs font-bold text-violet-300 font-display">
+            <div className="hidden sm:flex items-center gap-1.5 bg-violet-500/15 border border-violet-400/30 px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full text-xs font-bold text-violet-300 font-display">
               <span>
                 Rodada {gameState.currentRound || 1}
                 {gameState.settings?.maxRounds ? `/${gameState.settings.maxRounds}` : ''}
@@ -324,7 +324,7 @@ export default function App() {
         </div>
 
         {/* Right side controls */}
-        <div className="flex items-center gap-2 sm:gap-3">
+        <div className="flex items-center gap-1 sm:gap-2 md:gap-3">
           {/* WebRTC Live Voice Chat */}
           <VoiceChat
             socket={socket}
@@ -336,16 +336,19 @@ export default function App() {
 
           <button
             onClick={toggleSound}
-            className="p-2 rounded-xl bg-panel-light hover:bg-border/60 border border-border transition-colors text-text-muted hover:text-white"
+            className="p-1.5 sm:p-2 rounded-xl bg-panel-light hover:bg-border/60 border border-border transition-colors text-text-muted hover:text-white min-w-[32px] sm:min-w-[36px] flex items-center justify-center"
             title={soundEnabled ? 'Silenciar som' : 'Ativar som'}
           >
             {soundEnabled ? <Volume2 className="w-4 h-4 text-accent-green" /> : <VolumeX className="w-4 h-4 text-red-400" />}
           </button>
 
           {/* User profile tag */}
-          <div className="flex items-center gap-2 bg-panel-light px-3 py-1.5 rounded-xl border border-border">
-            <span className="text-lg">{myPlayer?.avatar || playerAvatar}</span>
-            <span className="text-xs md:text-sm font-bold text-white max-w-[100px] truncate">
+          <div 
+            className="flex items-center gap-1 sm:gap-2 bg-panel-light px-2 sm:px-3 py-1 sm:py-1.5 rounded-xl border border-border"
+            title={playerName || myPlayer?.name}
+          >
+            <span className="text-base sm:text-lg">{myPlayer?.avatar || playerAvatar}</span>
+            <span className="text-xs md:text-sm font-bold text-white max-w-[70px] sm:max-w-[100px] truncate hidden xs:inline">
               {playerName || myPlayer?.name}
             </span>
           </div>
@@ -354,7 +357,7 @@ export default function App() {
           <button
             onClick={handleLeaveRoom}
             title="Sair da sala"
-            className="p-2 rounded-xl bg-panel-light hover:bg-red-500/20 hover:border-red-500/40 border border-border transition-colors text-text-muted hover:text-red-400"
+            className="p-1.5 sm:p-2 rounded-xl bg-panel-light hover:bg-red-500/20 hover:border-red-500/40 border border-border transition-colors text-text-muted hover:text-red-400 min-w-[32px] sm:min-w-[36px] flex items-center justify-center"
           >
             <LogOut className="w-4 h-4" />
           </button>
@@ -435,7 +438,7 @@ export default function App() {
                           <span className="text-[10px] text-text-muted font-bold uppercase block mb-1">⏱️ Tempo por Rodada:</span>
                           <div className="grid grid-cols-4 gap-1 bg-panel-light p-1 rounded-xl border border-border/60">
                             {[
-                              { label: 'Sem Limite', val: 0 },
+                              { label: '♾️ Livre', val: 0 },
                               { label: '60s', val: 60 },
                               { label: '90s', val: 90 },
                               { label: '120s', val: 120 },
@@ -573,7 +576,7 @@ export default function App() {
                 </div>
 
                 {/* Right Column: Waiting Room Chat */}
-                <div className="lg:col-span-5 bg-panel border border-border/90 rounded-3xl overflow-hidden shadow-2xl h-[460px] sm:h-[520px] lg:h-[600px] flex flex-col">
+                <div className="lg:col-span-5 bg-panel border border-border/90 rounded-3xl overflow-hidden shadow-2xl h-[360px] sm:h-[460px] lg:h-[600px] flex flex-col">
                   <PartyChat
                     socket={socket}
                     roomId={gameState.id}
@@ -628,14 +631,14 @@ export default function App() {
         {/* Floating Chat Button & Drawer during Voting and Results */}
         {(gameState.state === 'VOTING' || gameState.state === 'RESULTS') && (
           <>
-            <div className="fixed bottom-4 left-4 z-40">
+            <div className="fixed bottom-3 left-3 sm:bottom-4 sm:left-4 z-40">
               <button
                 type="button"
                 onClick={toggleFloatingChat}
-                className="relative flex items-center gap-2 bg-panel/95 hover:bg-panel border border-border/90 px-4 py-2.5 rounded-2xl text-white text-xs font-bold shadow-2xl backdrop-blur transition-all active:scale-95 group hover:border-accent-cyan/50"
+                className="relative flex items-center gap-1.5 sm:gap-2 bg-panel/95 hover:bg-panel border border-border/90 px-3 py-2 sm:px-4 sm:py-2.5 rounded-2xl text-white text-xs font-bold shadow-2xl backdrop-blur transition-all active:scale-95 group hover:border-accent-cyan/50"
               >
-                <MessageCircle className="w-4 h-4 text-accent-cyan group-hover:scale-110 transition-transform" />
-                <span>Chat da Sala</span>
+                <MessageCircle className="w-4 h-4 text-accent-cyan group-hover:scale-110 transition-transform shrink-0" />
+                <span className="hidden xs:inline">Chat da Sala</span>
                 {unreadChatCount > 0 && (
                   <span className="bg-accent-pink text-white text-[10px] font-black px-1.5 py-0.5 rounded-full animate-bounce shadow-md">
                     {unreadChatCount}
@@ -650,7 +653,7 @@ export default function App() {
                   initial={{ opacity: 0, y: 30, scale: 0.95 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: 30, scale: 0.95 }}
-                  className="fixed bottom-16 left-4 z-50 w-[calc(100vw-2rem)] max-w-sm h-96 shadow-2xl rounded-3xl overflow-hidden border border-border/90 bg-panel/98 backdrop-blur"
+                  className="fixed bottom-14 sm:bottom-16 left-2 sm:left-4 z-50 w-[calc(100vw-1rem)] sm:w-96 max-w-sm h-[380px] max-h-[65vh] shadow-2xl rounded-3xl overflow-hidden border border-border/90 bg-panel/98 backdrop-blur"
                 >
                   <PartyChat
                     socket={socket}

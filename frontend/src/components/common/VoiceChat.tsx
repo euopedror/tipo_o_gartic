@@ -534,27 +534,27 @@ export default function VoiceChat({
         <button
           type="button"
           onClick={handleJoinVoice}
-          className="flex items-center gap-2 bg-gradient-to-r from-violet-600/30 to-pink-600/30 hover:from-violet-600/50 hover:to-pink-600/50 border border-violet-400/50 px-3.5 py-1.5 rounded-full text-xs font-bold text-white transition-all active:scale-95 shadow-md group"
+          className="flex items-center gap-1.5 sm:gap-2 bg-gradient-to-r from-violet-600/30 to-pink-600/30 hover:from-violet-600/50 hover:to-pink-600/50 border border-violet-400/50 px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-full text-xs font-bold text-white transition-all active:scale-95 shadow-md group shrink-0 min-h-[32px] sm:min-h-[34px]"
           title="Entrar na chamada de voz ao vivo (P2P)"
         >
-          <PhoneCall className="w-3.5 h-3.5 text-accent-cyan group-hover:scale-110 transition-transform" />
-          <span className="hidden sm:inline font-display">Voz ao Vivo</span>
-          <span className="text-[9px] bg-accent-cyan/20 text-accent-cyan px-2 py-0.5 rounded-full uppercase font-black tracking-wider">
-            Ligar Mic
+          <PhoneCall className="w-3.5 h-3.5 text-accent-cyan group-hover:scale-110 transition-transform shrink-0" />
+          <span className="hidden md:inline font-display">Voz</span>
+          <span className="text-[9px] bg-accent-cyan/20 text-accent-cyan px-1.5 sm:px-2 py-0.5 rounded-full uppercase font-black tracking-wider">
+            Mic
           </span>
           {activeVoicePlayers.length > 0 && (
-            <span className="text-[10px] bg-emerald-500/20 text-emerald-300 font-mono px-1.5 py-0.5 rounded-full border border-emerald-500/30">
-              {activeVoicePlayers.length} online
+            <span className="text-[10px] bg-emerald-500/20 text-emerald-300 font-mono px-1 sm:px-1.5 py-0.5 rounded-full border border-emerald-500/30">
+              {activeVoicePlayers.length}
             </span>
           )}
         </button>
       ) : (
-        <div className="flex items-center gap-1.5 bg-emerald-950/70 border border-emerald-500/60 p-1 rounded-full text-xs font-bold text-white shadow-xl backdrop-blur">
+        <div className="flex items-center gap-1 bg-emerald-950/70 border border-emerald-500/60 p-0.5 sm:p-1 rounded-full text-xs font-bold text-white shadow-xl backdrop-blur shrink-0">
           {/* Live Speaking Indicator / Expand Drawer */}
           <button
             type="button"
             onClick={() => setIsExpanded(!isExpanded)}
-            className="flex items-center gap-2 pl-2 pr-1.5 py-0.5 hover:bg-emerald-900/40 rounded-full transition-colors select-none"
+            className="flex items-center gap-1.5 pl-1.5 sm:pl-2 pr-1 sm:pr-1.5 py-0.5 hover:bg-emerald-900/40 rounded-full transition-colors select-none"
             title="Abrir painel de volume e participantes"
           >
             <div className="relative flex items-center justify-center">
@@ -567,10 +567,10 @@ export default function VoiceChat({
                 <span className="absolute w-4 h-4 rounded-full bg-emerald-400/50 animate-ping" />
               )}
             </div>
-            <span className="text-[11px] font-mono text-emerald-300 font-black hidden sm:inline">
+            <span className="text-[11px] font-mono text-emerald-300 font-black hidden md:inline">
               Voz ({activeVoicePlayers.length})
             </span>
-            <Sliders className="w-3.5 h-3.5 text-emerald-300/80 hover:text-white" />
+            <Sliders className="w-3 h-3 text-emerald-300/80 hover:text-white" />
           </button>
 
           {/* Mute Microphone Button */}
@@ -582,12 +582,12 @@ export default function VoiceChat({
                 ? 'bg-red-500/30 text-red-300 hover:bg-red-500/50 border border-red-500/40'
                 : 'bg-panel-light text-emerald-300 hover:bg-emerald-900/40'
             }`}
-            title={isMuted ? 'Desmutar microfone (Ativar áudio)' : 'Mutar microfone'}
+            title={isMuted ? 'Desmutar microfone' : 'Mutar microfone'}
           >
             {isMuted ? <MicOff className="w-3.5 h-3.5" /> : <Mic className="w-3.5 h-3.5" />}
           </button>
 
-          {/* Deafen Button (Mute incoming audio) */}
+          {/* Deafen Button */}
           <button
             type="button"
             onClick={handleToggleDeafen}
@@ -596,7 +596,7 @@ export default function VoiceChat({
                 ? 'bg-red-500/30 text-red-300 hover:bg-red-500/50 border border-red-500/40'
                 : 'bg-panel-light text-emerald-300 hover:bg-emerald-900/40'
             }`}
-            title={isDeafened ? 'Desensurdecer (Ouvir todos)' : 'Ensurdecer (Silenciar áudio de todos)'}
+            title={isDeafened ? 'Desensurdecer' : 'Ensurdecer'}
           >
             {isDeafened ? <VolumeX className="w-3.5 h-3.5 text-red-400" /> : <Volume2 className="w-3.5 h-3.5" />}
           </button>
@@ -620,7 +620,7 @@ export default function VoiceChat({
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 10 }}
-            className="absolute top-12 right-0 z-50 bg-red-950/95 border border-red-500 text-red-200 text-xs p-3 rounded-2xl shadow-2xl flex items-start gap-2 max-w-xs"
+            className="fixed sm:absolute top-14 sm:top-12 right-2 sm:right-0 z-50 bg-red-950/95 border border-red-500 text-red-200 text-xs p-3 rounded-2xl shadow-2xl flex items-start gap-2 max-w-xs"
           >
             <AlertCircle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
             <div className="flex-1">
@@ -644,7 +644,7 @@ export default function VoiceChat({
             initial={{ opacity: 0, y: 10, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 10, scale: 0.95 }}
-            className="absolute top-12 right-0 z-50 bg-panel/98 border border-border/90 p-4 rounded-3xl shadow-2xl w-80 max-w-[calc(100vw-2rem)] backdrop-blur-md text-xs space-y-3.5"
+            className="fixed sm:absolute top-14 sm:top-12 right-2 sm:right-0 z-50 bg-panel/98 border border-border/90 p-3.5 sm:p-4 rounded-2xl sm:rounded-3xl shadow-2xl w-[calc(100vw-1rem)] sm:w-80 max-w-sm backdrop-blur-md text-xs space-y-3"
           >
             {/* Header */}
             <div className="flex items-center justify-between pb-2 border-b border-border/80 text-text-muted text-[11px] font-bold uppercase tracking-wider">

@@ -36,16 +36,115 @@ const COLOR_PALETTE = [
 
 export default function Game({ socket, gameState, myPlayer, timer }: GameProps) {
   const [activeSidebarTab, setActiveSidebarTab] = useState<'chat' | 'tips'>('chat');
+  const [mobileTab, setMobileTab] = useState<'main' | 'chat' | 'tips'>('main');
   const isMaster = myPlayer?.isMaster;
   const artists = gameState.players.filter(p => !p.isMaster);
   const submittedCount = artists.filter(p => p.hasSubmitted).length;
 
   return (
-    <div className="flex-1 flex flex-col md:flex-row p-3 md:p-6 gap-4 bg-bg-dark overflow-hidden">
-      {/* Sidebar: Timer, Progress, Chat & Tips */}
-      <div className="w-full md:w-88 flex flex-col gap-3 shrink-0">
-        {/* Timer Card */}
-        <div className="bg-panel rounded-3xl p-4 md:p-5 border border-border shadow-xl flex items-center justify-between gap-2">
+    <div className="flex-1 flex flex-col md:flex-row p-2 sm:p-3 md:p-6 gap-2 sm:gap-4 bg-bg-dark overflow-hidden">
+      {/* Mobile Top Navigation & Status Bar (< md) */}
+      <div className="md:hidden flex items-center justify-between gap-1.5 bg-panel p-2 rounded-2xl border border-border/80 shadow-md shrink-0">
+        {/* Timer & Deliveries */}
+        <div className="flex items-center gap-1.5">
+          <div className={`flex items-center gap-1 px-2 sm:px-2.5 py-1 rounded-xl font-mono font-bold text-xs ${
+            timer <= 20 && timer > 0 ? 'bg-red-500/20 text-red-400 animate-pulse' : 'bg-primary/20 text-primary'
+          }`}>
+            <Clock className="w-3.5 h-3.5" />
+            <span>{timer > 0 ? `${timer}s` : '♾️'}</span>
+          </div>
+
+          <div className="text-[11px] font-bold text-accent-cyan bg-accent-cyan/10 px-2 py-1 rounded-xl border border-accent-cyan/20">
+            🎨 {submittedCount}/{artists.length}
+          </div>
+
+          {isMaster && (
+            <button
+              type="button"
+              onClick={() => {
+                sounds.playPop();
+                if (window.confirm('Deseja encerrar o tempo de desenho e abrir a votação agora?')) {
+                  socket.emit('finish_round_early', { roomId: gameState.id });
+                }
+              }}
+              title="Avançar para a votação"
+              className="bg-accent-yellow hover:bg-yellow-400 text-black text-[10px] font-black px-2 py-1 rounded-lg transition-all active:scale-95"
+            >
+              🏁 Votar
+            </button>
+          )}
+        </div>
+
+        {/* Mobile View Switcher */}
+        <div className="flex items-center gap-1 bg-black/40 p-0.5 rounded-xl border border-border/60">
+          <button
+            type="button"
+            onClick={() => {
+              sounds.playClick();
+              setMobileTab('main');
+            }}
+            className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all ${
+              mobileTab === 'main'
+                ? 'bg-primary text-white shadow-sm'
+                : 'text-text-muted hover:text-white'
+            }`}
+          >
+            {isMaster ? '👑 Mestre' : '🎨 Desenho'}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              sounds.playClick();
+              setMobileTab('chat');
+            }}
+            className={`px-2 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 ${
+              mobileTab === 'chat'
+                ? 'bg-primary text-white shadow-sm'
+                : 'text-text-muted hover:text-white'
+            }`}
+          >
+            <MessageCircle className="w-3 h-3" />
+            <span>Chat</span>
+            {(gameState.messages?.length || 0) > 0 && (
+              <span className="text-[9px] bg-black/40 px-1 py-0.2 rounded-full font-bold">
+                {gameState.messages?.length || 0}
+              </span>
+            )}
+          </button>
+
+          {!isMaster && (
+            <button
+              type="button"
+              onClick={() => {
+                sounds.playClick();
+                setMobileTab('tips');
+              }}
+              className={`px-2 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 ${
+                mobileTab === 'tips'
+                  ? 'bg-accent-yellow text-black font-black shadow-sm'
+                  : 'text-text-muted hover:text-white'
+              }`}
+            >
+              <Lightbulb className="w-3 h-3" />
+              <span>Dicas</span>
+              {gameState.tips.length > 0 && (
+                <span className="text-[9px] bg-black/20 px-1 py-0.2 rounded-full font-bold">
+                  {gameState.tips.length}
+                </span>
+              )}
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Desktop Sidebar (Always visible on md+, visible on mobile when mobileTab is 'chat' or 'tips') */}
+      <div className={`
+        ${mobileTab === 'main' ? 'hidden md:flex' : 'flex'}
+        w-full md:w-88 flex-col gap-3 shrink-0 h-full md:h-auto overflow-hidden
+      `}>
+        {/* Desktop Timer Card */}
+        <div className="hidden md:flex bg-panel rounded-3xl p-4 md:p-5 border border-border shadow-xl items-center justify-between gap-2">
           <div className="flex items-center gap-3">
             {timer > 0 ? (
               <>
@@ -98,9 +197,9 @@ export default function Game({ socket, gameState, myPlayer, timer }: GameProps) 
         </div>
 
         {/* Chat / Tips Feed */}
-        <div className="flex-1 bg-panel rounded-3xl border border-border flex flex-col overflow-hidden shadow-xl min-h-[340px]">
-          {/* Tab Switcher */}
-          <div className="p-2 border-b border-border/80 bg-black/30 flex items-center justify-between">
+        <div className="flex-1 bg-panel rounded-2xl sm:rounded-3xl border border-border flex flex-col overflow-hidden shadow-xl min-h-[300px]">
+          {/* Tab Switcher (Desktop) */}
+          <div className="hidden md:flex p-2 border-b border-border/80 bg-black/30 items-center justify-between">
             <div className="flex items-center gap-1 bg-panel-light p-1 rounded-xl border border-border/60 w-full">
               <button
                 type="button"
@@ -142,7 +241,8 @@ export default function Game({ socket, gameState, myPlayer, timer }: GameProps) 
             </div>
           </div>
 
-          {activeSidebarTab === 'chat' ? (
+          {/* Chat or Tips display */}
+          {((mobileTab === 'chat') || (mobileTab === 'main' && activeSidebarTab === 'chat') || (activeSidebarTab === 'chat' && mobileTab !== 'tips')) ? (
             <PartyChat
               socket={socket}
               roomId={gameState.id}
@@ -187,8 +287,11 @@ export default function Game({ socket, gameState, myPlayer, timer }: GameProps) 
         </div>
       </div>
 
-      {/* Main Canvas / Master Center Area */}
-      <div className="flex-1 bg-panel rounded-3xl border border-border overflow-hidden relative shadow-2xl flex flex-col min-h-[420px]">
+      {/* Main Canvas / Master Center Area (Full height on mobile when mobileTab === 'main', side-by-side on desktop) */}
+      <div className={`
+        ${mobileTab === 'main' ? 'flex' : 'hidden md:flex'}
+        flex-1 bg-panel rounded-2xl sm:rounded-3xl border border-border overflow-hidden relative shadow-2xl flex-col min-h-[360px] md:min-h-[420px]
+      `}>
         {isMaster ? (
           <MasterDashboard 
             socket={socket} 
@@ -203,6 +306,7 @@ export default function Game({ socket, gameState, myPlayer, timer }: GameProps) 
             roomId={gameState.id} 
             myPlayer={myPlayer} 
             tips={gameState.tips}
+            onOpenTips={() => setMobileTab('tips')}
           />
         )}
       </div>
@@ -366,14 +470,14 @@ function MasterDashboard({
             type="text"
             value={manualTip}
             onChange={(e) => setManualTip(e.target.value)}
-            placeholder="Ou escreva sua própria dica (ex: 'Orelhas pontudas')..."
-            className="flex-1 bg-bg-dark border border-border rounded-xl px-3 py-2 text-xs text-white placeholder:text-gray-500 focus:outline-none focus:border-accent-yellow"
+            placeholder="Ou escreva sua dica (ex: 'Orelhas pontudas')..."
+            className="flex-1 bg-bg-dark border border-border rounded-xl px-3 py-2 text-base sm:text-xs text-white placeholder:text-gray-500 focus:outline-none focus:border-accent-yellow min-h-[40px]"
             maxLength={120}
           />
           <button
             type="submit"
             disabled={!manualTip.trim()}
-            className="bg-accent-yellow hover:bg-yellow-400 disabled:opacity-40 text-black font-bold text-xs px-3.5 py-2 rounded-xl transition-all shadow-md active:scale-95 flex items-center gap-1.5 shrink-0"
+            className="bg-accent-yellow hover:bg-yellow-400 disabled:opacity-40 text-black font-bold text-xs px-3.5 py-2 rounded-xl transition-all shadow-md active:scale-95 flex items-center gap-1.5 shrink-0 min-h-[40px]"
           >
             <Send className="w-3.5 h-3.5" /> Enviar Dica
           </button>
@@ -402,14 +506,14 @@ function MasterDashboard({
             type="text"
             value={customWord}
             onChange={(e) => setCustomWord(e.target.value)}
-            placeholder="Ou digite o nome do seu próprio personagem..."
-            className="flex-1 bg-bg-dark border border-border rounded-xl px-3 py-2 text-xs text-white placeholder:text-gray-500 focus:outline-none focus:border-primary"
+            placeholder="Ou digite o nome do personagem..."
+            className="flex-1 bg-bg-dark border border-border rounded-xl px-3 py-2 text-base sm:text-xs text-white placeholder:text-gray-500 focus:outline-none focus:border-primary min-h-[40px]"
             maxLength={30}
           />
           <button
             type="submit"
             disabled={!customWord.trim()}
-            className="bg-panel hover:bg-border disabled:opacity-40 text-xs font-bold text-white px-3 py-2 rounded-xl border border-border transition-colors flex items-center gap-1"
+            className="bg-panel hover:bg-border disabled:opacity-40 text-xs font-bold text-white px-3.5 py-2 rounded-xl border border-border transition-colors flex items-center gap-1 min-h-[40px] shrink-0"
           >
             <Check className="w-3.5 h-3.5 text-accent-green" /> Salvar
           </button>
@@ -446,12 +550,14 @@ function DrawingBoard({
   socket, 
   roomId, 
   myPlayer: _myPlayer,
-  tips = []
+  tips = [],
+  onOpenTips
 }: { 
   socket: Socket; 
   roomId: string; 
   myPlayer?: Player; 
   tips?: string[];
+  onOpenTips?: () => void;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
@@ -620,21 +726,21 @@ function DrawingBoard({
   return (
     <div className="flex-1 flex flex-col w-full h-full relative">
       {/* Top Floating Toolbar */}
-      <div className="absolute top-3 left-1/2 -translate-x-1/2 bg-panel/95 backdrop-blur border border-border px-4 py-2.5 rounded-2xl shadow-2xl flex items-center gap-3 z-10 max-w-[95%] overflow-x-auto">
+      <div className="absolute top-2 sm:top-3 left-1/2 -translate-x-1/2 bg-panel/95 backdrop-blur border border-border px-2 sm:px-4 py-1.5 sm:py-2.5 rounded-xl sm:rounded-2xl shadow-2xl flex items-center gap-1.5 sm:gap-3 z-10 max-w-[96%] overflow-x-auto no-scrollbar">
         {/* Brush / Eraser toggle */}
-        <div className="flex items-center bg-black/30 p-1 rounded-xl border border-border shrink-0">
+        <div className="flex items-center bg-black/30 p-0.5 sm:p-1 rounded-lg sm:rounded-xl border border-border shrink-0">
           <button
             type="button"
             onClick={() => {
               sounds.playClick();
               setIsEraser(false);
             }}
-            className={`p-1.5 rounded-lg transition-colors ${
+            className={`p-1 sm:p-1.5 rounded-md sm:rounded-lg transition-colors ${
               !isEraser ? 'bg-primary text-white' : 'text-text-muted hover:text-white'
             }`}
             title="Pincel"
           >
-            <Paintbrush className="w-4 h-4" />
+            <Paintbrush className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
           </button>
           <button
             type="button"
@@ -642,17 +748,17 @@ function DrawingBoard({
               sounds.playClick();
               setIsEraser(true);
             }}
-            className={`p-1.5 rounded-lg transition-colors ${
+            className={`p-1 sm:p-1.5 rounded-md sm:rounded-lg transition-colors ${
               isEraser ? 'bg-primary text-white' : 'text-text-muted hover:text-white'
             }`}
             title="Borracha"
           >
-            <Eraser className="w-4 h-4" />
+            <Eraser className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
           </button>
         </div>
 
         {/* Color Palette */}
-        <div className="flex items-center gap-1.5 shrink-0">
+        <div className="flex items-center gap-1 sm:gap-1.5 shrink-0 max-w-[160px] xs:max-w-none overflow-x-auto no-scrollbar">
           {COLOR_PALETTE.map((c) => (
             <button
               key={c}
@@ -662,7 +768,7 @@ function DrawingBoard({
                 setIsEraser(false);
                 setColor(c);
               }}
-              className={`w-6 h-6 rounded-full border-2 transition-transform ${
+              className={`w-5 h-5 sm:w-6 sm:h-6 rounded-full border sm:border-2 transition-transform shrink-0 ${
                 !isEraser && color === c ? 'border-white scale-125 shadow-md' : 'border-black/40'
               }`}
               style={{ backgroundColor: c }}
@@ -676,50 +782,50 @@ function DrawingBoard({
               setIsEraser(false);
               setColor(e.target.value);
             }}
-            className="w-7 h-7 rounded-full cursor-pointer bg-transparent border-0"
+            className="w-6 h-6 sm:w-7 sm:h-7 rounded-full cursor-pointer bg-transparent border-0 shrink-0"
             title="Mais Cores"
           />
         </div>
 
-        <div className="w-px h-6 bg-border shrink-0" />
+        <div className="w-px h-5 sm:h-6 bg-border shrink-0" />
 
         {/* Brush Size Slider */}
-        <div className="flex items-center gap-2 shrink-0">
-          <span className="text-[10px] font-bold text-text-muted uppercase">Tam:</span>
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+          <span className="text-[9px] sm:text-[10px] font-bold text-text-muted uppercase">Tam:</span>
           <input
             type="range"
             min="2"
             max="30"
             value={lineWidth}
             onChange={(e) => setLineWidth(parseInt(e.target.value))}
-            className="w-16 sm:w-20 accent-primary cursor-pointer"
+            className="w-12 sm:w-20 accent-primary cursor-pointer"
           />
           {/* Visual brush thickness dot */}
           <div 
-            className="w-6 h-6 flex items-center justify-center bg-black/50 rounded-lg border border-border/60"
+            className="w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center bg-black/50 rounded-lg border border-border/60 shrink-0"
             title={`Tamanho: ${lineWidth}px`}
           >
             <div 
               className="rounded-full transition-all"
               style={{ 
-                width: Math.max(3, Math.min(18, lineWidth)), 
-                height: Math.max(3, Math.min(18, lineWidth)),
+                width: Math.max(3, Math.min(16, lineWidth)), 
+                height: Math.max(3, Math.min(16, lineWidth)),
                 backgroundColor: isEraser ? '#ef4444' : color
               }} 
             />
           </div>
         </div>
 
-        <div className="w-px h-6 bg-border shrink-0" />
+        <div className="w-px h-5 sm:h-6 bg-border shrink-0" />
 
         {/* Clear Canvas */}
         <button
           type="button"
           onClick={handleClear}
           title="Limpar tela inteira"
-          className="p-1.5 rounded-lg text-text-muted hover:text-red-400 hover:bg-red-500/10 transition-colors shrink-0"
+          className="p-1 sm:p-1.5 rounded-md sm:rounded-lg text-text-muted hover:text-red-400 hover:bg-red-500/10 transition-colors shrink-0"
         >
-          <Trash2 className="w-4 h-4" />
+          <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
         </button>
       </div>
 
@@ -730,10 +836,14 @@ function DrawingBoard({
             initial={{ opacity: 0, y: -20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -20, scale: 0.95 }}
-            className="absolute top-16 left-1/2 -translate-x-1/2 z-30 bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 text-slate-950 px-4 py-2.5 rounded-2xl shadow-2xl flex items-center gap-3 max-w-md w-[90%] border border-white/40 pointer-events-auto cursor-pointer"
+            className="absolute top-14 sm:top-16 left-1/2 -translate-x-1/2 z-30 bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 text-slate-950 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl sm:rounded-2xl shadow-2xl flex items-center gap-2.5 sm:gap-3 max-w-md w-[92%] border border-white/40 pointer-events-auto cursor-pointer"
             onClick={() => {
               setNewTipAlert(null);
-              setTipsMinimized(false);
+              if (onOpenTips) {
+                onOpenTips();
+              } else {
+                setTipsMinimized(false);
+              }
             }}
             title="Clique para abrir todas as dicas"
           >
@@ -761,7 +871,7 @@ function DrawingBoard({
       </AnimatePresence>
 
       {/* Floating Master Tips Toggle & Panel (in top-right corner to never block canvas center) */}
-      <div className="absolute top-16 right-3 sm:right-5 z-20 pointer-events-auto">
+      <div className="absolute top-14 sm:top-16 right-2 sm:right-5 z-20 pointer-events-auto">
         {tipsMinimized ? (
           <button
             type="button"
@@ -769,18 +879,18 @@ function DrawingBoard({
               sounds.playClick();
               setTipsMinimized(false);
             }}
-            className="bg-panel/95 hover:bg-panel text-accent-yellow border border-accent-yellow/50 hover:border-accent-yellow px-3.5 py-1.5 rounded-2xl shadow-xl flex items-center gap-2 text-xs font-bold backdrop-blur transition-all active:scale-95 hover:scale-105"
+            className="bg-panel/95 hover:bg-panel text-accent-yellow border border-accent-yellow/50 hover:border-accent-yellow px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-xl sm:rounded-2xl shadow-xl flex items-center gap-1.5 sm:gap-2 text-[11px] sm:text-xs font-bold backdrop-blur transition-all active:scale-95 hover:scale-105"
             title="Abrir painel de dicas do Mestre"
           >
-            <Crown className="w-3.5 h-3.5 text-accent-yellow" />
+            <Crown className="w-3.5 h-3.5 text-accent-yellow shrink-0" />
             <span>Dicas ({tips.length})</span>
-            <ChevronDown className="w-3.5 h-3.5 text-text-muted" />
+            <ChevronDown className="w-3 h-3 text-text-muted shrink-0" />
           </button>
         ) : (
           <motion.div
             initial={{ opacity: 0, y: -10, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            className="w-80 max-w-[calc(100vw-2.5rem)] bg-panel/98 backdrop-blur-md border-2 border-accent-yellow/60 rounded-3xl p-3 shadow-2xl"
+            className="w-72 sm:w-80 max-w-[calc(100vw-1.5rem)] bg-panel/98 backdrop-blur-md border-2 border-accent-yellow/60 rounded-2xl sm:rounded-3xl p-3 shadow-2xl"
           >
             <div className="flex items-center justify-between gap-2 pb-2 border-b border-border/80 mb-2">
               <div className="flex items-center gap-1.5 text-accent-yellow text-xs font-black uppercase tracking-wider">
@@ -827,7 +937,7 @@ function DrawingBoard({
             )}
 
             <div className="mt-2 pt-1.5 border-t border-border/50 text-[10px] text-text-muted text-center flex items-center justify-center gap-1">
-              <span>💡 Dica: Dicas também disponíveis no chat ao lado</span>
+              <span>💡 Dicas disponíveis no chat</span>
             </div>
           </motion.div>
         )}
@@ -853,23 +963,23 @@ function DrawingBoard({
         <motion.div 
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="absolute inset-0 bg-black/75 backdrop-blur-md flex flex-col items-center justify-center z-20 p-6 text-center"
+          className="absolute inset-0 bg-black/75 backdrop-blur-md flex flex-col items-center justify-center z-20 p-4 sm:p-6 text-center"
         >
-          <div className="bg-panel border border-border p-8 rounded-3xl max-w-sm w-full shadow-2xl">
-            <CheckCircle2 className="w-16 h-16 text-accent-green mx-auto mb-4 animate-bounce" />
-            <h3 className="text-2xl font-black text-white mb-2">Desenho Salvo!</h3>
-            <p className="text-text-muted text-sm">
+          <div className="bg-panel border border-border p-6 sm:p-8 rounded-3xl max-w-sm w-full shadow-2xl">
+            <CheckCircle2 className="w-12 h-12 sm:w-16 sm:h-16 text-accent-green mx-auto mb-3 sm:mb-4 animate-bounce" />
+            <h3 className="text-xl sm:text-2xl font-black text-white mb-2">Desenho Salvo!</h3>
+            <p className="text-text-muted text-xs sm:text-sm">
               Sua obra-prima foi guardada. Aguardando os demais jogadores finalizarem para começar a votação!
             </p>
           </div>
         </motion.div>
       ) : (
-        <div className="absolute bottom-4 right-4 z-10">
+        <div className="absolute bottom-3 right-3 sm:bottom-4 sm:right-4 z-10">
           <button
             onClick={submitDrawing}
-            className="btn-party-cta py-3.5 px-7 rounded-2xl flex items-center gap-2.5 text-base tracking-wide font-display"
+            className="btn-party-cta py-2.5 sm:py-3.5 px-4 sm:px-7 rounded-xl sm:rounded-2xl flex items-center gap-2 sm:gap-2.5 text-xs sm:text-base tracking-wide font-display shadow-2xl active:scale-95"
           >
-            <CheckCircle2 className="w-5 h-5 stroke-[2.5]" />
+            <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 stroke-[2.5]" />
             <span>Terminei Meu Desenho!</span>
           </button>
         </div>

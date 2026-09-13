@@ -41,7 +41,7 @@ export default function FloatingReactions({ reactions, onSendReaction }: Floatin
       </div>
 
       {/* Quick Reaction Bottom Bar */}
-      <div className="fixed bottom-3 left-1/2 -translate-x-1/2 z-40 bg-slate-900/90 border border-slate-700/80 backdrop-blur-md px-3 py-1.5 rounded-full shadow-2xl flex items-center gap-1.5">
+      <div className="fixed bottom-2 sm:bottom-3 pb-safe left-1/2 -translate-x-1/2 z-40 bg-slate-900/90 border border-slate-700/80 backdrop-blur-md px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full shadow-2xl flex items-center gap-1 sm:gap-1.5 max-w-[calc(100vw-1.5rem)] overflow-x-auto no-scrollbar">
         <span className="text-[11px] font-bold text-slate-400 mr-1 hidden sm:inline font-display">
           Reagir:
         </span>
@@ -54,7 +54,7 @@ export default function FloatingReactions({ reactions, onSendReaction }: Floatin
               sounds.playPop();
               onSendReaction(emoji);
             }}
-            className="text-xl sm:text-2xl p-1.5 rounded-xl hover:bg-white/10 transition-colors"
+            className="text-lg sm:text-2xl p-1.5 rounded-xl hover:bg-white/10 transition-colors min-w-[36px] min-h-[36px] flex items-center justify-center shrink-0"
             title={`Reagir com ${emoji}`}
           >
             {emoji}

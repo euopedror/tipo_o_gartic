@@ -103,24 +103,24 @@ export default function Lobby({ onJoin, error }: LobbyProps) {
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center p-3 sm:p-6 relative overflow-hidden">
+    <div className="min-h-screen w-full flex items-center justify-center p-2.5 sm:p-6 relative overflow-hidden">
       {/* Floating Sound & Server Config Toggles */}
-      <div className="absolute top-4 right-4 z-50 flex items-center gap-2">
+      <div className="absolute top-3 right-3 sm:top-4 sm:right-4 z-50 flex items-center gap-1.5 sm:gap-2">
         <button
           type="button"
           onClick={() => setShowServerModal(true)}
-          className="p-2.5 rounded-2xl bg-slate-900/90 border border-slate-700/80 hover:border-accent-cyan text-slate-300 hover:text-white shadow-xl backdrop-blur-md transition-all active:scale-95"
+          className="p-2 sm:p-2.5 rounded-xl sm:rounded-2xl bg-slate-900/90 border border-slate-700/80 hover:border-accent-cyan text-slate-300 hover:text-white shadow-xl backdrop-blur-md transition-all active:scale-95 min-w-[36px] min-h-[36px] flex items-center justify-center"
           title="Configurar Servidor Online"
         >
-          <Settings2 className="w-5 h-5 text-accent-cyan" />
+          <Settings2 className="w-4 h-4 sm:w-5 sm:h-5 text-accent-cyan" />
         </button>
         <button
           type="button"
           onClick={toggleSound}
-          className="p-2.5 rounded-2xl bg-slate-900/90 border border-slate-700/80 hover:border-amber-400 text-slate-300 hover:text-white shadow-xl backdrop-blur-md transition-all active:scale-95"
+          className="p-2 sm:p-2.5 rounded-xl sm:rounded-2xl bg-slate-900/90 border border-slate-700/80 hover:border-amber-400 text-slate-300 hover:text-white shadow-xl backdrop-blur-md transition-all active:scale-95 min-w-[36px] min-h-[36px] flex items-center justify-center"
           title={soundEnabled ? 'Silenciar som' : 'Ativar som'}
         >
-          {soundEnabled ? <Volume2 className="w-5 h-5 text-emerald-400" /> : <VolumeX className="w-5 h-5 text-red-400" />}
+          {soundEnabled ? <Volume2 className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-400" /> : <VolumeX className="w-4 h-4 sm:w-5 sm:h-5 text-red-400" />}
         </button>
       </div>
 
@@ -128,24 +128,24 @@ export default function Lobby({ onJoin, error }: LobbyProps) {
       <div className="w-full max-w-xl mx-auto relative z-10 py-2 sm:py-4">
         
         {/* Top Tagline Badge */}
-        <div className="text-center mb-3">
-          <div className="inline-flex items-center gap-2 bg-slate-900/90 border border-amber-400/50 backdrop-blur-md px-4 py-1.5 rounded-full shadow-lg text-xs font-display font-bold text-amber-300">
-            <Sparkles className="w-3.5 h-3.5 text-amber-400 animate-spin" />
+        <div className="text-center mb-2.5 sm:mb-3">
+          <div className="inline-flex items-center gap-1.5 sm:gap-2 bg-slate-900/90 border border-amber-400/50 backdrop-blur-md px-3 sm:px-4 py-1 sm:py-1.5 rounded-full shadow-lg text-[11px] sm:text-xs font-display font-bold text-amber-300">
+            <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-amber-400 animate-spin shrink-0" />
             <span>O Party Game Onde Quem Não Sabe Desenhar Ganha!</span>
           </div>
         </div>
 
-        {/* 3D Illustrated Mascot Banner Frame - Full visibility without cropping */}
+        {/* 3D Illustrated Mascot Banner Frame - Proportional height on mobile */}
         <motion.div 
           initial={{ opacity: 0, y: -16 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-3"
+          className="mb-2.5 sm:mb-3"
         >
-          <div className="relative rounded-3xl overflow-hidden border-4 border-amber-400 shadow-2xl shadow-amber-500/30 bg-slate-950">
+          <div className="relative rounded-2xl sm:rounded-3xl overflow-hidden border-3 sm:border-4 border-amber-400 shadow-2xl shadow-amber-500/30 bg-slate-950 max-h-36 sm:max-h-56">
             <img 
               src={bannerImg} 
               alt="Desenho Cego - Festa do Desenho" 
-              className="w-full aspect-[16/9] object-cover object-center"
+              className="w-full h-full aspect-[16/9] object-cover object-center"
             />
           </div>
         </motion.div>
@@ -155,20 +155,20 @@ export default function Lobby({ onJoin, error }: LobbyProps) {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.1 }}
-          className="grid grid-cols-3 gap-2 mb-3.5 text-xs font-display text-center"
+          className="grid grid-cols-3 gap-1.5 sm:gap-2 mb-3 text-[11px] sm:text-xs font-display text-center"
         >
-          <div className="flex items-center justify-center gap-1.5 py-2 px-1 rounded-2xl bg-amber-500/20 border-2 border-amber-400/40 text-amber-300 shadow-md backdrop-blur-md">
-            <EyeOff className="w-4 h-4 text-amber-400 shrink-0" />
+          <div className="flex items-center justify-center gap-1 sm:gap-1.5 py-1.5 sm:py-2 px-1 rounded-xl sm:rounded-2xl bg-amber-500/20 border sm:border-2 border-amber-400/40 text-amber-300 shadow-md backdrop-blur-md">
+            <EyeOff className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-400 shrink-0" />
             <span className="font-bold truncate">1. Pistas</span>
           </div>
 
-          <div className="flex items-center justify-center gap-1.5 py-2 px-1 rounded-2xl bg-pink-500/20 border-2 border-pink-400/40 text-pink-300 shadow-md backdrop-blur-md">
-            <Palette className="w-4 h-4 text-pink-400 shrink-0" />
+          <div className="flex items-center justify-center gap-1 sm:gap-1.5 py-1.5 sm:py-2 px-1 rounded-xl sm:rounded-2xl bg-pink-500/20 border sm:border-2 border-pink-400/40 text-pink-300 shadow-md backdrop-blur-md">
+            <Palette className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-pink-400 shrink-0" />
             <span className="font-bold truncate">2. Desenho</span>
           </div>
 
-          <div className="flex items-center justify-center gap-1.5 py-2 px-1 rounded-2xl bg-cyan-500/20 border-2 border-cyan-400/40 text-cyan-300 shadow-md backdrop-blur-md">
-            <Trophy className="w-4 h-4 text-cyan-400 shrink-0" />
+          <div className="flex items-center justify-center gap-1 sm:gap-1.5 py-1.5 sm:py-2 px-1 rounded-xl sm:rounded-2xl bg-cyan-500/20 border sm:border-2 border-cyan-400/40 text-cyan-300 shadow-md backdrop-blur-md">
+            <Trophy className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-cyan-400 shrink-0" />
             <span className="font-bold truncate">3. Votação</span>
           </div>
         </motion.div>
@@ -178,17 +178,17 @@ export default function Lobby({ onJoin, error }: LobbyProps) {
           initial={{ opacity: 0, scale: 0.97 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.15 }}
-          className="party-card-neo p-5 sm:p-7 relative overflow-hidden"
+          className="party-card-neo p-4 sm:p-7 relative overflow-hidden rounded-2xl sm:rounded-3xl"
         >
           {/* Mode Switcher Tabs */}
-          <div className="flex bg-slate-950/85 p-1.5 rounded-2xl mb-5 border border-slate-800 font-display shadow-inner">
+          <div className="flex bg-slate-950/85 p-1 sm:p-1.5 rounded-xl sm:rounded-2xl mb-4 sm:mb-5 border border-slate-800 font-display shadow-inner">
             <button
               type="button"
               onClick={() => {
                 sounds.playClick();
                 setMode('create');
               }}
-              className={`flex-1 py-3 rounded-xl font-bold text-sm sm:text-base transition-all flex items-center justify-center gap-2 ${
+              className={`flex-1 py-2.5 sm:py-3 rounded-xl font-bold text-xs sm:text-base transition-all flex items-center justify-center gap-1.5 sm:gap-2 ${
                 mode === 'create'
                   ? 'bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 font-black shadow-lg shadow-amber-500/30'
                   : 'text-slate-400 hover:text-white'
@@ -202,7 +202,7 @@ export default function Lobby({ onJoin, error }: LobbyProps) {
                 sounds.playClick();
                 setMode('join');
               }}
-              className={`flex-1 py-3 rounded-xl font-bold text-sm sm:text-base transition-all flex items-center justify-center gap-2 ${
+              className={`flex-1 py-2.5 sm:py-3 rounded-xl font-bold text-xs sm:text-base transition-all flex items-center justify-center gap-1.5 sm:gap-2 ${
                 mode === 'join'
                   ? 'bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 font-black shadow-lg shadow-amber-500/30'
                   : 'text-slate-400 hover:text-white'
@@ -212,10 +212,10 @@ export default function Lobby({ onJoin, error }: LobbyProps) {
             </button>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-5 relative z-10">
+          <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5 relative z-10">
             {/* Player Nickname & Big Avatar Badge */}
             <div>
-              <div className="flex items-center justify-between mb-2 font-display">
+              <div className="flex items-center justify-between mb-1.5 sm:mb-2 font-display">
                 <label className="text-xs font-bold uppercase tracking-wider text-slate-200 flex items-center gap-1.5">
                   <span>👤 Seu Apelido</span>
                 </label>
@@ -223,21 +223,22 @@ export default function Lobby({ onJoin, error }: LobbyProps) {
                   type="button"
                   onClick={generateRandomName}
                   title="Sortear um apelido engraçado"
-                  className="text-xs text-amber-300 hover:text-amber-200 bg-amber-400/15 hover:bg-amber-400/25 border border-amber-400/40 px-3 py-1 rounded-xl flex items-center gap-1.5 font-bold transition-all active:scale-95 shadow-sm"
+                  className="text-[11px] sm:text-xs text-amber-300 hover:text-amber-200 bg-amber-400/15 hover:bg-amber-400/25 border border-amber-400/40 px-2.5 sm:px-3 py-1 rounded-xl flex items-center gap-1 sm:gap-1.5 font-bold transition-all active:scale-95 shadow-sm"
                 >
-                  <Dices className="w-3.5 h-3.5" />
-                  <span>Sortear Nome 🎲</span>
+                  <Dices className="w-3.5 h-3.5 shrink-0" />
+                  <span className="hidden xs:inline">Sortear Nome 🎲</span>
+                  <span className="xs:hidden">Sortear 🎲</span>
                 </button>
               </div>
 
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2.5 sm:gap-3">
                 {/* Big Animated Active Avatar with Golden Ring */}
                 <motion.div 
                   key={avatar}
                   initial={{ scale: 0.8 }}
                   animate={{ scale: 1 }}
                   transition={{ type: "spring", stiffness: 500, damping: 20 }}
-                  className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-amber-400/30 to-violet-600/40 border-3 border-amber-400 text-4xl flex items-center justify-center shadow-lg shadow-amber-400/30 shrink-0 ring-4 ring-amber-400/30 select-none"
+                  className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl bg-gradient-to-tr from-amber-400/30 to-violet-600/40 border-2 sm:border-3 border-amber-400 text-3xl sm:text-4xl flex items-center justify-center shadow-lg shadow-amber-400/30 shrink-0 ring-2 sm:ring-4 ring-amber-400/30 select-none"
                 >
                   {avatar}
                 </motion.div>
@@ -250,7 +251,7 @@ export default function Lobby({ onJoin, error }: LobbyProps) {
                       setName(e.target.value);
                       if (e.target.value.trim()) setShowNameWarning(false);
                     }}
-                    className={`input-party w-full rounded-2xl px-4 py-3.5 text-white placeholder:text-slate-400 font-bold text-base focus:outline-none ${
+                    className={`input-party w-full rounded-xl sm:rounded-2xl px-3.5 sm:px-4 py-3 sm:py-3.5 text-white placeholder:text-slate-400 font-bold focus:outline-none ${
                       nameShake ? 'animate-shake border-red-500 ring-2 ring-red-500/40' : ''
                     }`}
                     placeholder="Ex: Pedro, Capivara, Giu..."
@@ -327,10 +328,10 @@ export default function Lobby({ onJoin, error }: LobbyProps) {
             <div className="pt-2">
               <button
                 type="submit"
-                className="w-full btn-arcade-gold py-4 px-6 rounded-2xl flex items-center justify-center gap-3 text-lg sm:text-xl font-black tracking-wide"
+                className="w-full btn-arcade-gold py-3.5 sm:py-4 px-4 sm:px-6 rounded-xl sm:rounded-2xl flex items-center justify-center gap-2 sm:gap-3 text-base sm:text-xl font-black tracking-wide min-h-[48px]"
               >
                 <span>{mode === 'create' ? 'CRIAR E ENTRAR NO LOBBY' : 'ENTRAR NA SALA'}</span>
-                <ArrowRight className="w-6 h-6 stroke-[3]" />
+                <ArrowRight className="w-5 h-5 sm:w-6 sm:h-6 stroke-[3] shrink-0" />
               </button>
             </div>
           </form>

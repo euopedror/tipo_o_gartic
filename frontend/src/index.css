@@ -17,6 +17,13 @@
   --color-text-muted: #94a3b8;
 }
 
+:root {
+  --sat: env(safe-area-inset-top, 0px);
+  --sab: env(safe-area-inset-bottom, 0px);
+  --sal: env(safe-area-inset-left, 0px);
+  --sar: env(safe-area-inset-right, 0px);
+}
+
 body {
   background-color: #0b0d1e;
   color: var(--color-text-main);
@@ -26,11 +33,33 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   min-height: 100vh;
+  min-height: 100dvh;
   /* Radiant party game illustrated background */
   background: 
     linear-gradient(180deg, rgba(12, 14, 32, 0.72) 0%, rgba(9, 11, 24, 0.88) 100%),
     url('./assets/wallpaper.jpg') center/cover no-repeat fixed;
   overflow-x: hidden;
+  overscroll-behavior-y: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button, input, textarea, select {
+  touch-action: manipulation;
+}
+
+/* Safe area padding utilities */
+.pt-safe { padding-top: max(0.75rem, env(safe-area-inset-top)); }
+.pb-safe { padding-bottom: max(0.75rem, env(safe-area-inset-bottom)); }
+.pl-safe { padding-left: max(0.75rem, env(safe-area-inset-left)); }
+.pr-safe { padding-right: max(0.75rem, env(safe-area-inset-right)); }
+
+/* Hide scrollbar utility */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
 /* Playful Party Font */
@@ -134,7 +163,14 @@ body {
   background-color: rgba(28, 36, 64, 0.95);
   border: 2px solid rgba(75, 93, 138, 0.9);
   color: #ffffff;
+  font-size: 16px; /* Prevents auto-zoom on iOS Safari */
   transition: all 0.18s ease;
+}
+
+@media (min-width: 640px) {
+  .input-party {
+    font-size: 0.875rem; /* 14px on desktop/tablets where desired */
+  }
 }
 
 .input-party:focus {
