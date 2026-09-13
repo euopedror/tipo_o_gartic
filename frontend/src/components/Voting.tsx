@@ -94,6 +94,17 @@ export default function Voting({ socket, gameState, myPlayer: _myPlayer, timer }
         )}
       </div>
 
+      {/* Empty state if no drawings were submitted */}
+      {drawings.length === 0 && (
+        <div className="max-w-md mx-auto w-full p-8 bg-panel/90 border border-border rounded-3xl text-center shadow-2xl mb-8">
+          <Sparkles className="w-10 h-10 text-accent-yellow mx-auto mb-3 opacity-75 animate-bounce" />
+          <h3 className="text-xl font-black text-white mb-2">Nenhum desenho nesta rodada</h3>
+          <p className="text-xs text-text-muted">
+            Os artistas não entregaram desenhos a tempo. Aguardando o término do tempo para prosseguir!
+          </p>
+        </div>
+      )}
+
       {/* Gallery Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto w-full pb-10">
         {drawings.map(({ playerId, player, dataUrl }) => {

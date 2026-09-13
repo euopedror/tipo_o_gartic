@@ -83,15 +83,24 @@ export default function App() {
 
     socket.on('room_update', (state: GameState) => {
       // Guard: Ensure user is an active participant in this room (by socket.id or playerName)
-      const inRoom = state.players?.some(
-        (p) => p.id === socket.id || (Boolean(playerNameRef.current) && p.name === playerNameRef.current)
+      const myRefName = playerNameRef.current?.trim().toLowerCase();
+      const matched = state.players?.find(
+        (p) => p.id === socket.id || (Boolean(myRefName) && p.name.trim().toLowerCase().startsWith(myRefName))
       );
-      if (!inRoom) {
+      if (!matched) {
         setGameState(null);
         setRoomId('');
         return;
       }
+      // If server tagged name (e.g. "Artista #123"), keep local name in sync
+      if (matched.name !== playerNameRef.current) {
+        playerNameRef.current = matched.name;
+        setPlayerName(matched.name);
+      }
       setGameState(state);
+      if (typeof state.timer === 'number') {
+        setTimer(state.timer);
+      }
       setError('');
     });
 
@@ -160,10 +169,15 @@ export default function App() {
   }, []);
 
   const handleJoin = (room: string, name: string, avatar: string) => {
-    setRoomId(room);
-    setPlayerName(name);
+    const cleanRoom = room.trim().toUpperCase();
+    const cleanName = name.trim();
+    roomIdRef.current = cleanRoom;
+    playerNameRef.current = cleanName;
+    playerAvatarRef.current = avatar;
+    setRoomId(cleanRoom);
+    setPlayerName(cleanName);
     setPlayerAvatar(avatar);
-    socket.emit('join_room', { roomId: room, playerName: name, avatar });
+    socket.emit('join_room', { roomId: cleanRoom, playerName: cleanName, avatar });
   };
 
   const handleStartGame = () => {

@@ -458,10 +458,16 @@ function DrawingBoard({
   const [color, setColor] = useState('#ffffff');
   const [lineWidth, setLineWidth] = useState(4);
   const [isEraser, setIsEraser] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
+  const [submitted, setSubmitted] = useState(() => Boolean(_myPlayer?.hasSubmitted));
   const [tipsMinimized, setTipsMinimized] = useState(true);
   const [newTipAlert, setNewTipAlert] = useState<string | null>(null);
   const prevTipsCount = useRef(tips.length);
+
+  useEffect(() => {
+    if (_myPlayer?.hasSubmitted) {
+      setSubmitted(true);
+    }
+  }, [_myPlayer?.hasSubmitted]);
 
   // Show a sleek non-intrusive toast alert whenever the Master sends a new tip
   useEffect(() => {

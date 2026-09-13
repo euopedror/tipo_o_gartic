@@ -57,6 +57,8 @@ function createRoom(roomId) {
       maxRounds: 3
     },
     voiceUsers: new Set(),
+    activeArtistIds: new Set(),
+    activeVoterIds: new Set(),
     currentRound: 1,
     isGameOver: false
   };
@@ -77,7 +79,9 @@ io.on('connection', (socket) => {
     const room = rooms[cleanRoomId];
 
     // Check if this player is reconnecting
-    const existingPlayer = Object.values(room.players).find(p => p.name === cleanPlayerName);
+    const existingPlayer = Object.values(room.players).find(
+      p => p.name.trim().toLowerCase() === cleanPlayerName.toLowerCase()
+    );
 
     socket.join(cleanRoomId);
 
@@ -88,7 +92,9 @@ io.on('connection', (socket) => {
       pendingDisconnects.delete(timerKey);
     }
 
-    if (existingPlayer) {
+    const isOldSocketAlive = existingPlayer && io.sockets.sockets.get(existingPlayer.id)?.connected;
+
+    if (existingPlayer && !isOldSocketAlive) {
       // Re-bind to the new socket ID seamlessly
       const oldId = existingPlayer.id;
       if (oldId !== socket.id) {
@@ -101,10 +107,27 @@ io.on('connection', (socket) => {
         }
         if (room.masterId === oldId) {
           room.masterId = socket.id;
+          existingPlayer.isMaster = true;
         }
         if (room.drawings && room.drawings[oldId]) {
           room.drawings[socket.id] = room.drawings[oldId];
           delete room.drawings[oldId];
+        }
+        if (room.votes && room.votes[oldId]) {
+          room.votes[socket.id] = room.votes[oldId];
+          delete room.votes[oldId];
+        }
+        if (room.activeArtistIds && room.activeArtistIds.has(oldId)) {
+          room.activeArtistIds.delete(oldId);
+          room.activeArtistIds.add(socket.id);
+        }
+        if (room.activeVoterIds && room.activeVoterIds.has(oldId)) {
+          room.activeVoterIds.delete(oldId);
+          room.activeVoterIds.add(socket.id);
+        }
+        if (room.voiceUsers && room.voiceUsers.has(oldId)) {
+          room.voiceUsers.delete(oldId);
+          room.voiceUsers.add(socket.id);
         }
         room.players[socket.id] = existingPlayer;
       }
@@ -112,6 +135,12 @@ io.on('connection', (socket) => {
       return;
     }
     
+    // If an existing player is ALREADY connected with this name, avoid hijacking their session!
+    let finalPlayerName = cleanPlayerName;
+    if (existingPlayer && isOldSocketAlive && existingPlayer.id !== socket.id) {
+      finalPlayerName = `${cleanPlayerName} #${Math.floor(Math.random() * 899 + 100)}`;
+    }
+
     // Set host if this is the first player or hostId is missing
     const isFirstPlayer = Object.keys(room.players).length === 0;
     if (!room.hostId || isFirstPlayer) {
@@ -120,7 +149,7 @@ io.on('connection', (socket) => {
 
     room.players[socket.id] = {
       id: socket.id,
-      name: cleanPlayerName,
+      name: finalPlayerName,
       avatar: avatar || '🎨',
       score: 0,
       isMaster: false,
@@ -273,6 +302,8 @@ io.on('connection', (socket) => {
     room.tips = [];
     room.votes = {};
     room.character = null;
+    room.activeArtistIds = new Set(playerIds.filter(pid => pid !== masterId));
+    room.activeVoterIds = new Set();
     
     room.state = GAME_STATES.PLAYING;
     room.timer = Number(room.settings?.roundTime ?? 0);
@@ -474,14 +505,31 @@ io.on('connection', (socket) => {
     io.to(cleanRoomId).emit('player_submitted', socket.id);
     io.to(cleanRoomId).emit('room_update', getRoomPublicState(cleanRoomId));
     
-    // Check if all artists submitted
-    const allSubmitted = Object.values(room.players)
-      .filter(p => !p.isMaster)
-      .every(p => p.hasSubmitted);
+    // Check if artists who were present at the start of the round have all submitted
+    const originalArtists = Object.values(room.players).filter(p => !p.isMaster && room.activeArtistIds?.has(p.id));
+    const allOriginalSubmitted = originalArtists.length > 0 && originalArtists.every(p => p.hasSubmitted);
+    
+    const allCurrentArtists = Object.values(room.players).filter(p => !p.isMaster);
+    const allCurrentSubmitted = allCurrentArtists.length > 0 && allCurrentArtists.every(p => p.hasSubmitted);
       
-    if (allSubmitted) {
+    if (allCurrentSubmitted || (allOriginalSubmitted && originalArtists.length === allCurrentArtists.length)) {
       if (room.timerInterval) clearInterval(room.timerInterval);
       endPlayingPhase(cleanRoomId);
+    } else if (allOriginalSubmitted && !allCurrentSubmitted) {
+      // Original artists finished, but a late joiner is still drawing.
+      // If round had no time limit, start a 20s countdown so original artists aren't blocked forever.
+      if (!room.timerInterval && room.timer === 0) {
+        room.timer = 20;
+        io.to(cleanRoomId).emit('timer_update', room.timer);
+        room.timerInterval = setInterval(() => {
+          room.timer--;
+          io.to(cleanRoomId).emit('timer_update', room.timer);
+          if (room.timer <= 0) {
+            clearInterval(room.timerInterval);
+            endPlayingPhase(cleanRoomId);
+          }
+        }, 1000);
+      }
     }
   });
 
@@ -502,9 +550,12 @@ io.on('connection', (socket) => {
 
     io.to(cleanRoomId).emit('room_update', getRoomPublicState(cleanRoomId));
 
-    // Check if everyone voted
-    const allVoted = Object.values(room.players).every(p => p.hasVoted);
-    if (allVoted) {
+    // Check if voters who started voting have all voted
+    const originalVoters = Object.values(room.players).filter(p => room.activeVoterIds?.has(p.id));
+    const allOriginalVoted = originalVoters.length > 0 && originalVoters.every(p => p.hasVoted);
+    const allCurrentVoted = Object.values(room.players).every(p => p.hasVoted);
+
+    if (allCurrentVoted || (allOriginalVoted && originalVoters.length === Object.keys(room.players).length)) {
       if (room.timerInterval) clearInterval(room.timerInterval);
       endVotingPhase(cleanRoomId);
     }
@@ -578,7 +629,7 @@ io.on('connection', (socket) => {
           if (rooms[rId] && rooms[rId].players[socket.id]) {
             removePlayerFromRoom(socket, rId);
           }
-        }, 4000);
+        }, 25000);
         pendingDisconnects.set(timerKey, timer);
       }
     }
@@ -698,6 +749,7 @@ function endPlayingPhase(roomId) {
   if (!room) return;
   room.state = GAME_STATES.VOTING;
   room.timer = 30; // 30 seconds to vote
+  room.activeVoterIds = new Set(Object.keys(room.players));
   
   // reset vote tracking
   Object.values(room.players).forEach(p => p.hasVoted = false);
@@ -720,6 +772,8 @@ function endVotingPhase(roomId) {
   const room = rooms[roomId];
   if (!room) return;
   room.state = GAME_STATES.RESULTS;
+  room.activeVoterIds = new Set();
+  room.activeArtistIds = new Set();
   
   // Calculate points
   Object.keys(room.votes).forEach(playerId => {
@@ -759,6 +813,7 @@ function getRoomPublicState(roomId) {
     drawings: room.state === GAME_STATES.PLAYING ? {} : room.drawings,
     votes: room.votes || {},
     settings: room.settings,
+    timer: room.timer ?? 0,
     voiceUserIds: Array.from(room.voiceUsers || []),
     currentRound: room.currentRound,
     isGameOver: room.isGameOver
