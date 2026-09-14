@@ -1,3 +1,5 @@
+import { useState } from 'react';
+
 export const AVATAR_NAMES: Record<string, string> = {
   'doodle-stickman': 'Boneco Palito',
   'doodle-cat': 'Gatinho',
@@ -47,7 +49,25 @@ interface AvatarIconProps {
 }
 
 export default function AvatarIcon({ avatar = 'doodle-stickman', className = 'w-7 h-7' }: AvatarIconProps) {
+  const [loadError, setLoadError] = useState(false);
   const resolved = EMOJI_TO_DOODLE[avatar] || avatar;
+
+  if (AVATAR_NAMES[resolved] && !loadError) {
+    const baseUrl = import.meta.env.BASE_URL || '/';
+    const cleanBase = baseUrl.endsWith('/') ? baseUrl : `${baseUrl}/`;
+    const imageSrc = `${cleanBase}avatars/${resolved}.png`;
+
+    return (
+      <img
+        src={imageSrc}
+        alt={AVATAR_NAMES[resolved] || resolved}
+        className={`${className} inline-block select-none shrink-0 object-contain drop-shadow-[0_1px_2px_rgba(0,0,0,0.12)]`}
+        draggable={false}
+        loading="lazy"
+        onError={() => setLoadError(true)}
+      />
+    );
+  }
 
   switch (resolved) {
     case 'doodle-stickman':
