@@ -180,13 +180,13 @@ export default function PartyChat({
   };
 
   return (
-    <div className={`flex flex-col h-full bg-panel ${compact ? 'border border-border/80 rounded-2xl shadow-2xl overflow-hidden' : ''}`}>
+    <div className={`flex flex-col h-full bg-white font-sketch ${compact ? 'border-2 border-zinc-900 rounded-2xl shadow-[4px_4px_0px_#18181b] overflow-hidden' : ''}`}>
       {/* Header */}
-      <div className="p-3 bg-black/40 border-b border-border/70 flex items-center justify-between gap-2">
+      <div className="p-3 bg-zinc-100 border-b-2 border-zinc-900 flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
-          <MessageCircle className="w-4 h-4 text-accent-cyan" />
-          <h3 className="font-bold text-xs md:text-sm text-white font-display">Chat da Sala</h3>
-          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-violet-500/20 text-violet-300">
+          <MessageCircle className="w-4 h-4 text-zinc-900" />
+          <h3 className="font-bold text-sm text-zinc-900 font-kalam">Chat da Sala ✏️</h3>
+          <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-yellow-200 border border-zinc-900 text-zinc-900 shadow-[1px_1px_0px_#18181b]">
             {localMessages.length}
           </span>
         </div>
@@ -198,20 +198,20 @@ export default function PartyChat({
               type="button"
               onClick={handleToggleMute}
               title={isChatMuted ? 'Liberar chat para todos os jogadores' : 'Silenciar chat para não-hosts'}
-              className={`px-2.5 py-1 rounded-xl text-[10px] font-bold transition-all flex items-center gap-1.5 border shadow-sm active:scale-95 ${
+              className={`px-2.5 py-1 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 border-2 border-zinc-900 shadow-[2px_2px_0px_#18181b] active:scale-95 ${
                 isChatMuted 
-                  ? 'bg-red-500/25 hover:bg-red-500/35 text-red-200 border-red-500/50 animate-pulse' 
-                  : 'bg-panel-light hover:bg-border text-text-muted hover:text-white border-border/80'
+                  ? 'bg-rose-200 hover:bg-rose-300 text-rose-950 animate-pulse' 
+                  : 'bg-white hover:bg-zinc-100 text-zinc-800'
               }`}
             >
               {isChatMuted ? (
                 <>
-                  <VolumeX className="w-3.5 h-3.5 text-red-400" />
+                  <VolumeX className="w-3.5 h-3.5 text-rose-700" />
                   <span>Reativar Chat</span>
                 </>
               ) : (
                 <>
-                  <Volume2 className="w-3.5 h-3.5 text-emerald-400" />
+                  <Volume2 className="w-3.5 h-3.5 text-emerald-700" />
                   <span>Silenciar Sala</span>
                 </>
               )}
@@ -221,7 +221,7 @@ export default function PartyChat({
           {onClose && (
             <button
               onClick={onClose}
-              className="p-1 rounded-lg hover:bg-panel-light text-text-muted hover:text-white transition-colors"
+              className="p-1 rounded-lg border-2 border-zinc-900 bg-white hover:bg-zinc-100 text-zinc-800 shadow-[1px_1px_0px_#18181b] transition-colors"
             >
               <X className="w-4 h-4" />
             </button>
@@ -231,16 +231,16 @@ export default function PartyChat({
 
       {/* Mute Notification Banner */}
       {isChatMuted && (
-        <div className="px-3 py-1.5 bg-red-500/20 border-b border-red-500/40 flex items-center justify-between text-[11px] text-red-300 font-bold shrink-0">
+        <div className="px-3 py-1.5 bg-rose-100 border-b-2 border-zinc-900 flex items-center justify-between text-xs text-rose-950 font-bold shrink-0">
           <span className="flex items-center gap-1.5">
-            <VolumeX className="w-3.5 h-3.5 text-red-400 shrink-0" />
+            <VolumeX className="w-3.5 h-3.5 text-rose-700 shrink-0" />
             <span>Chat silenciado pelo Host{isHost ? ' (você pode digitar)' : ''}</span>
           </span>
           {isHost && (
             <button 
               type="button"
               onClick={handleToggleMute}
-              className="text-[10px] bg-red-500/30 hover:bg-red-500/50 text-white font-black px-2 py-0.5 rounded-md transition-colors"
+              className="text-xs bg-rose-300 hover:bg-rose-400 border border-zinc-900 text-rose-950 font-bold px-2 py-0.5 rounded-md shadow-[1px_1px_0px_#18181b] transition-colors"
             >
               Reativar
             </button>
@@ -251,13 +251,13 @@ export default function PartyChat({
       {/* Messages stream */}
       <div 
         ref={chatScrollRef}
-        className="flex-1 overflow-y-auto p-3 space-y-2 min-h-[140px] text-xs"
+        className="flex-1 overflow-y-auto p-3 space-y-2 min-h-[140px] text-xs bg-white"
       >
         {localMessages.length === 0 ? (
-          <div className="h-full flex flex-col items-center justify-center text-center text-text-muted py-6">
+          <div className="h-full flex flex-col items-center justify-center text-center text-zinc-500 py-6">
             <span className="text-2xl mb-1">💬</span>
-            <p className="font-semibold text-xs">O chat está pronto!</p>
-            <p className="text-[11px] opacity-70">Mande uma mensagem ou uma dica visual.</p>
+            <p className="font-bold text-sm font-kalam text-zinc-700">O chat está pronto!</p>
+            <p className="text-xs">Mande uma mensagem ou uma dica visual.</p>
           </div>
         ) : (
           localMessages.map((msg) => {
@@ -267,7 +267,7 @@ export default function PartyChat({
             if (msg.isSystem) {
               return (
                 <div key={msg.id} className="flex justify-center my-1.5">
-                  <span className="bg-black/40 border border-border/50 text-text-muted text-[11px] px-3 py-1 rounded-full font-medium shadow-inner flex items-center gap-1.5">
+                  <span className="bg-zinc-100 border border-zinc-400 text-zinc-700 text-xs px-3 py-0.5 rounded-full font-bold shadow-sm flex items-center gap-1.5">
                     <span>{msg.senderAvatar || 'ℹ️'}</span>
                     <span>{msg.text}</span>
                   </span>
@@ -282,13 +282,13 @@ export default function PartyChat({
                   key={msg.id}
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  className="p-2.5 bg-gradient-to-r from-amber-500/20 via-yellow-500/15 to-amber-500/20 border-2 border-accent-yellow/60 rounded-2xl shadow-md text-white my-1"
+                  className="p-2.5 bg-yellow-100 border-2 border-zinc-900 rounded-xl shadow-[3px_3px_0px_#18181b] text-zinc-900 my-1"
                 >
-                  <div className="flex items-center gap-1.5 text-[10px] font-bold text-accent-yellow uppercase tracking-wider mb-1">
+                  <div className="flex items-center gap-1.5 text-xs font-bold text-amber-900 font-kalam uppercase tracking-wider mb-0.5">
                     <Crown className="w-3.5 h-3.5 fill-current" />
                     <span>Dica Oficial do Mestre</span>
                   </div>
-                  <p className="font-semibold text-xs text-amber-100">{msg.text}</p>
+                  <p className="font-bold text-xs text-zinc-900 leading-snug">{msg.text}</p>
                 </motion.div>
               );
             }
@@ -307,7 +307,7 @@ export default function PartyChat({
                   {isHostSender && (
                     <span 
                       title="Host da Sala" 
-                      className="absolute -bottom-1 -right-1 text-[8px] bg-amber-400 text-black font-black rounded-full px-0.5 leading-tight shadow-sm"
+                      className="absolute -bottom-1 -right-1 text-[8px] bg-yellow-300 border border-zinc-900 text-zinc-900 font-bold rounded-full px-0.5 leading-tight shadow-sm"
                     >
                       👑
                     </span>
@@ -316,31 +316,31 @@ export default function PartyChat({
 
                 {/* Bubble */}
                 <div
-                  className={`max-w-[80%] rounded-2xl px-3 py-2 ${
+                  className={`max-w-[80%] rounded-2xl px-3 py-2 border-2 border-zinc-900 shadow-[2px_2px_0px_#18181b] ${
                     isMe
                       ? isHostSender
-                        ? 'bg-gradient-to-r from-violet-600 via-primary to-amber-600 text-white rounded-tr-sm shadow-md border border-amber-400/30'
-                        : 'bg-primary text-white rounded-tr-sm shadow-md'
+                        ? 'bg-yellow-200 text-zinc-950 rounded-tr-none'
+                        : 'bg-blue-100 text-zinc-950 rounded-tr-none'
                       : isHostSender
-                      ? 'bg-gradient-to-r from-amber-500/20 via-black/60 to-purple-500/20 border-2 border-amber-400/60 text-slate-100 rounded-tl-sm shadow-md'
-                      : 'bg-black/40 border border-border/70 text-slate-100 rounded-tl-sm shadow-sm'
+                      ? 'bg-yellow-100 text-zinc-950 rounded-tl-none'
+                      : 'bg-zinc-100 text-zinc-950 rounded-tl-none'
                   }`}
                 >
-                  <div className={`flex items-center gap-1.5 text-[10px] font-bold mb-0.5 ${
-                    isMe ? 'text-violet-200' : isHostSender ? 'text-amber-300' : 'text-accent-cyan'
+                  <div className={`flex items-center gap-1.5 text-xs font-bold mb-0.5 font-kalam ${
+                    isMe ? 'text-zinc-800' : isHostSender ? 'text-amber-900' : 'text-blue-900'
                   }`}>
                     <span className="truncate">{msg.senderName}</span>
                     {isHostSender && (
-                      <span className="bg-amber-400/25 border border-amber-400/50 text-amber-300 text-[8px] font-black px-1.5 py-0.2 rounded-md uppercase tracking-wider">
+                      <span className="bg-yellow-300 border border-zinc-900 text-zinc-900 text-[9px] font-bold px-1 rounded uppercase tracking-wider font-sketch">
                         HOST
                       </span>
                     )}
                     {msg.isMaster && !isHostSender && (
-                      <span title="Mestre da rodada" className="text-accent-yellow text-[9px] font-black">👑 Mestre</span>
+                      <span title="Mestre da rodada" className="text-amber-800 text-[10px] font-bold">👑 Mestre</span>
                     )}
-                    {isMe && <span className="opacity-70">(Você)</span>}
+                    {isMe && <span className="opacity-60 text-[10px] font-sketch">(Você)</span>}
                   </div>
-                  <p className="text-xs break-words leading-relaxed">{msg.text}</p>
+                  <p className="text-xs break-words leading-relaxed font-sketch">{msg.text}</p>
                 </div>
               </div>
             );
@@ -349,15 +349,15 @@ export default function PartyChat({
       </div>
 
       {/* Quick Reaction Emojis */}
-      <div className="px-3 py-1.5 bg-black/20 border-t border-border/50 flex items-center gap-1.5 overflow-x-auto no-scrollbar">
-        <span className="text-[10px] text-text-muted font-bold mr-1 shrink-0">Reagir:</span>
+      <div className="px-3 py-1.5 bg-zinc-50 border-t-2 border-zinc-900 flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+        <span className="text-xs text-zinc-700 font-bold mr-1 shrink-0 font-sketch">Reagir:</span>
         {QUICK_EMOJIS.map((emoji) => (
           <button
             key={emoji}
             type="button"
             disabled={!isHost && isChatMuted}
             onClick={() => handleQuickEmoji(emoji)}
-            className="hover:scale-125 transition-transform text-base sm:text-sm p-1.5 sm:p-1 rounded-md hover:bg-white/10 active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed min-w-[32px] min-h-[32px] flex items-center justify-center shrink-0"
+            className="hover:scale-125 transition-transform text-base sm:text-sm p-1.5 rounded-lg border border-transparent hover:border-zinc-900 hover:bg-zinc-200 active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed min-w-[32px] min-h-[32px] flex items-center justify-center shrink-0"
             title={`Enviar ${emoji}`}
           >
             {emoji}
@@ -367,16 +367,16 @@ export default function PartyChat({
 
       {/* Master Toggle: Send as Tip or Chat */}
       {isMaster && (
-        <div className="px-3 py-1 bg-accent-yellow/10 border-t border-accent-yellow/20 flex items-center justify-between text-xs">
-          <span className="text-[10px] font-bold text-accent-yellow flex items-center gap-1">
-            <Crown className="w-3 h-3" /> Modo Mestre:
+        <div className="px-3 py-1 bg-yellow-100 border-t-2 border-zinc-900 flex items-center justify-between text-xs">
+          <span className="text-xs font-bold text-zinc-900 flex items-center gap-1 font-kalam">
+            <Crown className="w-3.5 h-3.5" /> Modo Mestre:
           </span>
-          <div className="flex items-center gap-1 bg-black/40 p-0.5 rounded-lg border border-border/60">
+          <div className="flex items-center gap-1 bg-white p-0.5 rounded-lg border-2 border-zinc-900">
             <button
               type="button"
               onClick={() => setSendAsTip(true)}
-              className={`px-2 py-0.5 rounded text-[10px] font-bold transition-all ${
-                sendAsTip ? 'bg-accent-yellow text-black font-black' : 'text-text-muted hover:text-white'
+              className={`px-2 py-0.5 rounded text-xs font-bold transition-all ${
+                sendAsTip ? 'bg-yellow-300 text-zinc-900 font-bold' : 'text-zinc-500 hover:text-zinc-900'
               }`}
             >
               💡 Dica Oficial
@@ -384,8 +384,8 @@ export default function PartyChat({
             <button
               type="button"
               onClick={() => setSendAsTip(false)}
-              className={`px-2 py-0.5 rounded text-[10px] font-bold transition-all ${
-                !sendAsTip ? 'bg-primary text-white font-black' : 'text-text-muted hover:text-white'
+              className={`px-2 py-0.5 rounded text-xs font-bold transition-all ${
+                !sendAsTip ? 'bg-zinc-200 text-zinc-900 font-bold' : 'text-zinc-500 hover:text-zinc-900'
               }`}
             >
               💬 Chat Normal
@@ -395,7 +395,7 @@ export default function PartyChat({
       )}
 
       {/* Input Box */}
-      <form onSubmit={handleSendMessage} className="p-2 sm:p-2.5 bg-black/40 border-t border-border/80 flex items-center gap-2">
+      <form onSubmit={handleSendMessage} className="p-2 sm:p-2.5 bg-zinc-100 border-t-2 border-zinc-900 flex items-center gap-2">
         <input
           type="text"
           value={inputText}
@@ -409,15 +409,15 @@ export default function PartyChat({
               : 'Digite sua mensagem...'
           }
           maxLength={150}
-          className="flex-1 bg-bg-dark border border-border rounded-xl px-3 py-2 text-base sm:text-xs text-white placeholder:text-text-muted focus:outline-none focus:border-primary transition-colors disabled:opacity-40 disabled:cursor-not-allowed min-h-[40px]"
+          className="flex-1 bg-white border-2 border-zinc-900 rounded-xl px-3 py-2 text-base sm:text-xs text-zinc-900 placeholder:text-zinc-400 font-sketch focus:outline-none focus:ring-2 focus:ring-yellow-400 transition-colors disabled:opacity-40 disabled:cursor-not-allowed min-h-[40px]"
         />
         <button
           type="submit"
           disabled={(!isHost && isChatMuted) || !inputText.trim()}
-          className={`p-2.5 sm:p-2 rounded-xl font-bold transition-all active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed min-w-[40px] min-h-[40px] flex items-center justify-center shrink-0 ${
+          className={`p-2.5 sm:p-2 rounded-xl font-bold border-2 border-zinc-900 transition-all active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed min-w-[40px] min-h-[40px] flex items-center justify-center shrink-0 ${
             isMaster && sendAsTip
-              ? 'bg-accent-yellow hover:bg-yellow-400 text-black shadow-md'
-              : 'bg-primary hover:bg-primary-hover text-white shadow-md'
+              ? 'bg-yellow-300 hover:bg-yellow-400 text-zinc-900 shadow-[2px_2px_0px_#18181b]'
+              : 'bg-yellow-300 hover:bg-yellow-400 text-zinc-900 shadow-[2px_2px_0px_#18181b]'
           }`}
           title={isMaster && sendAsTip ? 'Enviar como Dica Oficial' : 'Enviar Mensagem'}
         >

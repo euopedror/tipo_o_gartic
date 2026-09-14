@@ -279,20 +279,17 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-bg-dark text-text-main flex flex-col font-sans selection:bg-primary selection:text-white">
+    <div className="min-h-screen bg-[#f8f7f2] text-zinc-900 flex flex-col font-sans selection:bg-amber-200 selection:text-zinc-900">
       {/* App Header */}
-      <header className="bg-panel/90 backdrop-blur border-b border-border/80 px-2.5 py-2 sm:px-4 sm:py-3 md:px-8 flex justify-between items-center sticky top-0 z-50 shadow-md">
-        <div className="flex items-center gap-1.5 sm:gap-3 font-display shrink-0">
-          <span className="text-xl sm:text-2xl md:text-3xl float-bounce">🎨</span>
+      <header className="bg-white border-b-2 border-zinc-900 px-2.5 py-2 sm:px-4 sm:py-2.5 md:px-8 flex justify-between items-center sticky top-0 z-50 shadow-sm">
+        <div className="flex items-center gap-1.5 sm:gap-2.5 font-sketch shrink-0 select-none">
+          <span className="text-xl sm:text-2xl md:text-3xl">✏️</span>
           <div>
-            <h1 className="text-base sm:text-lg md:text-xl font-black tracking-tight text-white flex items-center gap-1">
-              <span>Desenho</span>
-              <span className="bg-clip-text text-transparent bg-gradient-to-r from-violet-400 to-pink-400">
-                Cego
-              </span>
+            <h1 className="text-lg sm:text-2xl font-black tracking-tight text-zinc-900 leading-none">
+              Desenho Cego
             </h1>
-            <div className="text-[9px] sm:text-[10px] text-accent-cyan font-bold uppercase tracking-wider hidden sm:block font-sans">
-              Party Edition
+            <div className="text-[10px] sm:text-xs text-zinc-500 font-bold hidden sm:block">
+              caderno de rabiscos
             </div>
           </div>
         </div>
@@ -302,19 +299,19 @@ export default function App() {
           <button
             onClick={handleCopyCode}
             title="Clique para copiar o código da sala"
-            className="flex items-center gap-1.5 sm:gap-2 bg-black/40 hover:bg-black/60 border border-border px-2 sm:px-3 py-1 sm:py-1.5 rounded-full transition-all text-xs md:text-sm font-mono font-bold"
+            className="flex items-center gap-1.5 sm:gap-2 bg-white hover:bg-amber-50 border-2 border-zinc-900 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl transition-all text-xs md:text-sm font-mono font-bold shadow-[2px_2px_0px_#18181b] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none"
           >
-            <span className="text-text-muted hidden xs:inline">SALA:</span>
-            <span className="text-accent-yellow tracking-wider">{gameState.id}</span>
+            <span className="text-zinc-500 hidden xs:inline font-sketch text-sm">SALA:</span>
+            <span className="text-blue-700 tracking-wider font-black">{gameState.id}</span>
             {copied ? (
-              <Check className="w-3.5 h-3.5 text-green-400 shrink-0" />
+              <Check className="w-3.5 h-3.5 text-green-600 shrink-0 stroke-[2.5]" />
             ) : (
-              <Copy className="w-3.5 h-3.5 text-text-muted hover:text-white shrink-0" />
+              <Copy className="w-3.5 h-3.5 text-zinc-600 hover:text-zinc-900 shrink-0" />
             )}
           </button>
 
           {gameState.state !== 'LOBBY' && (
-            <div className="hidden sm:flex items-center gap-1.5 bg-violet-500/15 border border-violet-400/30 px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full text-xs font-bold text-violet-300 font-display">
+            <div className="hidden sm:flex items-center gap-1.5 bg-amber-100 border-2 border-zinc-900 px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-xl text-xs font-bold text-zinc-900 font-sketch shadow-[2px_2px_0px_#18181b]">
               <span>
                 Rodada {gameState.currentRound || 1}
                 {gameState.settings?.maxRounds ? `/${gameState.settings.maxRounds}` : ''}
@@ -336,19 +333,19 @@ export default function App() {
 
           <button
             onClick={toggleSound}
-            className="p-1.5 sm:p-2 rounded-xl bg-panel-light hover:bg-border/60 border border-border transition-colors text-text-muted hover:text-white min-w-[32px] sm:min-w-[36px] flex items-center justify-center"
+            className="p-1.5 sm:p-2 rounded-xl bg-white hover:bg-zinc-100 border-2 border-zinc-900 shadow-[2px_2px_0px_#18181b] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all text-zinc-800 min-w-[32px] sm:min-w-[36px] flex items-center justify-center"
             title={soundEnabled ? 'Silenciar som' : 'Ativar som'}
           >
-            {soundEnabled ? <Volume2 className="w-4 h-4 text-accent-green" /> : <VolumeX className="w-4 h-4 text-red-400" />}
+            {soundEnabled ? <Volume2 className="w-4 h-4 text-green-700" /> : <VolumeX className="w-4 h-4 text-red-600" />}
           </button>
 
           {/* User profile tag */}
           <div 
-            className="flex items-center gap-1 sm:gap-2 bg-panel-light px-2 sm:px-3 py-1 sm:py-1.5 rounded-xl border border-border"
+            className="flex items-center gap-1 sm:gap-2 bg-white px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl border-2 border-zinc-900 shadow-[2px_2px_0px_#18181b]"
             title={playerName || myPlayer?.name}
           >
             <span className="text-base sm:text-lg">{myPlayer?.avatar || playerAvatar}</span>
-            <span className="text-xs md:text-sm font-bold text-white max-w-[70px] sm:max-w-[100px] truncate hidden xs:inline">
+            <span className="text-xs md:text-sm font-bold text-zinc-900 max-w-[70px] sm:max-w-[100px] truncate hidden xs:inline font-sketch">
               {playerName || myPlayer?.name}
             </span>
           </div>
@@ -357,7 +354,7 @@ export default function App() {
           <button
             onClick={handleLeaveRoom}
             title="Sair da sala"
-            className="p-1.5 sm:p-2 rounded-xl bg-panel-light hover:bg-red-500/20 hover:border-red-500/40 border border-border transition-colors text-text-muted hover:text-red-400 min-w-[32px] sm:min-w-[36px] flex items-center justify-center"
+            className="p-1.5 sm:p-2 rounded-xl bg-white hover:bg-red-50 hover:text-red-600 border-2 border-zinc-900 shadow-[2px_2px_0px_#18181b] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all text-zinc-700 min-w-[32px] sm:min-w-[36px] flex items-center justify-center"
           >
             <LogOut className="w-4 h-4" />
           </button>
@@ -377,46 +374,46 @@ export default function App() {
             >
               <div className="w-full max-w-5xl grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
                 {/* Left Column: Waiting Room Card */}
-                <div className="lg:col-span-7 bg-panel border border-border/90 rounded-3xl p-5 sm:p-7 shadow-2xl backdrop-blur relative overflow-hidden text-center">
+                <div className="lg:col-span-7 bg-white border-2 border-zinc-900 rounded-2xl p-5 sm:p-7 shadow-[4px_5px_0px_#18181b] relative overflow-hidden text-center sketch-tape">
                   {/* Header */}
                   <div className="flex items-center justify-center gap-2 mb-1">
                     <span className="text-3xl">🎪</span>
-                    <h2 className="text-2xl md:text-3xl font-black text-white font-display">Sala de Espera</h2>
+                    <h2 className="text-2xl md:text-3xl font-black text-zinc-900 font-sketch">Sala de Espera</h2>
                   </div>
-                  <p className="text-text-muted text-xs md:text-sm">
-                    Jogue com <strong className="text-white">2 a 12+ amigos</strong>! Mínimo de 2 para começar.
+                  <p className="text-zinc-600 text-sm font-sketch">
+                    Jogue com <strong className="text-zinc-900">2 a 12+ amigos</strong>! Mínimo de 2 para começar.
                   </p>
 
                   {/* Big Room Code Badge */}
-                  <div className="inline-flex items-center gap-2.5 bg-black/40 border border-violet-500/30 px-5 py-2 rounded-2xl my-4 shadow-inner">
-                    <span className="text-xs font-bold text-violet-300 uppercase tracking-wider">Código da Sala:</span>
-                    <span className="text-2xl font-mono font-black text-accent-yellow tracking-widest">{gameState.id}</span>
+                  <div className="inline-flex items-center gap-2.5 bg-amber-50 border-2 border-zinc-900 px-5 py-2 rounded-xl my-4 shadow-[2px_2px_0px_#18181b]">
+                    <span className="text-xs font-bold text-zinc-600 uppercase tracking-wider font-sketch">Código da Sala:</span>
+                    <span className="text-2xl font-mono font-black text-blue-700 tracking-widest">{gameState.id}</span>
                     <button
                       onClick={handleCopyCode}
                       title="Copiar código da sala"
-                      className="p-1.5 rounded-xl bg-violet-500/20 hover:bg-violet-500/30 text-violet-300 hover:text-white transition-all ml-1"
+                      className="p-1.5 rounded-lg bg-white hover:bg-amber-100 text-zinc-900 border border-zinc-900 transition-all ml-1"
                     >
-                      {copied ? <Check className="w-4 h-4 text-accent-green" /> : <Copy className="w-4 h-4" />}
+                      {copied ? <Check className="w-4 h-4 text-green-700 stroke-[2.5]" /> : <Copy className="w-4 h-4" />}
                     </button>
                   </div>
 
                   {/* Simplified Invite Bar */}
-                  <div className="mb-5 p-3.5 bg-violet-500/10 border border-violet-400/25 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-3 text-left">
+                  <div className="mb-5 p-3.5 bg-zinc-50 border-2 border-zinc-900 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-3 text-left shadow-[2px_2px_0px_#18181b]">
                     <div>
-                      <span className="text-xs font-bold text-white block font-display">Convidar Amigos</span>
-                      <span className="text-[11px] text-text-muted">Envie o link direto para a galera</span>
+                      <span className="text-sm font-black text-zinc-900 block font-sketch">Convidar Amigos</span>
+                      <span className="text-xs text-zinc-500 font-sketch">Envie o link direto para a galera</span>
                     </div>
                     <div className="flex items-center gap-2 w-full sm:w-auto">
                       <button
                         onClick={handleCopyInviteLink}
-                        className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 bg-panel-light hover:bg-border border border-border text-xs font-bold px-3.5 py-2.5 rounded-xl text-white transition-all active:scale-95 shadow-sm"
+                        className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 bg-white hover:bg-zinc-100 border-2 border-zinc-900 text-xs font-bold px-3.5 py-2.5 rounded-xl text-zinc-900 transition-all active:translate-x-[1px] active:translate-y-[1px] shadow-[2px_2px_0px_#18181b] font-sketch"
                       >
-                        {copiedLink ? <Check className="w-4 h-4 text-accent-green" /> : <Link2 className="w-4 h-4 text-accent-cyan" />}
+                        {copiedLink ? <Check className="w-4 h-4 text-green-700" /> : <Link2 className="w-4 h-4 text-blue-600" />}
                         <span>{copiedLink ? 'Link Copiado! ✓' : 'Copiar Link'}</span>
                       </button>
                       <button
                         onClick={handleShareWhatsApp}
-                        className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 bg-[#25D366] hover:bg-[#20bd5a] text-black text-xs font-black px-4 py-2.5 rounded-xl transition-all shadow-md active:scale-95"
+                        className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 bg-[#25D366] hover:bg-[#20bd5a] text-zinc-900 text-xs font-black px-4 py-2.5 rounded-xl border-2 border-zinc-900 transition-all shadow-[2px_2px_0px_#18181b] active:translate-x-[1px] active:translate-y-[1px] font-sketch"
                       >
                         <Share2 className="w-4 h-4 stroke-[2.5]" />
                         <span>WhatsApp</span>
@@ -426,8 +423,8 @@ export default function App() {
 
                   {/* Host Settings (Sleek Segmented Controls) */}
                   {isHost ? (
-                    <div className="mb-5 p-3.5 bg-black/25 rounded-2xl border border-border/70 text-left">
-                      <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-accent-cyan mb-2.5">
+                    <div className="mb-5 p-3.5 bg-zinc-50 rounded-xl border-2 border-zinc-900 text-left shadow-[2px_2px_0px_#18181b]">
+                      <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-zinc-900 mb-2.5 font-sketch">
                         <Sliders className="w-3.5 h-3.5" />
                         <span>Regras da Partida (Host)</span>
                       </div>
@@ -435,8 +432,8 @@ export default function App() {
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                         {/* Round Time */}
                         <div>
-                          <span className="text-[10px] text-text-muted font-bold uppercase block mb-1">⏱️ Tempo por Rodada:</span>
-                          <div className="grid grid-cols-4 gap-1 bg-panel-light p-1 rounded-xl border border-border/60">
+                          <span className="text-xs text-zinc-600 font-bold uppercase block mb-1 font-sketch">⏱️ Tempo por Rodada:</span>
+                          <div className="grid grid-cols-4 gap-1 bg-white p-1 rounded-xl border-2 border-zinc-900">
                             {[
                               { label: '♾️ Livre', val: 0 },
                               { label: '60s', val: 60 },
@@ -447,10 +444,10 @@ export default function App() {
                                 key={opt.val}
                                 type="button"
                                 onClick={() => handleUpdateSettings(opt.val, undefined)}
-                                className={`py-1.5 rounded-lg text-xs font-bold transition-all ${
+                                className={`py-1 rounded-lg text-xs font-bold transition-all font-sketch ${
                                   (gameState.settings?.roundTime ?? 0) === opt.val
-                                    ? 'bg-primary text-white shadow-sm font-black'
-                                    : 'text-text-muted hover:text-white'
+                                    ? 'bg-zinc-900 text-white shadow-sm font-black'
+                                    : 'text-zinc-600 hover:text-zinc-900'
                                 }`}
                               >
                                 {opt.label}
@@ -461,8 +458,8 @@ export default function App() {
 
                         {/* Total Rounds */}
                         <div>
-                          <span className="text-[10px] text-text-muted font-bold uppercase block mb-1">🏁 Duração do Torneio:</span>
-                          <div className="grid grid-cols-3 gap-1 bg-panel-light p-1 rounded-xl border border-border/60">
+                          <span className="text-xs text-zinc-600 font-bold uppercase block mb-1 font-sketch">🏁 Duração do Torneio:</span>
+                          <div className="grid grid-cols-3 gap-1 bg-white p-1 rounded-xl border-2 border-zinc-900">
                             {[
                               { label: '3 Rod.', val: 3 },
                               { label: '5 Rod.', val: 5 },
@@ -472,10 +469,10 @@ export default function App() {
                                 key={opt.val}
                                 type="button"
                                 onClick={() => handleUpdateSettings(undefined, opt.val)}
-                                className={`py-1.5 rounded-lg text-xs font-bold transition-all ${
+                                className={`py-1 rounded-lg text-xs font-bold transition-all font-sketch ${
                                   (gameState.settings?.maxRounds ?? 3) === opt.val
-                                    ? 'bg-accent-yellow text-black shadow-sm font-black'
-                                    : 'text-text-muted hover:text-white'
+                                    ? 'bg-amber-300 text-zinc-900 shadow-sm font-black'
+                                    : 'text-zinc-600 hover:text-zinc-900'
                                 }`}
                               >
                                 {opt.label}
@@ -486,17 +483,17 @@ export default function App() {
                       </div>
                     </div>
                   ) : (
-                    <div className="mb-5 py-2 px-4 bg-black/25 rounded-2xl border border-border/60 flex items-center justify-around text-xs">
-                      <div className="flex items-center gap-1.5 text-text-muted">
+                    <div className="mb-5 py-2 px-4 bg-zinc-50 rounded-xl border-2 border-zinc-900 flex items-center justify-around text-xs shadow-[2px_2px_0px_#18181b] font-sketch">
+                      <div className="flex items-center gap-1.5 text-zinc-600">
                         <span>⏱️ Tempo:</span>
-                        <span className="font-bold text-white">
+                        <span className="font-bold text-zinc-900">
                           {(gameState.settings?.roundTime ?? 0) === 0 ? 'Sem Limite (♾️)' : `${gameState.settings?.roundTime}s`}
                         </span>
                       </div>
-                      <div className="w-px h-4 bg-border" />
-                      <div className="flex items-center gap-1.5 text-text-muted">
+                      <div className="w-px h-4 bg-zinc-300" />
+                      <div className="flex items-center gap-1.5 text-zinc-600">
                         <span>🏁 Torneio:</span>
-                        <span className="font-bold text-white">
+                        <span className="font-bold text-zinc-900">
                           {gameState.settings?.maxRounds ? `${gameState.settings.maxRounds} Rodadas` : 'Sem Limite'}
                         </span>
                       </div>
@@ -505,9 +502,9 @@ export default function App() {
 
                   {/* Player list grid */}
                   <div className="mb-6">
-                    <div className="flex items-center justify-between text-xs font-bold text-text-muted uppercase tracking-wider mb-2.5 px-1">
+                    <div className="flex items-center justify-between text-xs font-bold text-zinc-600 uppercase tracking-wider mb-2.5 px-1 font-sketch">
                       <span>Amigos Conectados</span>
-                      <span className="bg-primary/20 text-primary px-2.5 py-0.5 rounded-full font-bold">
+                      <span className="bg-amber-100 border border-zinc-900 text-zinc-900 px-2.5 py-0.5 rounded-full font-bold">
                         {gameState.players.length} {gameState.players.length === 1 ? 'amigo' : 'amigos'}
                       </span>
                     </div>
@@ -521,21 +518,21 @@ export default function App() {
                             key={p.id}
                             initial={{ opacity: 0, scale: 0.9 }}
                             animate={{ opacity: 1, scale: 1 }}
-                            className={`flex items-center justify-between px-3.5 py-2.5 rounded-2xl border transition-all ${
+                            className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl border-2 border-zinc-900 transition-all font-sketch shadow-[2px_2px_0px_#18181b] ${
                               isMe 
-                                ? 'bg-primary/15 border-primary/40 ring-1 ring-primary/30' 
-                                : 'bg-black/30 border-border/80'
+                                ? 'bg-amber-100' 
+                                : 'bg-white'
                             }`}
                           >
                             <div className="flex items-center gap-2.5 min-w-0">
                               <span className="text-2xl">{p.avatar || '🎨'}</span>
-                              <span className="font-bold text-sm text-white truncate">
-                                {p.name} {isMe && <span className="text-primary text-xs">(Você)</span>}
+                              <span className="font-bold text-base text-zinc-900 truncate">
+                                {p.name} {isMe && <span className="text-blue-700 text-xs">(Você)</span>}
                               </span>
                             </div>
 
                             {isPlayerHost && (
-                              <span title="Criador da sala" className="flex items-center gap-1 text-[10px] font-bold text-accent-yellow bg-accent-yellow/10 px-2 py-0.5 rounded-lg border border-accent-yellow/30">
+                              <span title="Criador da sala" className="flex items-center gap-1 text-xs font-bold text-zinc-900 bg-amber-300 px-2 py-0.5 rounded-lg border border-zinc-900">
                                 <Crown className="w-3 h-3" /> Host
                               </span>
                             )}
@@ -545,7 +542,7 @@ export default function App() {
 
                       {/* Dotted placeholder if only 1 player */}
                       {gameState.players.length < 2 && (
-                        <div className="flex items-center justify-center p-3 rounded-2xl border-2 border-dashed border-border/60 text-text-muted text-xs font-semibold gap-2">
+                        <div className="flex items-center justify-center p-3 rounded-xl border-2 border-dashed border-zinc-400 text-zinc-500 text-xs font-semibold gap-2 font-sketch">
                           <span className="animate-pulse">⏳</span>
                           <span>Esperando mais 1 amigo entrar...</span>
                         </div>
@@ -558,7 +555,7 @@ export default function App() {
                     <button
                       onClick={handleStartGame}
                       disabled={gameState.players.length < 2}
-                      className="w-full btn-party-cta py-4 px-6 rounded-2xl flex items-center justify-center gap-2 text-lg tracking-wide disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none"
+                      className="w-full btn-arcade-gold py-3.5 sm:py-4 px-6 rounded-2xl flex items-center justify-center gap-2 text-xl tracking-wide disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none"
                     >
                       <Play className="w-5 h-5 fill-current" />
                       {gameState.players.length < 2
@@ -566,7 +563,7 @@ export default function App() {
                         : `Começar Partida! (${gameState.players.length} jogadores)`}
                     </button>
                   ) : (
-                    <div className="w-full bg-black/40 border border-violet-500/40 p-4 rounded-2xl flex items-center justify-center gap-2.5 text-center text-sm font-bold text-violet-200 shadow-inner">
+                    <div className="w-full bg-amber-50 border-2 border-zinc-900 p-4 rounded-xl flex items-center justify-center gap-2.5 text-center text-base font-bold text-zinc-900 shadow-[2px_2px_0px_#18181b] font-sketch">
                       <span className="text-xl animate-bounce">👑</span>
                       <span>
                         Aguardando o Host ({gameState.players.find(p => p.isHost || p.id === gameState.hostId)?.name || 'Host'}) iniciar a partida...
@@ -576,7 +573,7 @@ export default function App() {
                 </div>
 
                 {/* Right Column: Waiting Room Chat */}
-                <div className="lg:col-span-5 bg-panel border border-border/90 rounded-3xl overflow-hidden shadow-2xl h-[360px] sm:h-[460px] lg:h-[600px] flex flex-col">
+                <div className="lg:col-span-5 bg-white border-2 border-zinc-900 rounded-2xl overflow-hidden shadow-[4px_5px_0px_#18181b] h-[360px] sm:h-[460px] lg:h-[600px] flex flex-col">
                   <PartyChat
                     socket={socket}
                     roomId={gameState.id}

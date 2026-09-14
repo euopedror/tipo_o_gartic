@@ -534,78 +534,78 @@ export default function VoiceChat({
         <button
           type="button"
           onClick={handleJoinVoice}
-          className="flex items-center gap-1.5 sm:gap-2 bg-gradient-to-r from-violet-600/30 to-pink-600/30 hover:from-violet-600/50 hover:to-pink-600/50 border border-violet-400/50 px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-full text-xs font-bold text-white transition-all active:scale-95 shadow-md group shrink-0 min-h-[32px] sm:min-h-[34px]"
+          className="flex items-center gap-1.5 sm:gap-2 bg-white hover:bg-yellow-50 border-2 border-zinc-900 px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-full text-xs font-bold text-zinc-900 transition-all active:scale-95 shadow-[2px_2px_0px_#18181b] font-sketch shrink-0 min-h-[32px] sm:min-h-[34px]"
           title="Entrar na chamada de voz ao vivo (P2P)"
         >
-          <PhoneCall className="w-3.5 h-3.5 text-accent-cyan group-hover:scale-110 transition-transform shrink-0" />
-          <span className="hidden md:inline font-display">Voz</span>
-          <span className="text-[9px] bg-accent-cyan/20 text-accent-cyan px-1.5 sm:px-2 py-0.5 rounded-full uppercase font-black tracking-wider">
+          <PhoneCall className="w-3.5 h-3.5 text-zinc-900 shrink-0" />
+          <span className="hidden md:inline font-kalam">Voz</span>
+          <span className="text-[9px] bg-yellow-200 border border-zinc-900 text-zinc-900 px-1.5 sm:px-2 py-0.5 rounded-full uppercase font-bold tracking-wider">
             Mic
           </span>
           {activeVoicePlayers.length > 0 && (
-            <span className="text-[10px] bg-emerald-500/20 text-emerald-300 font-mono px-1 sm:px-1.5 py-0.5 rounded-full border border-emerald-500/30">
+            <span className="text-[10px] bg-emerald-100 border border-zinc-900 text-emerald-950 font-bold px-1.5 py-0.5 rounded-full">
               {activeVoicePlayers.length}
             </span>
           )}
         </button>
       ) : (
-        <div className="flex items-center gap-1 bg-emerald-950/70 border border-emerald-500/60 p-0.5 sm:p-1 rounded-full text-xs font-bold text-white shadow-xl backdrop-blur shrink-0">
+        <div className="flex items-center gap-1 bg-emerald-100 border-2 border-zinc-900 p-0.5 sm:p-1 rounded-full text-xs font-bold text-zinc-900 shadow-[2px_2px_0px_#18181b] shrink-0 font-sketch">
           {/* Live Speaking Indicator / Expand Drawer */}
           <button
             type="button"
             onClick={() => setIsExpanded(!isExpanded)}
-            className="flex items-center gap-1.5 pl-1.5 sm:pl-2 pr-1 sm:pr-1.5 py-0.5 hover:bg-emerald-900/40 rounded-full transition-colors select-none"
+            className="flex items-center gap-1.5 pl-1.5 sm:pl-2 pr-1 sm:pr-1.5 py-0.5 hover:bg-emerald-200/60 rounded-full transition-colors select-none"
             title="Abrir painel de volume e participantes"
           >
             <div className="relative flex items-center justify-center">
               <span
                 className={`w-2.5 h-2.5 rounded-full transition-all ${
-                  isSpeaking && !isMuted ? 'bg-emerald-400 scale-125 shadow-[0_0_8px_#34d399]' : 'bg-emerald-500'
+                  isSpeaking && !isMuted ? 'bg-emerald-600 scale-125' : 'bg-emerald-700'
                 }`}
               />
               {isSpeaking && !isMuted && (
                 <span className="absolute w-4 h-4 rounded-full bg-emerald-400/50 animate-ping" />
               )}
             </div>
-            <span className="text-[11px] font-mono text-emerald-300 font-black hidden md:inline">
+            <span className="text-xs font-kalam text-emerald-950 font-bold hidden md:inline">
               Voz ({activeVoicePlayers.length})
             </span>
-            <Sliders className="w-3 h-3 text-emerald-300/80 hover:text-white" />
+            <Sliders className="w-3 h-3 text-emerald-900 hover:text-zinc-900" />
           </button>
 
           {/* Mute Microphone Button */}
           <button
             type="button"
             onClick={handleToggleMute}
-            className={`p-1.5 rounded-full transition-all ${
+            className={`p-1.5 rounded-full border transition-all ${
               isMuted
-                ? 'bg-red-500/30 text-red-300 hover:bg-red-500/50 border border-red-500/40'
-                : 'bg-panel-light text-emerald-300 hover:bg-emerald-900/40'
+                ? 'bg-rose-200 text-rose-950 border-zinc-900 shadow-[1px_1px_0px_#18181b]'
+                : 'bg-white hover:bg-zinc-100 text-zinc-900 border-zinc-900 shadow-[1px_1px_0px_#18181b]'
             }`}
             title={isMuted ? 'Desmutar microfone' : 'Mutar microfone'}
           >
-            {isMuted ? <MicOff className="w-3.5 h-3.5" /> : <Mic className="w-3.5 h-3.5" />}
+            {isMuted ? <MicOff className="w-3.5 h-3.5 text-rose-800" /> : <Mic className="w-3.5 h-3.5" />}
           </button>
 
           {/* Deafen Button */}
           <button
             type="button"
             onClick={handleToggleDeafen}
-            className={`p-1.5 rounded-full transition-all ${
+            className={`p-1.5 rounded-full border transition-all ${
               isDeafened
-                ? 'bg-red-500/30 text-red-300 hover:bg-red-500/50 border border-red-500/40'
-                : 'bg-panel-light text-emerald-300 hover:bg-emerald-900/40'
+                ? 'bg-rose-200 text-rose-950 border-zinc-900 shadow-[1px_1px_0px_#18181b]'
+                : 'bg-white hover:bg-zinc-100 text-zinc-900 border-zinc-900 shadow-[1px_1px_0px_#18181b]'
             }`}
             title={isDeafened ? 'Desensurdecer' : 'Ensurdecer'}
           >
-            {isDeafened ? <VolumeX className="w-3.5 h-3.5 text-red-400" /> : <Volume2 className="w-3.5 h-3.5" />}
+            {isDeafened ? <VolumeX className="w-3.5 h-3.5 text-rose-800" /> : <Volume2 className="w-3.5 h-3.5" />}
           </button>
 
           {/* Leave Voice Button */}
           <button
             type="button"
             onClick={handleLeaveVoice}
-            className="p-1.5 rounded-full bg-red-600/30 hover:bg-red-600/60 text-red-300 transition-colors border border-red-500/30"
+            className="p-1.5 rounded-full bg-rose-200 hover:bg-rose-300 text-rose-950 border border-zinc-900 shadow-[1px_1px_0px_#18181b] transition-colors"
             title="Sair da chamada de voz"
           >
             <PhoneOff className="w-3.5 h-3.5" />
@@ -620,15 +620,15 @@ export default function VoiceChat({
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 10 }}
-            className="fixed sm:absolute top-14 sm:top-12 right-2 sm:right-0 z-50 bg-red-950/95 border border-red-500 text-red-200 text-xs p-3 rounded-2xl shadow-2xl flex items-start gap-2 max-w-xs"
+            className="fixed sm:absolute top-14 sm:top-12 right-2 sm:right-0 z-50 bg-rose-100 border-2 border-zinc-900 text-rose-950 text-xs p-3 rounded-2xl shadow-[4px_4px_0px_#18181b] flex items-start gap-2 max-w-xs font-sketch"
           >
-            <AlertCircle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
+            <AlertCircle className="w-4 h-4 text-rose-700 shrink-0 mt-0.5" />
             <div className="flex-1">
               <span>{errorMsg}</span>
               <button
                 type="button"
                 onClick={() => setErrorMsg(null)}
-                className="block mt-1 text-[10px] underline text-red-300 hover:text-white font-bold"
+                className="block mt-1 text-xs underline text-rose-800 hover:text-rose-950 font-bold"
               >
                 Fechar
               </button>
@@ -644,31 +644,31 @@ export default function VoiceChat({
             initial={{ opacity: 0, y: 10, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 10, scale: 0.95 }}
-            className="fixed sm:absolute top-14 sm:top-12 right-2 sm:right-0 z-50 bg-panel/98 border border-border/90 p-3.5 sm:p-4 rounded-2xl sm:rounded-3xl shadow-2xl w-[calc(100vw-1rem)] sm:w-80 max-w-sm backdrop-blur-md text-xs space-y-3"
+            className="fixed sm:absolute top-14 sm:top-12 right-2 sm:right-0 z-50 bg-white border-2 border-zinc-900 p-3.5 sm:p-4 rounded-2xl sm:rounded-3xl shadow-[6px_6px_0px_#18181b] w-[calc(100vw-1rem)] sm:w-80 max-w-sm text-xs space-y-3 font-sketch"
           >
             {/* Header */}
-            <div className="flex items-center justify-between pb-2 border-b border-border/80 text-text-muted text-[11px] font-bold uppercase tracking-wider">
-              <div className="flex items-center gap-2 text-white">
-                <Users className="w-4 h-4 text-accent-cyan" />
-                <span>Painel de Voz P2P</span>
+            <div className="flex items-center justify-between pb-2 border-b-2 border-zinc-900 text-zinc-800 text-xs font-bold uppercase tracking-wider font-kalam">
+              <div className="flex items-center gap-2 text-zinc-900">
+                <Users className="w-4 h-4 text-zinc-900" />
+                <span>Painel de Voz P2P ✏️</span>
               </div>
               <button
                 type="button"
                 onClick={() => setIsExpanded(false)}
-                className="text-text-muted hover:text-white p-1 rounded-lg hover:bg-white/10"
+                className="text-zinc-600 hover:text-zinc-900 p-1 rounded-lg border border-zinc-900 hover:bg-zinc-100 shadow-[1px_1px_0px_#18181b]"
               >
                 ✕
               </button>
             </div>
 
             {/* Master Volume Slider */}
-            <div className="bg-black/40 border border-border/70 p-3 rounded-2xl space-y-1.5">
-              <div className="flex items-center justify-between text-[11px] font-bold">
-                <span className="flex items-center gap-1.5 text-slate-200">
-                  <Headphones className="w-3.5 h-3.5 text-accent-cyan" />
-                  Volume Geral da Chamada
+            <div className="bg-zinc-50 border-2 border-zinc-900 p-3 rounded-2xl space-y-1.5 shadow-[2px_2px_0px_#18181b]">
+              <div className="flex items-center justify-between text-xs font-bold font-kalam">
+                <span className="flex items-center gap-1.5 text-zinc-900">
+                  <Headphones className="w-3.5 h-3.5 text-zinc-900" />
+                  Volume Geral
                 </span>
-                <span className="font-mono text-accent-cyan">{masterVolume}%</span>
+                <span className="font-mono text-zinc-900">{masterVolume}%</span>
               </div>
               <input
                 type="range"
@@ -676,29 +676,29 @@ export default function VoiceChat({
                 max="100"
                 value={masterVolume}
                 onChange={(e) => handleSetMasterVolume(Number(e.target.value))}
-                className="w-full accent-accent-cyan h-1.5 bg-slate-800 rounded-lg cursor-pointer"
+                className="w-full accent-yellow-400 h-2 bg-zinc-200 rounded-lg cursor-pointer border border-zinc-900"
               />
             </div>
 
             {/* Local Microphone Live Meter & Test */}
-            <div className="bg-black/40 border border-border/70 p-3 rounded-2xl space-y-2">
-              <div className="flex items-center justify-between text-[11px] font-bold">
-                <span className="flex items-center gap-1.5 text-slate-200">
-                  <Mic className="w-3.5 h-3.5 text-accent-green" />
+            <div className="bg-zinc-50 border-2 border-zinc-900 p-3 rounded-2xl space-y-2 shadow-[2px_2px_0px_#18181b]">
+              <div className="flex items-center justify-between text-xs font-bold font-kalam">
+                <span className="flex items-center gap-1.5 text-zinc-900">
+                  <Mic className="w-3.5 h-3.5 text-zinc-900" />
                   Seu Microfone
                 </span>
-                <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
-                  isMuted ? 'bg-red-500/20 text-red-300' : isSpeaking ? 'bg-emerald-500/20 text-emerald-300 animate-pulse' : 'bg-slate-800 text-slate-400'
+                <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold border border-zinc-900 ${
+                  isMuted ? 'bg-rose-200 text-rose-950' : isSpeaking ? 'bg-emerald-200 text-emerald-950 animate-pulse' : 'bg-zinc-200 text-zinc-700'
                 }`}>
                   {isMuted ? 'Mutado' : isSpeaking ? 'Falando 🎙️' : 'Pronto'}
                 </span>
               </div>
 
               {/* Dynamic VU meter bar */}
-              <div className="w-full bg-slate-800/80 rounded-full h-2 overflow-hidden border border-slate-700/50">
+              <div className="w-full bg-zinc-200 rounded-full h-2.5 overflow-hidden border border-zinc-900">
                 <div 
                   className={`h-full transition-all duration-75 ${
-                    isMuted ? 'bg-slate-600' : micVolumeLevel > 60 ? 'bg-accent-yellow' : 'bg-emerald-400'
+                    isMuted ? 'bg-zinc-400' : micVolumeLevel > 60 ? 'bg-amber-400' : 'bg-emerald-500'
                   }`}
                   style={{ width: `${isMuted ? 0 : micVolumeLevel}%` }}
                 />
@@ -709,23 +709,23 @@ export default function VoiceChat({
                 <button
                   type="button"
                   onClick={handleToggleLoopbackTest}
-                  className={`text-[10px] font-bold px-2.5 py-1 rounded-xl border transition-all flex items-center gap-1.5 ${
+                  className={`text-[11px] font-bold px-2.5 py-1 rounded-xl border-2 border-zinc-900 transition-all flex items-center gap-1.5 shadow-[1px_1px_0px_#18181b] active:scale-95 ${
                     isLoopbackTesting 
-                      ? 'bg-amber-500/20 border-amber-500 text-amber-300 shadow-sm animate-pulse' 
-                      : 'bg-panel-light border-border/80 text-text-muted hover:text-white'
+                      ? 'bg-yellow-200 text-zinc-950 shadow-sm animate-pulse' 
+                      : 'bg-white hover:bg-zinc-100 text-zinc-800'
                   }`}
                 >
-                  <Sparkles className="w-3 h-3 text-accent-yellow" />
-                  <span>{isLoopbackTesting ? 'Ouvindo Seu Retorno (Clique p/ Parar)' : 'Testar Meu Microfone (Ouvir Retorno)'}</span>
+                  <Sparkles className="w-3 h-3 text-zinc-900" />
+                  <span>{isLoopbackTesting ? 'Ouvindo Retorno (Clique p/ Parar)' : 'Testar Microfone (Ouvir Retorno)'}</span>
                 </button>
               </div>
             </div>
 
             {/* Participants list with individual volume sliders */}
             <div className="space-y-2">
-              <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-text-muted">
+              <div className="flex items-center justify-between text-[11px] font-bold uppercase tracking-wider text-zinc-700 font-kalam">
                 <span>Participantes ({activeVoicePlayers.length})</span>
-                <span>Volume Individual</span>
+                <span>Volume</span>
               </div>
 
               <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
@@ -737,13 +737,11 @@ export default function VoiceChat({
                   return (
                     <div
                       key={p.id}
-                      className={`p-2.5 rounded-2xl bg-black/30 border transition-all ${
-                        isPeerSpeaking
-                          ? 'border-emerald-500/80 shadow-[0_0_12px_rgba(52,211,153,0.15)] bg-emerald-950/20'
-                          : 'border-border/60'
+                      className={`p-2.5 rounded-2xl bg-white border-2 border-zinc-900 transition-all shadow-[2px_2px_0px_#18181b] ${
+                        isPeerSpeaking ? 'bg-yellow-50 ring-2 ring-emerald-400' : ''
                       }`}
                     >
-                      <div className="flex items-center justify-between mb-1.5">
+                      <div className="flex items-center justify-between mb-1.5 font-kalam">
                         <div className="flex items-center gap-2">
                           <span
                             className={`text-xl transition-transform ${
@@ -752,26 +750,26 @@ export default function VoiceChat({
                           >
                             {p.avatar || '🎨'}
                           </span>
-                          <span className="font-bold text-white text-xs truncate max-w-[120px]">
-                            {p.name} {isMe && <span className="text-primary text-[10px]">(Você)</span>}
+                          <span className="font-bold text-zinc-900 text-xs truncate max-w-[120px]">
+                            {p.name} {isMe && <span className="text-blue-700 text-[10px] font-sketch">(Você)</span>}
                           </span>
                         </div>
 
                         {/* Speaking badge */}
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-1 font-sketch">
                           {isMe ? (
                             isMuted ? (
-                              <span className="text-[10px] text-red-400 bg-red-500/20 px-2 py-0.5 rounded-md font-bold">
+                              <span className="text-[10px] text-rose-950 bg-rose-200 border border-zinc-900 px-2 py-0.5 rounded-md font-bold">
                                 Mutado
                               </span>
                             ) : (
-                              <span className="text-[10px] text-emerald-400 bg-emerald-500/20 px-2 py-0.5 rounded-md font-bold">
+                              <span className="text-[10px] text-emerald-950 bg-emerald-200 border border-zinc-900 px-2 py-0.5 rounded-md font-bold">
                                 Ativo
                               </span>
                             )
                           ) : (
-                            <span className={`text-[10px] px-2 py-0.5 rounded-md font-bold ${
-                              isPeerSpeaking ? 'bg-emerald-500/30 text-emerald-300 animate-pulse' : 'bg-slate-800 text-slate-400'
+                            <span className={`text-[10px] px-2 py-0.5 rounded-md font-bold border border-zinc-900 ${
+                              isPeerSpeaking ? 'bg-emerald-200 text-emerald-950 animate-pulse' : 'bg-zinc-100 text-zinc-700'
                             }`}>
                               {isPeerSpeaking ? 'Falando 🔊' : 'Ouvindo'}
                             </span>
@@ -781,18 +779,18 @@ export default function VoiceChat({
 
                       {/* Volume Slider for Remote Peer */}
                       {!isMe && (
-                        <div className="flex items-center gap-2 pt-1 border-t border-border/40">
-                          <Volume2 className="w-3 h-3 text-text-muted shrink-0" />
+                        <div className="flex items-center gap-2 pt-1 border-t border-dashed border-zinc-300">
+                          <Volume2 className="w-3 h-3 text-zinc-600 shrink-0" />
                           <input
                             type="range"
                             min="0"
                             max="100"
                             value={pVol}
                             onChange={(e) => handleSetPeerVolume(p.id, Number(e.target.value))}
-                            className="w-full accent-primary h-1 bg-slate-800 rounded cursor-pointer"
+                            className="w-full accent-yellow-400 h-1.5 bg-zinc-200 rounded cursor-pointer border border-zinc-900"
                             title={`Ajustar volume de ${p.name}`}
                           />
-                          <span className="text-[10px] font-mono text-text-muted shrink-0 w-7 text-right">
+                          <span className="text-[10px] font-mono text-zinc-700 shrink-0 w-7 text-right">
                             {pVol}%
                           </span>
                         </div>

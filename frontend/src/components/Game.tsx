@@ -20,18 +20,18 @@ interface GameProps {
 }
 
 const COLOR_PALETTE = [
-  '#ffffff', // Branco
-  '#000000', // Preto
-  '#ef4444', // Vermelho
-  '#f97316', // Laranja
-  '#eab308', // Amarelo
-  '#22c55e', // Verde
-  '#06b6d4', // Ciano
-  '#3b82f6', // Azul
-  '#8b5cf6', // Roxo
-  '#ec4899', // Rosa
-  '#78350f', // Marrom
-  '#fcd34d', // Bege/Pele
+  '#18181b', // Preto / Nanquim
+  '#2563eb', // Azul Caneta Bic
+  '#dc2626', // Vermelho Correção
+  '#16a34a', // Verde Canetinha
+  '#f59e0b', // Amarelo
+  '#ea580c', // Laranja
+  '#7c3aed', // Roxo
+  '#db2777', // Rosa
+  '#78350f', // Marrom Madeira
+  '#475569', // Grafite Lápis
+  '#fde047', // Marca-texto
+  '#ffffff', // Branco Corretivo
 ];
 
 export default function Game({ socket, gameState, myPlayer, timer }: GameProps) {
@@ -42,19 +42,19 @@ export default function Game({ socket, gameState, myPlayer, timer }: GameProps) 
   const submittedCount = artists.filter(p => p.hasSubmitted).length;
 
   return (
-    <div className="flex-1 flex flex-col md:flex-row p-2 sm:p-3 md:p-6 gap-2 sm:gap-4 bg-bg-dark overflow-hidden">
+    <div className="flex-1 flex flex-col md:flex-row p-2 sm:p-3 md:p-6 gap-2 sm:gap-4 bg-[#f8f7f2] overflow-hidden">
       {/* Mobile Top Navigation & Status Bar (< md) */}
-      <div className="md:hidden flex items-center justify-between gap-1.5 bg-panel p-2 rounded-2xl border border-border/80 shadow-md shrink-0">
+      <div className="md:hidden flex items-center justify-between gap-1.5 bg-white p-2 rounded-xl border-2 border-zinc-900 shadow-[2px_2px_0px_#18181b] shrink-0 font-sketch">
         {/* Timer & Deliveries */}
         <div className="flex items-center gap-1.5">
-          <div className={`flex items-center gap-1 px-2 sm:px-2.5 py-1 rounded-xl font-mono font-bold text-xs ${
-            timer <= 20 && timer > 0 ? 'bg-red-500/20 text-red-400 animate-pulse' : 'bg-primary/20 text-primary'
+          <div className={`flex items-center gap-1 px-2.5 py-1 rounded-lg font-mono font-bold text-xs border-2 border-zinc-900 shadow-[1px_1px_0px_#18181b] ${
+            timer <= 20 && timer > 0 ? 'bg-red-100 text-red-700 animate-pulse' : 'bg-amber-100 text-zinc-900'
           }`}>
             <Clock className="w-3.5 h-3.5" />
             <span>{timer > 0 ? `${timer}s` : '♾️'}</span>
           </div>
 
-          <div className="text-[11px] font-bold text-accent-cyan bg-accent-cyan/10 px-2 py-1 rounded-xl border border-accent-cyan/20">
+          <div className="text-xs font-bold text-zinc-900 bg-white px-2 py-1 rounded-lg border-2 border-zinc-900 shadow-[1px_1px_0px_#18181b]">
             🎨 {submittedCount}/{artists.length}
           </div>
 
@@ -68,7 +68,7 @@ export default function Game({ socket, gameState, myPlayer, timer }: GameProps) 
                 }
               }}
               title="Avançar para a votação"
-              className="bg-accent-yellow hover:bg-yellow-400 text-black text-[10px] font-black px-2 py-1 rounded-lg transition-all active:scale-95"
+              className="bg-amber-300 hover:bg-amber-400 text-zinc-900 text-xs font-black px-2.5 py-1 rounded-lg border-2 border-zinc-900 shadow-[1px_1px_0px_#18181b] transition-all active:translate-x-[1px] active:translate-y-[1px]"
             >
               🏁 Votar
             </button>
@@ -76,17 +76,17 @@ export default function Game({ socket, gameState, myPlayer, timer }: GameProps) 
         </div>
 
         {/* Mobile View Switcher */}
-        <div className="flex items-center gap-1 bg-black/40 p-0.5 rounded-xl border border-border/60">
+        <div className="flex items-center gap-1 bg-zinc-100 p-0.5 rounded-lg border-2 border-zinc-900">
           <button
             type="button"
             onClick={() => {
               sounds.playClick();
               setMobileTab('main');
             }}
-            className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all ${
+            className={`px-2.5 py-1 rounded-md text-xs font-bold transition-all ${
               mobileTab === 'main'
-                ? 'bg-primary text-white shadow-sm'
-                : 'text-text-muted hover:text-white'
+                ? 'bg-amber-300 text-zinc-900 font-black border border-zinc-900 shadow-sm'
+                : 'text-zinc-600 hover:text-zinc-900'
             }`}
           >
             {isMaster ? '👑 Mestre' : '🎨 Desenho'}
@@ -98,16 +98,16 @@ export default function Game({ socket, gameState, myPlayer, timer }: GameProps) 
               sounds.playClick();
               setMobileTab('chat');
             }}
-            className={`px-2 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 ${
+            className={`px-2 py-1 rounded-md text-xs font-bold transition-all flex items-center gap-1 ${
               mobileTab === 'chat'
-                ? 'bg-primary text-white shadow-sm'
-                : 'text-text-muted hover:text-white'
+                ? 'bg-amber-300 text-zinc-900 font-black border border-zinc-900 shadow-sm'
+                : 'text-zinc-600 hover:text-zinc-900'
             }`}
           >
             <MessageCircle className="w-3 h-3" />
             <span>Chat</span>
             {(gameState.messages?.length || 0) > 0 && (
-              <span className="text-[9px] bg-black/40 px-1 py-0.2 rounded-full font-bold">
+              <span className="text-[9px] bg-white border border-zinc-900 px-1 py-0.2 rounded-full font-bold">
                 {gameState.messages?.length || 0}
               </span>
             )}
@@ -120,16 +120,16 @@ export default function Game({ socket, gameState, myPlayer, timer }: GameProps) 
                 sounds.playClick();
                 setMobileTab('tips');
               }}
-              className={`px-2 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 ${
+              className={`px-2 py-1 rounded-md text-xs font-bold transition-all flex items-center gap-1 ${
                 mobileTab === 'tips'
-                  ? 'bg-accent-yellow text-black font-black shadow-sm'
-                  : 'text-text-muted hover:text-white'
+                  ? 'bg-amber-300 text-zinc-900 font-black border border-zinc-900 shadow-sm'
+                  : 'text-zinc-600 hover:text-zinc-900'
               }`}
             >
               <Lightbulb className="w-3 h-3" />
               <span>Dicas</span>
               {gameState.tips.length > 0 && (
-                <span className="text-[9px] bg-black/20 px-1 py-0.2 rounded-full font-bold">
+                <span className="text-[9px] bg-amber-200 border border-zinc-900 px-1 py-0.2 rounded-full font-bold">
                   {gameState.tips.length}
                 </span>
               )}
@@ -144,28 +144,28 @@ export default function Game({ socket, gameState, myPlayer, timer }: GameProps) 
         w-full md:w-88 flex-col gap-3 shrink-0 h-full md:h-auto overflow-hidden
       `}>
         {/* Desktop Timer Card */}
-        <div className="hidden md:flex bg-panel rounded-3xl p-4 md:p-5 border border-border shadow-xl items-center justify-between gap-2">
+        <div className="hidden md:flex bg-white rounded-2xl p-4 md:p-5 border-2 border-zinc-900 shadow-[4px_5px_0px_#18181b] items-center justify-between gap-2 font-sketch">
           <div className="flex items-center gap-3">
             {timer > 0 ? (
               <>
-                <div className={`p-3 rounded-2xl ${timer <= 20 ? 'bg-red-500/20 text-red-400' : 'bg-primary/20 text-primary'}`}>
-                  <Clock className={`w-6 h-6 ${timer <= 20 ? 'animate-bounce' : ''}`} />
+                <div className={`p-2.5 rounded-xl border-2 border-zinc-900 shadow-[2px_2px_0px_#18181b] ${timer <= 20 ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-zinc-900'}`}>
+                  <Clock className={`w-5 h-5 ${timer <= 20 ? 'animate-bounce' : ''}`} />
                 </div>
                 <div>
-                  <span className="text-[10px] uppercase font-bold tracking-widest text-text-muted font-display">Tempo Restante</span>
-                  <div className={`text-3xl font-mono font-black ${timer <= 20 ? 'text-red-400 animate-pulse' : 'text-white'}`}>
+                  <span className="text-xs uppercase font-bold tracking-wider text-zinc-500">Tempo Restante</span>
+                  <div className={`text-3xl font-mono font-black ${timer <= 20 ? 'text-red-600 animate-pulse' : 'text-zinc-900'}`}>
                     {timer}s
                   </div>
                 </div>
               </>
             ) : (
               <>
-                <div className="p-3 rounded-2xl bg-emerald-500/20 text-emerald-400">
+                <div className="p-2.5 rounded-xl bg-green-100 text-green-800 border-2 border-zinc-900 shadow-[2px_2px_0px_#18181b]">
                   <span className="text-2xl leading-none">♾️</span>
                 </div>
                 <div>
-                  <span className="text-[10px] uppercase font-bold tracking-widest text-emerald-400 font-display">Sem Pressa</span>
-                  <div className="text-sm font-black text-white font-display">
+                  <span className="text-xs uppercase font-bold tracking-wider text-green-800">Sem Pressa</span>
+                  <div className="text-base font-black text-zinc-900">
                     Tempo Livre
                   </div>
                 </div>
@@ -174,8 +174,8 @@ export default function Game({ socket, gameState, myPlayer, timer }: GameProps) 
           </div>
 
           <div className="text-right flex flex-col items-end gap-1">
-            <span className="text-[10px] uppercase font-bold tracking-widest text-text-muted font-display">Entregas</span>
-            <div className="text-base font-bold text-accent-cyan font-display">
+            <span className="text-xs uppercase font-bold tracking-wider text-zinc-500">Entregas</span>
+            <div className="text-base font-bold text-zinc-900 font-mono">
               {submittedCount} / {artists.length}
             </div>
             {isMaster && (
@@ -188,7 +188,7 @@ export default function Game({ socket, gameState, myPlayer, timer }: GameProps) 
                   }
                 }}
                 title="Avançar imediatamente para a votação"
-                className="bg-accent-yellow/20 hover:bg-accent-yellow/30 border border-accent-yellow/40 text-accent-yellow px-2 py-1 rounded-lg text-[10px] font-bold transition-all active:scale-95"
+                className="bg-amber-300 hover:bg-amber-400 border-2 border-zinc-900 text-zinc-900 px-2.5 py-1 rounded-lg text-xs font-bold transition-all active:translate-x-[1px] active:translate-y-[1px] shadow-[2px_2px_0px_#18181b]"
               >
                 🏁 Ir p/ Voto
               </button>
@@ -197,25 +197,25 @@ export default function Game({ socket, gameState, myPlayer, timer }: GameProps) 
         </div>
 
         {/* Chat / Tips Feed */}
-        <div className="flex-1 bg-panel rounded-2xl sm:rounded-3xl border border-border flex flex-col overflow-hidden shadow-xl min-h-[300px]">
+        <div className="flex-1 bg-white rounded-2xl border-2 border-zinc-900 flex flex-col overflow-hidden shadow-[4px_5px_0px_#18181b] min-h-[300px]">
           {/* Tab Switcher (Desktop) */}
-          <div className="hidden md:flex p-2 border-b border-border/80 bg-black/30 items-center justify-between">
-            <div className="flex items-center gap-1 bg-panel-light p-1 rounded-xl border border-border/60 w-full">
+          <div className="hidden md:flex p-2 border-b-2 border-zinc-900 bg-zinc-50 items-center justify-between font-sketch">
+            <div className="flex items-center gap-1 bg-zinc-200 p-1 rounded-xl border border-zinc-400 w-full">
               <button
                 type="button"
                 onClick={() => {
                   sounds.playClick();
                   setActiveSidebarTab('chat');
                 }}
-                className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+                className={`flex-1 py-1 px-3 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-1.5 ${
                   activeSidebarTab === 'chat'
-                    ? 'bg-primary text-white shadow-sm'
-                    : 'text-text-muted hover:text-white'
+                    ? 'bg-white text-zinc-900 shadow-sm border border-zinc-400'
+                    : 'text-zinc-600 hover:text-zinc-900'
                 }`}
               >
-                <MessageCircle className="w-3.5 h-3.5 text-accent-cyan" />
+                <MessageCircle className="w-3.5 h-3.5 text-blue-600" />
                 <span>Chat & Dicas</span>
-                <span className="text-[10px] bg-black/30 px-1.5 py-0.5 rounded-full font-bold">
+                <span className="text-[10px] bg-zinc-100 border border-zinc-400 px-1.5 py-0.5 rounded-full font-bold">
                   {gameState.messages?.length || 0}
                 </span>
               </button>
@@ -226,15 +226,15 @@ export default function Game({ socket, gameState, myPlayer, timer }: GameProps) 
                   sounds.playClick();
                   setActiveSidebarTab('tips');
                 }}
-                className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+                className={`flex-1 py-1 px-3 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-1.5 ${
                   activeSidebarTab === 'tips'
-                    ? 'bg-accent-yellow text-black font-black shadow-sm'
-                    : 'text-text-muted hover:text-white'
+                    ? 'bg-amber-300 text-zinc-900 font-bold shadow-sm border border-zinc-900'
+                    : 'text-zinc-600 hover:text-zinc-900'
                 }`}
               >
                 <Lightbulb className="w-3.5 h-3.5" />
                 <span>Só Dicas</span>
-                <span className="text-[10px] bg-black/20 px-1.5 py-0.5 rounded-full font-bold">
+                <span className="text-[10px] bg-amber-200 border border-zinc-900 px-1.5 py-0.5 rounded-full font-bold">
                   {gameState.tips.length}
                 </span>
               </button>
@@ -397,50 +397,50 @@ function MasterDashboard({
   };
 
   return (
-    <div className="flex-1 p-6 md:p-8 flex flex-col justify-between overflow-y-auto bg-gradient-to-b from-panel to-bg-dark">
+    <div className="flex-1 p-4 md:p-8 flex flex-col justify-between overflow-y-auto bg-[#f8f7f2]">
       {/* Top Banner */}
-      <div className="text-center max-w-xl mx-auto">
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-accent-yellow/15 border border-accent-yellow/40 text-accent-yellow font-bold text-xs uppercase tracking-wider mb-3 font-display">
-          <Crown className="w-4 h-4" />
+      <div className="text-center max-w-xl mx-auto select-none">
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 border-2 border-zinc-900 text-zinc-900 font-sketch font-bold text-xs uppercase tracking-wider mb-2 shadow-[2px_2px_0px_#18181b]">
+          <Crown className="w-4 h-4 text-amber-600" />
           Você é o Mestre da Rodada!
         </div>
-        <h2 className="text-2xl md:text-3xl font-black text-white font-display">
-          Comande o Jogo & Descreva
+        <h2 className="text-2xl md:text-3xl font-black text-zinc-900 font-sketch">
+          Comande o Jogo & Descreva ✏️
         </h2>
-        <p className="text-text-muted text-xs md:text-sm mt-1">
+        <p className="text-zinc-600 text-xs md:text-sm mt-0.5 font-sketch">
           Os outros jogadores só podem desenhar com base nas suas palavras.
         </p>
 
-        <div className="mt-4 p-3 bg-red-500/10 border border-red-500/30 rounded-2xl text-red-300 text-xs font-semibold">
-          🚨 <strong className="text-white">REGRA DE OURO:</strong> Nunca diga o nome nem de onde ele vem! Foque em formas, cores e detalhes.
+        <div className="mt-3 p-3 bg-red-50 border-2 border-red-600 rounded-xl text-red-800 text-xs font-sketch font-bold shadow-[2px_2px_0px_#18181b]">
+          🚨 <strong className="text-red-900">REGRA DE OURO:</strong> Nunca diga o nome nem de onde ele vem! Foque em formas, cores e detalhes.
         </div>
       </div>
 
       {/* Idea Cards / Suggestion Box */}
-      <div className="my-6 max-w-xl mx-auto w-full bg-black/40 border border-border rounded-3xl p-5 shadow-inner">
+      <div className="my-4 max-w-xl mx-auto w-full bg-white border-2 border-zinc-900 rounded-2xl p-4 sm:p-5 shadow-[4px_5px_0px_#18181b] font-sketch">
         <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-accent-cyan">
-            <Lightbulb className="w-4 h-4" />
+          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-zinc-700">
+            <Lightbulb className="w-4 h-4 text-amber-500" />
             <span>Sugestão de Personagem</span>
           </div>
 
           <button
             onClick={handleShuffle}
-            className="flex items-center gap-1.5 text-xs text-text-muted hover:text-white bg-panel px-3 py-1.5 rounded-xl border border-border transition-colors font-semibold"
+            className="flex items-center gap-1.5 text-xs text-zinc-800 hover:text-black bg-zinc-50 hover:bg-amber-50 px-3 py-1.5 rounded-lg border-2 border-zinc-900 shadow-[1px_1px_0px_#18181b] transition-all font-bold active:translate-x-[1px] active:translate-y-[1px]"
           >
             <RefreshCw className="w-3.5 h-3.5" />
             Sortear Outro
           </button>
         </div>
 
-        <div className="bg-panel-light p-4 rounded-2xl border border-border/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+        <div className="bg-amber-50 p-4 rounded-xl border-2 border-zinc-900 shadow-[2px_2px_0px_#18181b] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div>
-            <span className="text-[10px] font-bold text-primary uppercase">{currentIdea.category}</span>
-            <h4 className="text-xl font-black text-white">{currentIdea.name}</h4>
+            <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">{currentIdea.category}</span>
+            <h4 className="text-2xl font-black text-zinc-900">{currentIdea.name}</h4>
           </div>
           <button
             onClick={() => handleUseIdea(currentIdea)}
-            className="bg-primary hover:bg-primary-hover text-white text-xs font-bold px-3.5 py-2 rounded-xl transition-all shadow-md active:scale-95"
+            className="btn-arcade-gold text-zinc-900 text-xs font-bold px-3.5 py-2 rounded-xl transition-all shadow-[2px_2px_0px_#18181b] active:translate-x-[1px] active:translate-y-[1px]"
           >
             Definir Segredo 🔒
           </button>
@@ -448,7 +448,7 @@ function MasterDashboard({
 
         {/* Quick Tips helper */}
         <div className="mt-4">
-          <span className="text-[11px] font-bold text-text-muted uppercase tracking-wider block mb-2">
+          <span className="text-xs font-bold text-zinc-600 uppercase tracking-wider block mb-2">
             Ideias de Dicas para clicar e enviar:
           </span>
           <div className="flex flex-wrap gap-2">
@@ -456,7 +456,7 @@ function MasterDashboard({
               <button
                 key={idx}
                 onClick={() => handleSendStarterTip(tip)}
-                className="text-xs bg-bg-dark hover:bg-primary/20 hover:border-primary/50 text-slate-200 border border-border px-3 py-1.5 rounded-xl transition-colors text-left"
+                className="text-xs bg-white hover:bg-amber-100 text-zinc-900 border-2 border-zinc-900 px-3 py-1.5 rounded-lg shadow-[1px_2px_0px_#18181b] transition-all text-left font-bold active:translate-x-[1px] active:translate-y-[1px]"
               >
                 + "{tip}"
               </button>
@@ -465,19 +465,19 @@ function MasterDashboard({
         </div>
 
         {/* Manual Custom Tip Input */}
-        <form onSubmit={handleSendManualTip} className="mt-4 pt-3 border-t border-border/60 flex items-center gap-2">
+        <form onSubmit={handleSendManualTip} className="mt-4 pt-3 border-t-2 border-zinc-200 flex items-center gap-2">
           <input
             type="text"
             value={manualTip}
             onChange={(e) => setManualTip(e.target.value)}
             placeholder="Ou escreva sua dica (ex: 'Orelhas pontudas')..."
-            className="flex-1 bg-bg-dark border border-border rounded-xl px-3 py-2 text-base sm:text-xs text-white placeholder:text-gray-500 focus:outline-none focus:border-accent-yellow min-h-[40px]"
+            className="input-party flex-1 rounded-xl px-3 py-2 text-base sm:text-xs text-zinc-900 placeholder:text-zinc-400 focus:outline-none min-h-[40px]"
             maxLength={120}
           />
           <button
             type="submit"
             disabled={!manualTip.trim()}
-            className="bg-accent-yellow hover:bg-yellow-400 disabled:opacity-40 text-black font-bold text-xs px-3.5 py-2 rounded-xl transition-all shadow-md active:scale-95 flex items-center gap-1.5 shrink-0 min-h-[40px]"
+            className="btn-arcade-gold disabled:opacity-40 text-zinc-900 font-bold text-xs px-3.5 py-2 rounded-xl transition-all shadow-[2px_2px_0px_#18181b] active:translate-x-[1px] active:translate-y-[1px] flex items-center gap-1.5 shrink-0 min-h-[40px]"
           >
             <Send className="w-3.5 h-3.5" /> Enviar Dica
           </button>
@@ -485,15 +485,15 @@ function MasterDashboard({
 
         {/* Tips Sent in this Round */}
         {tips.length > 0 && (
-          <div className="mt-4 pt-3 border-t border-border/60">
-            <span className="text-[11px] font-bold text-accent-yellow uppercase tracking-wider block mb-2">
+          <div className="mt-4 pt-3 border-t-2 border-zinc-200">
+            <span className="text-xs font-bold text-zinc-700 uppercase tracking-wider block mb-2">
               Dicas enviadas aos artistas nesta rodada ({tips.length}):
             </span>
             <div className="flex flex-col gap-1.5 max-h-28 overflow-y-auto pr-1">
               {tips.map((tip, idx) => (
-                <div key={idx} className="bg-bg-dark border border-accent-yellow/30 px-3 py-1.5 rounded-xl text-xs text-white flex items-start gap-2">
-                  <span className="text-accent-yellow font-bold text-[10px] shrink-0 mt-0.5">#{idx + 1}</span>
-                  <span className="text-slate-100">{tip}</span>
+                <div key={idx} className="bg-amber-50 border-2 border-zinc-900 px-3 py-1.5 rounded-lg text-xs text-zinc-900 flex items-start gap-2 shadow-[1px_1px_0px_#18181b]">
+                  <span className="text-blue-700 font-bold text-xs shrink-0 mt-0.5">#{idx + 1}</span>
+                  <span className="text-zinc-900 font-bold">{tip}</span>
                 </div>
               ))}
             </div>
@@ -501,30 +501,30 @@ function MasterDashboard({
         )}
 
         {/* Custom secret character input */}
-        <form onSubmit={handleSetCustomWord} className="mt-4 pt-3 border-t border-border/60 flex items-center gap-2">
+        <form onSubmit={handleSetCustomWord} className="mt-4 pt-3 border-t-2 border-zinc-200 flex items-center gap-2">
           <input
             type="text"
             value={customWord}
             onChange={(e) => setCustomWord(e.target.value)}
             placeholder="Ou digite o nome do personagem..."
-            className="flex-1 bg-bg-dark border border-border rounded-xl px-3 py-2 text-base sm:text-xs text-white placeholder:text-gray-500 focus:outline-none focus:border-primary min-h-[40px]"
+            className="input-party flex-1 rounded-xl px-3 py-2 text-base sm:text-xs text-zinc-900 placeholder:text-zinc-400 focus:outline-none min-h-[40px]"
             maxLength={30}
           />
           <button
             type="submit"
             disabled={!customWord.trim()}
-            className="bg-panel hover:bg-border disabled:opacity-40 text-xs font-bold text-white px-3.5 py-2 rounded-xl border border-border transition-colors flex items-center gap-1 min-h-[40px] shrink-0"
+            className="bg-white hover:bg-zinc-100 disabled:opacity-40 text-xs font-bold text-zinc-900 px-3.5 py-2 rounded-xl border-2 border-zinc-900 shadow-[2px_2px_0px_#18181b] transition-all flex items-center gap-1 min-h-[40px] shrink-0 active:translate-x-[1px] active:translate-y-[1px]"
           >
-            <Check className="w-3.5 h-3.5 text-accent-green" /> Salvar
+            <Check className="w-3.5 h-3.5 text-green-700 stroke-[2.5]" /> Salvar
           </button>
         </form>
       </div>
 
       {/* Progress status & Advance Round CTA */}
-      <div className="p-4 bg-black/30 rounded-3xl border border-border/80 max-w-xl mx-auto w-full flex flex-col sm:flex-row items-center justify-between gap-3 shadow-lg">
+      <div className="p-3.5 bg-white rounded-2xl border-2 border-zinc-900 max-w-xl mx-auto w-full flex flex-col sm:flex-row items-center justify-between gap-3 shadow-[3px_4px_0px_#18181b] font-sketch">
         <div className="flex items-center gap-2">
-          <span className="text-xs font-bold text-text-muted">Artistas prontos:</span>
-          <span className="font-mono font-bold text-accent-green text-sm bg-accent-green/10 px-3 py-1 rounded-xl border border-accent-green/30">
+          <span className="text-sm font-bold text-zinc-600">Artistas prontos:</span>
+          <span className="font-mono font-bold text-zinc-900 text-base bg-amber-100 px-3 py-0.5 rounded-lg border-2 border-zinc-900 shadow-[1px_1px_0px_#18181b]">
             {submittedCount} de {totalArtists}
           </span>
         </div>
@@ -537,7 +537,7 @@ function MasterDashboard({
               socket.emit('finish_round_early', { roomId });
             }
           }}
-          className="w-full sm:w-auto bg-gradient-to-r from-violet-600 to-pink-600 hover:from-violet-500 hover:to-pink-500 text-white font-extrabold text-xs px-4 py-2.5 rounded-xl shadow-md transition-all active:scale-95 flex items-center justify-center gap-1.5"
+          className="w-full sm:w-auto btn-arcade-gold font-bold text-xs px-4 py-2.5 rounded-xl shadow-[2px_2px_0px_#18181b] transition-all active:translate-x-[1px] active:translate-y-[1px] flex items-center justify-center gap-1.5"
         >
           <span>🏁 Encerrar Desenho & Ir p/ Votação</span>
         </button>
@@ -561,7 +561,7 @@ function DrawingBoard({
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
-  const [color, setColor] = useState('#ffffff');
+  const [color, setColor] = useState('#18181b');
   const [lineWidth, setLineWidth] = useState(4);
   const [isEraser, setIsEraser] = useState(false);
   const [submitted, setSubmitted] = useState(() => Boolean(_myPlayer?.hasSubmitted));
@@ -610,7 +610,7 @@ function DrawingBoard({
 
         const ctx = canvas.getContext('2d');
         if (ctx) {
-          ctx.fillStyle = '#0a0e1a';
+          ctx.fillStyle = '#ffffff';
           ctx.fillRect(0, 0, canvas.width, canvas.height);
           if (tempCanvas.width > 0) {
             ctx.drawImage(tempCanvas, 0, 0);
@@ -676,7 +676,7 @@ function DrawingBoard({
     if (ctx) {
       ctx.beginPath();
       ctx.moveTo(x, y);
-      ctx.strokeStyle = isEraser ? '#0a0e1a' : color;
+      ctx.strokeStyle = isEraser ? '#ffffff' : color;
       ctx.lineWidth = isEraser ? lineWidth * 2.5 : lineWidth;
       ctx.lineCap = 'round';
       ctx.lineJoin = 'round';
@@ -708,7 +708,7 @@ function DrawingBoard({
     const canvas = canvasRef.current;
     const ctx = canvas?.getContext('2d');
     if (canvas && ctx) {
-      ctx.fillStyle = '#0a0e1a';
+      ctx.fillStyle = '#ffffff';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
     }
   };
@@ -724,21 +724,21 @@ function DrawingBoard({
   };
 
   return (
-    <div className="flex-1 flex flex-col w-full h-full relative">
+    <div className="flex-1 flex flex-col w-full h-full relative bg-white border-2 border-zinc-900 rounded-2xl shadow-[4px_5px_0px_#18181b] overflow-hidden">
       {/* Top Floating Toolbar */}
-      <div className="absolute top-2 sm:top-3 left-1/2 -translate-x-1/2 bg-panel/95 backdrop-blur border border-border px-2 sm:px-4 py-1.5 sm:py-2.5 rounded-xl sm:rounded-2xl shadow-2xl flex items-center gap-1.5 sm:gap-3 z-10 max-w-[96%] overflow-x-auto no-scrollbar">
+      <div className="absolute top-2 sm:top-3 left-1/2 -translate-x-1/2 bg-white border-2 border-zinc-900 px-2 sm:px-3.5 py-1 sm:py-2 rounded-xl shadow-[3px_3px_0px_#18181b] flex items-center gap-1.5 sm:gap-2.5 z-10 max-w-[96%] overflow-x-auto no-scrollbar font-sketch">
         {/* Brush / Eraser toggle */}
-        <div className="flex items-center bg-black/30 p-0.5 sm:p-1 rounded-lg sm:rounded-xl border border-border shrink-0">
+        <div className="flex items-center bg-zinc-100 p-0.5 rounded-lg border-2 border-zinc-900 shrink-0">
           <button
             type="button"
             onClick={() => {
               sounds.playClick();
               setIsEraser(false);
             }}
-            className={`p-1 sm:p-1.5 rounded-md sm:rounded-lg transition-colors ${
-              !isEraser ? 'bg-primary text-white' : 'text-text-muted hover:text-white'
+            className={`p-1 sm:p-1.5 rounded-md transition-colors ${
+              !isEraser ? 'bg-amber-300 text-zinc-900 border border-zinc-900 shadow-sm' : 'text-zinc-500 hover:text-zinc-900'
             }`}
-            title="Pincel"
+            title="Lápis / Caneta"
           >
             <Paintbrush className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
           </button>
@@ -748,8 +748,8 @@ function DrawingBoard({
               sounds.playClick();
               setIsEraser(true);
             }}
-            className={`p-1 sm:p-1.5 rounded-md sm:rounded-lg transition-colors ${
-              isEraser ? 'bg-primary text-white' : 'text-text-muted hover:text-white'
+            className={`p-1 sm:p-1.5 rounded-md transition-colors ${
+              isEraser ? 'bg-amber-300 text-zinc-900 border border-zinc-900 shadow-sm' : 'text-zinc-500 hover:text-zinc-900'
             }`}
             title="Borracha"
           >
@@ -768,8 +768,8 @@ function DrawingBoard({
                 setIsEraser(false);
                 setColor(c);
               }}
-              className={`w-5 h-5 sm:w-6 sm:h-6 rounded-full border sm:border-2 transition-transform shrink-0 ${
-                !isEraser && color === c ? 'border-white scale-125 shadow-md' : 'border-black/40'
+              className={`w-5 h-5 sm:w-6 sm:h-6 rounded-full border-2 transition-transform shrink-0 ${
+                !isEraser && color === c ? 'border-zinc-900 scale-125 shadow-md ring-2 ring-amber-300' : 'border-zinc-400'
               }`}
               style={{ backgroundColor: c }}
             />
@@ -787,22 +787,22 @@ function DrawingBoard({
           />
         </div>
 
-        <div className="w-px h-5 sm:h-6 bg-border shrink-0" />
+        <div className="w-px h-5 sm:h-6 bg-zinc-300 shrink-0" />
 
         {/* Brush Size Slider */}
         <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-          <span className="text-[9px] sm:text-[10px] font-bold text-text-muted uppercase">Tam:</span>
+          <span className="text-xs font-bold text-zinc-600 uppercase font-sketch">Tam:</span>
           <input
             type="range"
             min="2"
             max="30"
             value={lineWidth}
             onChange={(e) => setLineWidth(parseInt(e.target.value))}
-            className="w-12 sm:w-20 accent-primary cursor-pointer"
+            className="w-12 sm:w-20 accent-zinc-900 cursor-pointer"
           />
           {/* Visual brush thickness dot */}
           <div 
-            className="w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center bg-black/50 rounded-lg border border-border/60 shrink-0"
+            className="w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center bg-zinc-100 rounded-lg border-2 border-zinc-900 shrink-0"
             title={`Tamanho: ${lineWidth}px`}
           >
             <div 
@@ -810,33 +810,33 @@ function DrawingBoard({
               style={{ 
                 width: Math.max(3, Math.min(16, lineWidth)), 
                 height: Math.max(3, Math.min(16, lineWidth)),
-                backgroundColor: isEraser ? '#ef4444' : color
+                backgroundColor: isEraser ? '#dc2626' : color
               }} 
             />
           </div>
         </div>
 
-        <div className="w-px h-5 sm:h-6 bg-border shrink-0" />
+        <div className="w-px h-5 sm:h-6 bg-zinc-300 shrink-0" />
 
         {/* Clear Canvas */}
         <button
           type="button"
           onClick={handleClear}
-          title="Limpar tela inteira"
-          className="p-1 sm:p-1.5 rounded-md sm:rounded-lg text-text-muted hover:text-red-400 hover:bg-red-500/10 transition-colors shrink-0"
+          title="Limpar folha inteira"
+          className="p-1 sm:p-1.5 rounded-lg text-zinc-600 hover:text-red-600 hover:bg-red-50 border border-zinc-300 transition-colors shrink-0"
         >
           <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
         </button>
       </div>
 
-      {/* Toast Notification for New Tip (auto-dismisses after 5s) */}
+      {/* Toast Notification for New Tip */}
       <AnimatePresence>
         {newTipAlert && (
           <motion.div
             initial={{ opacity: 0, y: -20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -20, scale: 0.95 }}
-            className="absolute top-14 sm:top-16 left-1/2 -translate-x-1/2 z-30 bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 text-slate-950 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl sm:rounded-2xl shadow-2xl flex items-center gap-2.5 sm:gap-3 max-w-md w-[92%] border border-white/40 pointer-events-auto cursor-pointer"
+            className="absolute top-14 sm:top-16 left-1/2 -translate-x-1/2 z-30 bg-amber-200 text-zinc-900 px-3.5 sm:px-4 py-2 rounded-xl shadow-[3px_4px_0px_#18181b] flex items-center gap-2.5 sm:gap-3 max-w-md w-[92%] border-2 border-zinc-900 pointer-events-auto cursor-pointer font-sketch"
             onClick={() => {
               setNewTipAlert(null);
               if (onOpenTips) {
@@ -847,14 +847,14 @@ function DrawingBoard({
             }}
             title="Clique para abrir todas as dicas"
           >
-            <div className="p-1.5 bg-black/20 rounded-xl shrink-0">
-              <Crown className="w-4 h-4 text-black" />
+            <div className="p-1 bg-white border border-zinc-900 rounded-lg shrink-0">
+              <Crown className="w-4 h-4 text-amber-600" />
             </div>
             <div className="flex-1 min-w-0">
-              <div className="text-[10px] font-black uppercase tracking-wider text-black/70">
+              <div className="text-xs font-bold text-zinc-600 uppercase">
                 Nova Dica #{tips.length}!
               </div>
-              <div className="text-xs font-black truncate text-black">{newTipAlert}</div>
+              <div className="text-sm font-black truncate text-zinc-900">{newTipAlert}</div>
             </div>
             <button
               type="button"
@@ -862,7 +862,7 @@ function DrawingBoard({
                 e.stopPropagation();
                 setNewTipAlert(null);
               }}
-              className="p-1 text-black/60 hover:text-black rounded-lg transition-colors"
+              className="p-1 text-zinc-600 hover:text-zinc-900 rounded-lg transition-colors"
             >
               <X className="w-3.5 h-3.5" />
             </button>
@@ -870,8 +870,8 @@ function DrawingBoard({
         )}
       </AnimatePresence>
 
-      {/* Floating Master Tips Toggle & Panel (in top-right corner to never block canvas center) */}
-      <div className="absolute top-14 sm:top-16 right-2 sm:right-5 z-20 pointer-events-auto">
+      {/* Floating Master Tips Toggle & Panel */}
+      <div className="absolute top-14 sm:top-16 right-2 sm:right-5 z-20 pointer-events-auto font-sketch">
         {tipsMinimized ? (
           <button
             type="button"
@@ -879,24 +879,24 @@ function DrawingBoard({
               sounds.playClick();
               setTipsMinimized(false);
             }}
-            className="bg-panel/95 hover:bg-panel text-accent-yellow border border-accent-yellow/50 hover:border-accent-yellow px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-xl sm:rounded-2xl shadow-xl flex items-center gap-1.5 sm:gap-2 text-[11px] sm:text-xs font-bold backdrop-blur transition-all active:scale-95 hover:scale-105"
+            className="bg-white hover:bg-amber-50 text-zinc-900 border-2 border-zinc-900 px-3 py-1.5 rounded-xl shadow-[2px_2px_0px_#18181b] flex items-center gap-1.5 text-xs font-bold transition-all active:translate-x-[1px] active:translate-y-[1px]"
             title="Abrir painel de dicas do Mestre"
           >
-            <Crown className="w-3.5 h-3.5 text-accent-yellow shrink-0" />
+            <Crown className="w-3.5 h-3.5 text-amber-600 shrink-0" />
             <span>Dicas ({tips.length})</span>
-            <ChevronDown className="w-3 h-3 text-text-muted shrink-0" />
+            <ChevronDown className="w-3 h-3 text-zinc-500 shrink-0" />
           </button>
         ) : (
           <motion.div
             initial={{ opacity: 0, y: -10, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            className="w-72 sm:w-80 max-w-[calc(100vw-1.5rem)] bg-panel/98 backdrop-blur-md border-2 border-accent-yellow/60 rounded-2xl sm:rounded-3xl p-3 shadow-2xl"
+            className="w-72 sm:w-80 max-w-[calc(100vw-1.5rem)] bg-white border-2 border-zinc-900 rounded-2xl p-3 shadow-[4px_5px_0px_#18181b]"
           >
-            <div className="flex items-center justify-between gap-2 pb-2 border-b border-border/80 mb-2">
-              <div className="flex items-center gap-1.5 text-accent-yellow text-xs font-black uppercase tracking-wider">
-                <Crown className="w-4 h-4 fill-accent-yellow/20" />
+            <div className="flex items-center justify-between gap-2 pb-2 border-b-2 border-zinc-200 mb-2">
+              <div className="flex items-center gap-1.5 text-zinc-900 text-sm font-black uppercase">
+                <Crown className="w-4 h-4 text-amber-500" />
                 <span>Dicas do Mestre</span>
-                <span className="bg-accent-yellow/20 text-accent-yellow text-[10px] px-2 py-0.2 rounded-full font-mono font-bold">
+                <span className="bg-amber-200 text-zinc-900 text-xs px-2 py-0.2 rounded-full border border-zinc-900 font-bold">
                   {tips.length}
                 </span>
               </div>
@@ -906,7 +906,7 @@ function DrawingBoard({
                   sounds.playClick();
                   setTipsMinimized(true);
                 }}
-                className="text-text-muted hover:text-white bg-white/5 hover:bg-white/10 px-2 py-1 rounded-xl transition-colors flex items-center gap-1 text-[10px] font-bold"
+                className="text-zinc-500 hover:text-zinc-900 bg-zinc-100 hover:bg-zinc-200 px-2 py-1 rounded-lg transition-colors flex items-center gap-1 text-xs font-bold"
                 title="Ocultar painel para desenhar livremente"
               >
                 <ChevronUp className="w-3.5 h-3.5" />
@@ -915,30 +915,26 @@ function DrawingBoard({
             </div>
 
             {tips.length === 0 ? (
-              <div className="py-4 text-center text-xs text-text-muted">
-                <Sparkles className="w-4 h-4 text-accent-yellow mx-auto mb-1.5 opacity-70 animate-pulse" />
-                <p className="font-medium">O Mestre ainda não enviou dicas.</p>
-                <p className="text-[10px] opacity-70 mt-0.5">Fique atento à tela!</p>
+              <div className="py-4 text-center text-xs text-zinc-500">
+                <Sparkles className="w-4 h-4 text-amber-500 mx-auto mb-1 opacity-70 animate-pulse" />
+                <p className="font-bold">O Mestre ainda não enviou dicas.</p>
+                <p className="text-[11px] text-zinc-400 mt-0.5">Fique atento à tela!</p>
               </div>
             ) : (
               <div className="flex flex-col gap-1.5 max-h-48 overflow-y-auto pr-1 text-xs">
                 {tips.map((tip, idx) => (
                   <div
                     key={idx}
-                    className="bg-black/40 border border-border/80 rounded-xl p-2 text-slate-100 flex items-start gap-2"
+                    className="bg-amber-50 border border-zinc-900 rounded-lg p-2 text-zinc-900 flex items-start gap-2 shadow-sm"
                   >
-                    <span className="text-accent-yellow font-black text-[10px] shrink-0 mt-0.5">
+                    <span className="text-blue-700 font-black text-xs shrink-0 mt-0.5">
                       #{idx + 1}
                     </span>
-                    <span className="break-words leading-tight">{tip}</span>
+                    <span className="break-words font-bold leading-tight">{tip}</span>
                   </div>
                 ))}
               </div>
             )}
-
-            <div className="mt-2 pt-1.5 border-t border-border/50 text-[10px] text-text-muted text-center flex items-center justify-center gap-1">
-              <span>💡 Dicas disponíveis no chat</span>
-            </div>
           </motion.div>
         )}
       </div>
@@ -963,21 +959,21 @@ function DrawingBoard({
         <motion.div 
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="absolute inset-0 bg-black/75 backdrop-blur-md flex flex-col items-center justify-center z-20 p-4 sm:p-6 text-center"
+          className="absolute inset-0 bg-black/40 backdrop-blur-sm flex flex-col items-center justify-center z-20 p-4 sm:p-6 text-center"
         >
-          <div className="bg-panel border border-border p-6 sm:p-8 rounded-3xl max-w-sm w-full shadow-2xl">
-            <CheckCircle2 className="w-12 h-12 sm:w-16 sm:h-16 text-accent-green mx-auto mb-3 sm:mb-4 animate-bounce" />
-            <h3 className="text-xl sm:text-2xl font-black text-white mb-2">Desenho Salvo!</h3>
-            <p className="text-text-muted text-xs sm:text-sm">
-              Sua obra-prima foi guardada. Aguardando os demais jogadores finalizarem para começar a votação!
+          <div className="bg-white border-2 border-zinc-900 p-6 sm:p-8 rounded-2xl max-w-sm w-full shadow-[4px_5px_0px_#18181b] text-zinc-900 font-sketch">
+            <CheckCircle2 className="w-12 h-12 text-green-600 mx-auto mb-3 animate-bounce" />
+            <h3 className="text-2xl font-black mb-1">Desenho Salvo! ✏️</h3>
+            <p className="text-zinc-600 text-sm">
+              Sua obra foi guardada na folha. Aguardando os demais jogadores finalizarem para começar a votação!
             </p>
           </div>
         </motion.div>
       ) : (
-        <div className="absolute bottom-3 right-3 sm:bottom-4 sm:right-4 z-10">
+        <div className="absolute bottom-3 right-3 sm:bottom-4 sm:right-4 z-10 font-sketch">
           <button
             onClick={submitDrawing}
-            className="btn-party-cta py-2.5 sm:py-3.5 px-4 sm:px-7 rounded-xl sm:rounded-2xl flex items-center gap-2 sm:gap-2.5 text-xs sm:text-base tracking-wide font-display shadow-2xl active:scale-95"
+            className="btn-arcade-gold py-2.5 sm:py-3.5 px-4 sm:px-7 rounded-xl flex items-center gap-2 text-base sm:text-lg tracking-wide font-bold shadow-[3px_3px_0px_#18181b] active:translate-x-[1px] active:translate-y-[1px]"
           >
             <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 stroke-[2.5]" />
             <span>Terminei Meu Desenho!</span>

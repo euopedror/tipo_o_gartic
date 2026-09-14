@@ -31,7 +31,7 @@ export default function FloatingReactions({ reactions, onSendReaction }: Floatin
             >
               <span>{r.emoji}</span>
               {r.senderName && (
-                <span className="text-[10px] font-bold text-white/90 bg-black/60 px-2 py-0.5 rounded-full border border-white/20 mt-1 whitespace-nowrap">
+                <span className="text-[10px] font-bold text-zinc-900 bg-white px-2 py-0.5 rounded-full border border-zinc-900 shadow-[1px_1px_0px_#18181b] mt-1 whitespace-nowrap font-sketch">
                   {r.senderName}
                 </span>
               )}
@@ -41,20 +41,20 @@ export default function FloatingReactions({ reactions, onSendReaction }: Floatin
       </div>
 
       {/* Quick Reaction Bottom Bar */}
-      <div className="fixed bottom-2 sm:bottom-3 pb-safe left-1/2 -translate-x-1/2 z-40 bg-slate-900/90 border border-slate-700/80 backdrop-blur-md px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full shadow-2xl flex items-center gap-1 sm:gap-1.5 max-w-[calc(100vw-1.5rem)] overflow-x-auto no-scrollbar">
-        <span className="text-[11px] font-bold text-slate-400 mr-1 hidden sm:inline font-display">
+      <div className="fixed bottom-2 sm:bottom-3 pb-safe left-1/2 -translate-x-1/2 z-40 bg-white border-2 border-zinc-900 px-2.5 sm:px-3 py-1 rounded-full shadow-[3px_3px_0px_#18181b] flex items-center gap-1 sm:gap-1.5 max-w-[calc(100vw-1.5rem)] overflow-x-auto no-scrollbar font-sketch">
+        <span className="text-xs font-bold text-zinc-700 mr-1 hidden sm:inline font-kalam">
           Reagir:
         </span>
         {QUICK_EMOJIS.map((emoji) => (
           <motion.button
             key={emoji}
-            whileHover={{ scale: 1.3, y: -4 }}
+            whileHover={{ scale: 1.25, y: -2 }}
             whileTap={{ scale: 0.85 }}
             onClick={() => {
               sounds.playPop();
               onSendReaction(emoji);
             }}
-            className="text-lg sm:text-2xl p-1.5 rounded-xl hover:bg-white/10 transition-colors min-w-[36px] min-h-[36px] flex items-center justify-center shrink-0"
+            className="text-lg sm:text-2xl p-1 rounded-xl hover:bg-yellow-100 transition-colors min-w-[34px] min-h-[34px] flex items-center justify-center shrink-0"
             title={`Reagir com ${emoji}`}
           >
             {emoji}

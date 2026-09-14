@@ -7,49 +7,27 @@ interface AvatarPickerProps {
   onSelect: (avatar: string) => void;
 }
 
-const AVATAR_COLORS: Record<string, string> = {
-  '🦊': 'bg-orange-500/15 border-orange-500/30 hover:bg-orange-500/25 text-orange-200',
-  '🦁': 'bg-amber-500/15 border-amber-500/30 hover:bg-amber-500/25 text-amber-200',
-  '🐸': 'bg-emerald-500/15 border-emerald-500/30 hover:bg-emerald-500/25 text-emerald-200',
-  '🐼': 'bg-slate-400/15 border-slate-400/30 hover:bg-slate-400/25 text-slate-200',
-  '🦄': 'bg-pink-500/15 border-pink-400/30 hover:bg-pink-500/25 text-pink-200',
-  '🤖': 'bg-cyan-500/15 border-cyan-400/30 hover:bg-cyan-500/25 text-cyan-200',
-  '👻': 'bg-purple-500/15 border-purple-400/30 hover:bg-purple-500/25 text-purple-200',
-  '👽': 'bg-lime-500/15 border-lime-400/30 hover:bg-lime-500/25 text-lime-200',
-  '🦖': 'bg-teal-500/15 border-teal-400/30 hover:bg-teal-500/25 text-teal-200',
-  '🐱': 'bg-yellow-500/15 border-yellow-400/30 hover:bg-yellow-500/25 text-yellow-200',
-  '🐶': 'bg-amber-600/15 border-amber-600/30 hover:bg-amber-600/25 text-amber-200',
-  '🍕': 'bg-red-500/15 border-red-400/30 hover:bg-red-500/25 text-red-200',
-  '🚀': 'bg-blue-500/15 border-blue-400/30 hover:bg-blue-500/25 text-blue-200',
-  '👑': 'bg-yellow-400/20 border-yellow-400/40 hover:bg-yellow-400/30 text-yellow-200',
-  '🎨': 'bg-violet-500/20 border-violet-400/40 hover:bg-violet-500/30 text-violet-200',
-  '🕶️': 'bg-indigo-500/15 border-indigo-400/30 hover:bg-indigo-500/25 text-indigo-200',
-  '⚡': 'bg-amber-400/15 border-amber-300/30 hover:bg-amber-400/25 text-amber-200',
-  '🥑': 'bg-green-500/15 border-green-400/30 hover:bg-green-500/25 text-green-200'
-};
-
 export default function AvatarPicker({ selectedAvatar, onSelect }: AvatarPickerProps) {
   return (
-    <div className="flex flex-col gap-2">
-      <div className="flex items-center justify-between font-display">
-        <label className="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
-          <span>🎭 Escolha seu Personagem</span>
+    <div className="flex flex-col gap-1.5">
+      <div className="flex items-center justify-between font-sketch">
+        <label className="text-xs sm:text-sm font-bold uppercase tracking-wider text-zinc-700 flex items-center gap-1.5">
+          <span>🎭 Escolha seu Personagem:</span>
         </label>
-        <span className="text-xs text-amber-300 bg-amber-400/15 border border-amber-400/30 px-2.5 py-0.5 rounded-full font-bold">
+        <span className="text-xs text-zinc-900 bg-amber-200 border border-zinc-900 px-2 py-0.5 rounded-full font-bold">
           {selectedAvatar} Selecionado
         </span>
       </div>
 
-      <div className="grid grid-cols-6 gap-1 sm:gap-2 bg-slate-950/70 p-1.5 sm:p-2.5 rounded-2xl border border-slate-800 shadow-inner">
+      <div className="grid grid-cols-6 gap-1 sm:gap-1.5 bg-zinc-50 p-1.5 sm:p-2 rounded-xl border-2 border-zinc-900 shadow-[2px_2px_0px_#18181b]">
         {AVATARS.map((avatar) => {
           const isSelected = selectedAvatar === avatar;
-          const colorClass = AVATAR_COLORS[avatar] || 'bg-slate-800/80 border-slate-700/80';
 
           return (
             <motion.button
               key={avatar}
               type="button"
-              whileHover={{ scale: 1.12, y: -1 }}
+              whileHover={{ scale: 1.15 }}
               whileTap={{ scale: 0.9 }}
               animate={{ 
                 scale: isSelected ? 1.1 : 1,
@@ -59,13 +37,13 @@ export default function AvatarPicker({ selectedAvatar, onSelect }: AvatarPickerP
                 sounds.playPop();
                 onSelect(avatar);
               }}
-              className={`text-xl sm:text-2xl md:text-3xl h-10 sm:h-12 w-full rounded-xl sm:rounded-2xl flex items-center justify-center transition-all relative border sm:border-2 ${
+              className={`h-10 sm:h-12 rounded-lg sm:rounded-xl flex items-center justify-center text-xl sm:text-2xl transition-all cursor-pointer select-none ${
                 isSelected
-                  ? 'bg-amber-400/25 border-amber-400 ring-2 sm:ring-3 ring-amber-400 ring-offset-1 sm:ring-offset-2 ring-offset-[#0b0d1e] shadow-md shadow-amber-400/40 z-10'
-                  : colorClass
+                  ? 'bg-amber-300 border-2 border-zinc-900 shadow-[2px_2px_0px_#18181b] font-black'
+                  : 'bg-white hover:bg-amber-50 border border-zinc-300'
               }`}
             >
-              <span className="drop-shadow-sm select-none">{avatar}</span>
+              <span>{avatar}</span>
             </motion.button>
           );
         })}

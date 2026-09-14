@@ -74,37 +74,37 @@ export default function Results({ socket, gameState }: ResultsProps) {
   const isTournamentOver = Boolean(gameState.isGameOver);
 
   return (
-    <div className="flex-1 flex flex-col items-center justify-start p-2.5 sm:p-4 md:p-8 overflow-y-auto bg-gradient-to-b from-bg-dark via-panel/60 to-bg-dark">
+    <div className="flex-1 flex flex-col items-center justify-start p-2.5 sm:p-4 md:p-8 overflow-y-auto bg-transparent">
       <div className="w-full max-w-3xl space-y-4 sm:space-y-6">
         {/* Tournament Champion Banner if Game is Over */}
         {isTournamentOver ? (
           <motion.div
             initial={{ opacity: 0, scale: 0.85 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="p-4 sm:p-6 bg-gradient-to-r from-amber-500/20 via-yellow-500/30 to-amber-500/20 border-2 border-accent-yellow rounded-2xl sm:rounded-3xl text-center shadow-2xl relative overflow-hidden"
+            className="p-5 sm:p-7 bg-white border-2 border-zinc-900 rounded-2xl sm:rounded-3xl text-center shadow-[6px_6px_0px_#18181b] relative overflow-hidden font-sketch"
           >
-            <div className="text-3xl sm:text-5xl mb-1.5 sm:mb-2 animate-bounce">👑</div>
-            <span className="text-[10px] sm:text-xs font-black uppercase tracking-widest text-accent-yellow block mb-1">
+            <div className="text-4xl sm:text-5xl mb-2 animate-bounce">👑</div>
+            <span className="inline-block px-3 py-1 bg-yellow-200 border-2 border-zinc-900 rounded-full text-zinc-900 font-bold text-xs uppercase mb-2 shadow-[2px_2px_0px_#18181b]">
               🏆 Torneio Finalizado!
             </span>
-            <h2 className="text-2xl sm:text-4xl md:text-5xl font-black text-white font-display tracking-tight">
+            <h2 className="text-3xl sm:text-5xl font-bold font-kalam text-zinc-900 tracking-tight">
               Grande Campeão!
             </h2>
-            <div className="mt-3 sm:mt-4 inline-flex items-center gap-2.5 sm:gap-3 bg-black/60 border border-accent-yellow/40 px-4 sm:px-6 py-2 sm:py-3 rounded-xl sm:rounded-2xl shadow-xl">
+            <div className="mt-4 inline-flex items-center gap-3 bg-yellow-50 border-2 border-zinc-900 px-5 sm:px-7 py-2.5 sm:py-3.5 rounded-2xl shadow-[3px_3px_0px_#18181b]">
               <span className="text-3xl sm:text-4xl">{sortedPlayers[0]?.avatar || '🏆'}</span>
-              <div className="text-left">
-                <div className="text-xl sm:text-2xl font-black text-accent-yellow">{sortedPlayers[0]?.name}</div>
-                <div className="text-xs text-text-muted font-bold">{sortedPlayers[0]?.score} pontos no total</div>
+              <div className="text-left font-kalam">
+                <div className="text-2xl sm:text-3xl font-bold text-zinc-900">{sortedPlayers[0]?.name}</div>
+                <div className="text-xs sm:text-sm text-zinc-600 font-sketch font-bold">{sortedPlayers[0]?.score} pontos no total</div>
               </div>
             </div>
-            <div className="mt-3 sm:mt-4">
+            <div className="mt-4">
               <button
                 onClick={() => {
                   sounds.playClick();
                   const text = encodeURIComponent(`🏆 Acabei de jogar o torneio de Desenho Cego! O campeão foi ${sortedPlayers[0]?.name} com ${sortedPlayers[0]?.score} pontos! Quem topa me desafiar na próxima?`);
                   window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
                 }}
-                className="inline-flex items-center gap-2 bg-[#25D366]/20 hover:bg-[#25D366]/30 border border-[#25D366]/50 text-[#25D366] px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all"
+                className="inline-flex items-center gap-2 bg-emerald-100 hover:bg-emerald-200 border-2 border-zinc-900 text-emerald-950 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold font-sketch shadow-[2px_2px_0px_#18181b] transition-transform active:scale-95"
               >
                 <Share2 className="w-4 h-4 shrink-0" /> Compartilhar Vitória no WhatsApp
               </button>
@@ -117,18 +117,18 @@ export default function Results({ socket, gameState }: ResultsProps) {
             animate={{ opacity: 1, scale: 1 }}
             className="text-center"
           >
-            <div className="inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1 sm:py-1.5 rounded-full bg-accent-yellow/15 border border-accent-yellow/40 text-accent-yellow font-bold text-[11px] sm:text-xs uppercase tracking-wider mb-2 sm:mb-3 font-display">
-              <Trophy className="w-3.5 h-3.5" />
+            <div className="inline-flex items-center gap-2 px-4 py-1 rounded-full bg-yellow-200 border-2 border-zinc-900 text-zinc-900 font-bold text-xs uppercase tracking-wider mb-2 font-sketch shadow-[2px_2px_0px_#18181b]">
+              <Trophy className="w-4 h-4" />
               Rodada {gameState.currentRound || 1}{gameState.settings?.maxRounds ? ` de ${gameState.settings.maxRounds}` : ''} Concluída!
             </div>
 
-            <h2 className="text-2xl sm:text-4xl md:text-5xl font-black text-white font-display">
-              Resultados & Pódio
+            <h2 className="text-3xl sm:text-5xl font-bold text-zinc-900 font-kalam">
+              Resultados & Pódio ✏️
             </h2>
 
-            <div className="mt-2 sm:mt-3 text-text-muted text-xs sm:text-sm flex items-center justify-center gap-2">
+            <div className="mt-2 text-zinc-600 text-sm sm:text-base font-sketch flex items-center justify-center gap-2">
               <span>Mestre da rodada:</span>
-              <span className="bg-panel px-2.5 sm:px-3 py-1 rounded-xl border border-border text-white font-bold inline-flex items-center gap-1.5">
+              <span className="bg-white px-3 py-1 rounded-xl border-2 border-zinc-900 text-zinc-900 font-bold inline-flex items-center gap-1.5 shadow-[2px_2px_0px_#18181b]">
                 <span>{master?.avatar || '👑'}</span>
                 <span>{master?.name}</span>
               </span>
@@ -140,12 +140,12 @@ export default function Results({ socket, gameState }: ResultsProps) {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
-                className="mt-3 sm:mt-4 p-3.5 sm:p-4 bg-gradient-to-r from-violet-900/40 via-purple-800/30 to-pink-900/40 border-2 border-primary/50 rounded-2xl sm:rounded-3xl max-w-lg mx-auto shadow-xl"
+                className="mt-4 p-4 bg-yellow-100 border-2 border-zinc-900 rounded-2xl max-w-lg mx-auto shadow-[4px_4px_0px_#18181b] font-sketch"
               >
-                <span className="text-[11px] sm:text-xs font-bold text-accent-cyan uppercase tracking-widest block mb-0.5 sm:mb-1">
+                <span className="text-xs font-bold text-zinc-700 uppercase tracking-widest block mb-0.5">
                   O que o Mestre estava descrevendo:
                 </span>
-                <span className="text-xl sm:text-2xl md:text-3xl font-black text-white tracking-wide">
+                <span className="text-2xl sm:text-3xl font-bold font-kalam text-zinc-900 tracking-wide">
                   ✨ {gameState.character} ✨
                 </span>
               </motion.div>
@@ -155,16 +155,16 @@ export default function Results({ socket, gameState }: ResultsProps) {
 
         {/* Special Awards (Picasso & Meme of the round) */}
         {(maxSimilarVotes > 0 || maxFunnyVotes > 0) && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 font-sketch">
             {maxSimilarVotes > 0 && picassoWinner && (
               <motion.div
                 initial={{ opacity: 0, x: -15 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.2 }}
-                className="bg-panel border border-accent-cyan/40 rounded-2xl sm:rounded-3xl p-3 sm:p-4 flex items-center gap-3 sm:gap-4 shadow-xl"
+                className="bg-white border-2 border-zinc-900 rounded-2xl p-3.5 sm:p-4 flex items-center gap-3 sm:gap-4 shadow-[4px_4px_0px_#18181b]"
               >
                 {gameState.drawings[picassoWinner.id] && (
-                  <div className="relative group/thumb w-16 h-16 sm:w-20 sm:h-20 rounded-xl sm:rounded-2xl bg-[#0a0e1a] border border-border p-1 shrink-0 overflow-hidden">
+                  <div className="relative group/thumb w-16 h-16 sm:w-20 sm:h-20 rounded-xl bg-white border-2 border-zinc-900 p-1 shrink-0 overflow-hidden shadow-[2px_2px_0px_#18181b]">
                     <img
                       src={gameState.drawings[picassoWinner.id]}
                       alt="Picasso"
@@ -173,7 +173,7 @@ export default function Results({ socket, gameState }: ResultsProps) {
                     <button
                       onClick={() => downloadDrawing(gameState.drawings[picassoWinner.id], picassoWinner.name, gameState.character)}
                       title="Baixar desenho PNG"
-                      className="absolute inset-0 bg-black/70 opacity-0 group-hover/thumb:opacity-100 transition-opacity flex flex-col items-center justify-center text-white text-[10px] font-bold"
+                      className="absolute inset-0 bg-zinc-900/80 opacity-0 group-hover/thumb:opacity-100 transition-opacity flex flex-col items-center justify-center text-white text-[10px] font-bold"
                     >
                       <Download className="w-4 h-4 sm:w-5 sm:h-5 mb-0.5" />
                       <span>Baixar</span>
@@ -181,12 +181,12 @@ export default function Results({ socket, gameState }: ResultsProps) {
                   </div>
                 )}
                 <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-1 text-[11px] sm:text-xs font-bold text-accent-cyan uppercase tracking-wider">
+                  <div className="inline-flex items-center gap-1 text-xs font-bold text-blue-900 bg-blue-100 border border-blue-300 px-2 py-0.5 rounded-full uppercase tracking-wider mb-1">
                     <Sparkles className="w-3.5 h-3.5 shrink-0" />
                     <span>Troféu Picasso</span>
                   </div>
-                  <h4 className="text-base sm:text-lg font-black text-white truncate">{picassoWinner.name}</h4>
-                  <p className="text-xs text-text-muted">
+                  <h4 className="text-lg font-bold font-kalam text-zinc-900 truncate">{picassoWinner.name}</h4>
+                  <p className="text-xs text-zinc-600">
                     {maxSimilarVotes} {maxSimilarVotes === 1 ? 'voto' : 'votos'} de Mais Parecido!
                   </p>
                 </div>
@@ -198,10 +198,10 @@ export default function Results({ socket, gameState }: ResultsProps) {
                 initial={{ opacity: 0, x: 15 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.2 }}
-                className="bg-panel border border-accent-pink/40 rounded-2xl sm:rounded-3xl p-3 sm:p-4 flex items-center gap-3 sm:gap-4 shadow-xl"
+                className="bg-white border-2 border-zinc-900 rounded-2xl p-3.5 sm:p-4 flex items-center gap-3 sm:gap-4 shadow-[4px_4px_0px_#18181b]"
               >
                 {gameState.drawings[memeWinner.id] && (
-                  <div className="relative group/thumb w-16 h-16 sm:w-20 sm:h-20 rounded-xl sm:rounded-2xl bg-[#0a0e1a] border border-border p-1 shrink-0 overflow-hidden">
+                  <div className="relative group/thumb w-16 h-16 sm:w-20 sm:h-20 rounded-xl bg-white border-2 border-zinc-900 p-1 shrink-0 overflow-hidden shadow-[2px_2px_0px_#18181b]">
                     <img
                       src={gameState.drawings[memeWinner.id]}
                       alt="Meme"
@@ -210,7 +210,7 @@ export default function Results({ socket, gameState }: ResultsProps) {
                     <button
                       onClick={() => downloadDrawing(gameState.drawings[memeWinner.id], memeWinner.name, gameState.character)}
                       title="Baixar desenho PNG"
-                      className="absolute inset-0 bg-black/70 opacity-0 group-hover/thumb:opacity-100 transition-opacity flex flex-col items-center justify-center text-white text-[10px] font-bold"
+                      className="absolute inset-0 bg-zinc-900/80 opacity-0 group-hover/thumb:opacity-100 transition-opacity flex flex-col items-center justify-center text-white text-[10px] font-bold"
                     >
                       <Download className="w-4 h-4 sm:w-5 sm:h-5 mb-0.5" />
                       <span>Baixar</span>
@@ -218,12 +218,12 @@ export default function Results({ socket, gameState }: ResultsProps) {
                   </div>
                 )}
                 <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-1 text-[11px] sm:text-xs font-bold text-accent-pink uppercase tracking-wider">
+                  <div className="inline-flex items-center gap-1 text-xs font-bold text-rose-900 bg-rose-100 border border-rose-300 px-2 py-0.5 rounded-full uppercase tracking-wider mb-1">
                     <Laugh className="w-3.5 h-3.5 shrink-0" />
                     <span>Troféu Atrocidade</span>
                   </div>
-                  <h4 className="text-base sm:text-lg font-black text-white truncate">{memeWinner.name}</h4>
-                  <p className="text-xs text-text-muted">
+                  <h4 className="text-lg font-bold font-kalam text-zinc-900 truncate">{memeWinner.name}</h4>
+                  <p className="text-xs text-zinc-600">
                     {maxFunnyVotes} {maxFunnyVotes === 1 ? 'voto' : 'votos'} de comédia pura!
                   </p>
                 </div>
@@ -233,9 +233,9 @@ export default function Results({ socket, gameState }: ResultsProps) {
         )}
 
         {/* Podium Leaderboard */}
-        <div className="bg-panel border border-border rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 shadow-2xl space-y-3">
-          <h3 className="text-xs font-bold uppercase tracking-wider text-text-muted mb-3 sm:mb-4 flex items-center gap-2">
-            <Medal className="w-4 h-4 text-accent-yellow" />
+        <div className="bg-white border-2 border-zinc-900 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-[5px_5px_0px_#18181b] space-y-3 font-sketch">
+          <h3 className="text-base font-bold font-kalam text-zinc-900 mb-3 sm:mb-4 flex items-center gap-2">
+            <Medal className="w-5 h-5 text-yellow-500" />
             Classificação Geral
           </h3>
 
@@ -251,26 +251,26 @@ export default function Results({ socket, gameState }: ResultsProps) {
                   initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: idx * 0.08 }}
-                  className={`flex items-center justify-between p-2.5 sm:p-3.5 px-3 sm:px-5 rounded-xl sm:rounded-2xl border transition-all ${
+                  className={`flex items-center justify-between p-2.5 sm:p-3.5 px-3 sm:px-5 rounded-xl border-2 border-zinc-900 transition-all ${
                     isFirst
-                      ? 'bg-accent-yellow/15 border-accent-yellow/60 shadow-lg shadow-accent-yellow/10 scale-[1.01] sm:scale-[1.02]'
+                      ? 'bg-yellow-100 shadow-[3px_3px_0px_#18181b] scale-[1.01]'
                       : isSecond
-                      ? 'bg-slate-300/10 border-slate-300/40'
+                      ? 'bg-zinc-100 shadow-[2px_2px_0px_#18181b]'
                       : isThird
-                      ? 'bg-amber-700/10 border-amber-700/40'
-                      : 'bg-black/30 border-border/80'
+                      ? 'bg-amber-50 shadow-[2px_2px_0px_#18181b]'
+                      : 'bg-white'
                   }`}
                 >
-                  <div className="flex items-center gap-2.5 sm:gap-3.5 min-w-0">
+                  <div className="flex items-center gap-2.5 sm:gap-3.5 min-w-0 font-kalam">
                     <div
-                      className={`w-7 h-7 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl flex items-center justify-center font-black text-xs sm:text-sm shrink-0 ${
+                      className={`w-7 h-7 sm:w-8 sm:h-8 rounded-lg border-2 border-zinc-900 flex items-center justify-center font-bold text-xs sm:text-sm shrink-0 ${
                         isFirst
-                          ? 'bg-accent-yellow text-black'
+                          ? 'bg-yellow-300 text-zinc-900'
                           : isSecond
-                          ? 'bg-slate-300 text-black'
+                          ? 'bg-zinc-300 text-zinc-900'
                           : isThird
-                          ? 'bg-amber-600 text-white'
-                          : 'bg-border text-text-muted'
+                          ? 'bg-amber-300 text-zinc-900'
+                          : 'bg-zinc-100 text-zinc-600'
                       }`}
                     >
                       {idx + 1}º
@@ -279,10 +279,10 @@ export default function Results({ socket, gameState }: ResultsProps) {
                     <span className="text-xl sm:text-2xl shrink-0">{player.avatar || '🎨'}</span>
 
                     <div className="min-w-0">
-                      <span className={`text-sm sm:text-base font-bold truncate block ${isFirst ? 'text-accent-yellow' : 'text-white'}`}>
+                      <span className="text-base sm:text-lg font-bold text-zinc-900 truncate block">
                         {player.name}
                         {player.id === gameState.masterId && (
-                          <span className="text-[10px] text-primary ml-1.5 font-semibold uppercase">
+                          <span className="text-xs text-blue-700 ml-1.5 font-sketch font-bold">
                             (Mestre)
                           </span>
                         )}
@@ -290,8 +290,8 @@ export default function Results({ socket, gameState }: ResultsProps) {
                     </div>
                   </div>
 
-                  <div className="text-lg sm:text-xl font-mono font-black text-white shrink-0 ml-2">
-                    {player.score} <span className="text-[10px] sm:text-xs text-text-muted font-sans font-normal">pts</span>
+                  <div className="text-xl sm:text-2xl font-kalam font-bold text-zinc-900 shrink-0 ml-2">
+                    {player.score} <span className="text-xs font-sketch text-zinc-500 font-normal">pts</span>
                   </div>
                 </motion.div>
               );
@@ -302,11 +302,11 @@ export default function Results({ socket, gameState }: ResultsProps) {
         {/* Next Round Button / New Tournament Button */}
         <button
           onClick={handleNextRound}
-          className="w-full btn-party-cta py-3.5 sm:py-4 px-4 sm:px-6 rounded-xl sm:rounded-2xl flex items-center justify-center gap-2.5 sm:gap-3 text-base sm:text-lg font-black tracking-wide font-display shadow-2xl min-h-[48px]"
+          className="w-full btn-arcade-gold py-3.5 sm:py-4 px-4 sm:px-6 rounded-2xl flex items-center justify-center gap-2.5 text-base sm:text-xl font-bold font-kalam shadow-[4px_4px_0px_#18181b] min-h-[50px] transition-transform active:translate-x-0.5 active:translate-y-0.5 active:shadow-none"
         >
           {isTournamentOver ? (
             <>
-              <Trophy className="w-5 h-5 sm:w-6 sm:h-6 text-accent-yellow animate-bounce" />
+              <Trophy className="w-6 h-6 text-zinc-900 animate-bounce" />
               <span>Iniciar Novo Torneio!</span>
             </>
           ) : (

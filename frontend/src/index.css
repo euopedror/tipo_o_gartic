@@ -1,20 +1,20 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary: #8b5cf6;
-  --color-primary-hover: #7c3aed;
-  --color-primary-dark: #6d28d9;
-  --color-accent-pink: #f43f5e;
-  --color-accent-cyan: #06b6d4;
-  --color-accent-yellow: #f59e0b;
-  --color-accent-green: #10b981;
-  --color-bg-dark: #0b0d1e;
-  --color-panel: #141a30;
-  --color-panel-light: #1e2646;
-  --color-border: #323e66;
-  --color-border-bright: #4d5f99;
-  --color-text-main: #f8fafc;
-  --color-text-muted: #94a3b8;
+  --color-primary: #18181b;
+  --color-primary-hover: #27272a;
+  --color-primary-dark: #09090b;
+  --color-accent-pink: #e11d48;
+  --color-accent-cyan: #0284c7;
+  --color-accent-yellow: #eab308;
+  --color-accent-green: #16a34a;
+  --color-bg-dark: #f5f4ef;
+  --color-panel: #ffffff;
+  --color-panel-light: #fafaf9;
+  --color-border: #18181b;
+  --color-border-bright: #27272a;
+  --color-text-main: #18181b;
+  --color-text-muted: #52525b;
 }
 
 :root {
@@ -25,19 +25,20 @@
 }
 
 body {
-  background-color: #0b0d1e;
+  background-color: #f8f7f2;
   color: var(--color-text-main);
-  font-family: 'Nunito', system-ui, -apple-system, sans-serif;
+  font-family: 'Patrick Hand', 'Nunito', system-ui, -apple-system, sans-serif;
   margin: 0;
   padding: 0;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   min-height: 100vh;
   min-height: 100dvh;
-  /* Radiant party game illustrated background */
-  background: 
-    linear-gradient(180deg, rgba(12, 14, 32, 0.72) 0%, rgba(9, 11, 24, 0.88) 100%),
-    url('./assets/wallpaper.jpg') center/cover no-repeat fixed;
+  /* Caderno com linhas quadriculadas de lápis sutis */
+  background-image: 
+    linear-gradient(to right, rgba(24, 24, 27, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(24, 24, 27, 0.05) 1px, transparent 1px);
+  background-size: 24px 24px;
   overflow-x: hidden;
   overscroll-behavior-y: none;
   -webkit-tap-highlight-color: transparent;
@@ -62,155 +63,170 @@ button, input, textarea, select {
   scrollbar-width: none;
 }
 
-/* Playful Party Font */
+/* Handwriting Fonts */
+.font-sketch {
+  font-family: 'Patrick Hand', cursive, sans-serif;
+}
+
+.font-kalam {
+  font-family: 'Kalam', cursive, sans-serif;
+}
+
 .font-display {
-  font-family: 'Fredoka', 'Nunito', system-ui, -apple-system, sans-serif;
+  font-family: 'Patrick Hand', 'Fredoka', cursive, sans-serif;
 }
 
-/* 3D Game Logo Text Effect */
+/* Minimalist Hand-Drawn Logo Title */
 .party-logo-title {
-  font-family: 'Fredoka', sans-serif;
-  background: linear-gradient(180deg, #ffffff 0%, #fef08a 45%, #f59e0b 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  filter: drop-shadow(0 4px 0 #92400e) drop-shadow(0 8px 16px rgba(0,0,0,0.5));
+  font-family: 'Patrick Hand', cursive, sans-serif;
+  color: #18181b;
+  letter-spacing: -0.02em;
 }
 
-/* Arcade Console Elevated Card */
+/* Notebook White Sheet Card with Hand-Drawn Solid Drop Shadow */
 .party-card-neo {
-  background: linear-gradient(180deg, rgba(20, 26, 48, 0.94) 0%, rgba(13, 17, 34, 0.98) 100%);
-  border: 3px solid rgba(139, 92, 246, 0.7);
-  box-shadow: 
-    0 0 0 4px rgba(139, 92, 246, 0.25),
-    0 24px 60px -10px rgba(0, 0, 0, 0.8),
-    0 0 70px -15px rgba(139, 92, 246, 0.45);
-  backdrop-filter: blur(20px);
+  background: #ffffff;
+  border: 2px solid #18181b;
+  box-shadow: 4px 5px 0px #18181b;
+  border-radius: 18px;
 }
 
-/* Golden Arcade Master CTA Button */
+/* Hand-Drawn Highlighter Marker Yellow Button */
 .btn-arcade-gold {
-  background: linear-gradient(180deg, #fef08a 0%, #facc15 45%, #eab308 85%, #ca8a04 100%);
-  color: #422006 !important;
-  font-family: 'Fredoka', sans-serif;
-  font-weight: 800;
-  border-top: 2px solid rgba(255, 255, 255, 0.7);
-  box-shadow: 
-    0 6px 0 0 #854d0e,
-    0 14px 28px -4px rgba(234, 179, 8, 0.55);
-  transition: all 0.12s cubic-bezier(0.34, 1.56, 0.64, 1);
+  background: #fef08a;
+  color: #18181b !important;
+  font-family: 'Patrick Hand', 'Fredoka', cursive, sans-serif;
+  font-weight: 700;
+  border: 2px solid #18181b;
+  box-shadow: 3px 4px 0px #18181b;
+  transition: all 0.1s ease;
   position: relative;
   cursor: pointer;
 }
 
 .btn-arcade-gold:hover {
-  background: linear-gradient(180deg, #fffbeb 0%, #fde047 45%, #facc15 85%, #d97706 100%);
-  box-shadow: 
-    0 6px 0 0 #854d0e,
-    0 18px 32px -2px rgba(234, 179, 8, 0.75);
-  transform: translateY(-2px);
+  background: #fde047;
+  box-shadow: 4px 5px 0px #18181b;
+  transform: translateY(-1px);
 }
 
 .btn-arcade-gold:active {
-  transform: translateY(4px);
-  box-shadow: 
-    0 2px 0 0 #854d0e,
-    0 4px 12px rgba(234, 179, 8, 0.4);
+  transform: translate(2px, 3px);
+  box-shadow: 1px 1px 0px #18181b;
 }
 
-/* Violet Epic CTA Button */
-.btn-epic-cta {
-  background: linear-gradient(180deg, #a855f7 0%, #8b5cf6 45%, #7c3aed 100%);
-  color: #ffffff !important;
-  font-family: 'Fredoka', sans-serif;
-  font-weight: 800;
-  border-top: 2px solid rgba(255, 255, 255, 0.4);
-  box-shadow: 
-    0 6px 0 0 #5b21b6,
-    0 14px 28px -4px rgba(139, 92, 246, 0.6);
-  transition: all 0.12s cubic-bezier(0.34, 1.56, 0.64, 1);
+/* Clean Blue Ink CTA Button */
+.btn-epic-cta, .btn-party-cta {
+  background: #dbeafe;
+  color: #1e3a8a !important;
+  font-family: 'Patrick Hand', 'Fredoka', cursive, sans-serif;
+  font-weight: 700;
+  border: 2px solid #18181b;
+  box-shadow: 3px 4px 0px #18181b;
+  transition: all 0.1s ease;
   position: relative;
   cursor: pointer;
 }
 
-.btn-epic-cta:hover {
-  background: linear-gradient(180deg, #b066f8 0%, #9469f7 45%, #8544ee 100%);
-  box-shadow: 
-    0 6px 0 0 #5b21b6,
-    0 18px 32px -2px rgba(139, 92, 246, 0.8);
-  transform: translateY(-2px);
+.btn-epic-cta:hover, .btn-party-cta:hover {
+  background: #bfdbfe;
+  box-shadow: 4px 5px 0px #18181b;
+  transform: translateY(-1px);
 }
 
-.btn-epic-cta:active {
-  transform: translateY(4px);
-  box-shadow: 
-    0 2px 0 0 #5b21b6,
-    0 4px 12px rgba(139, 92, 246, 0.4);
+.btn-epic-cta:active, .btn-party-cta:active {
+  transform: translate(2px, 3px);
+  box-shadow: 1px 1px 0px #18181b;
 }
 
-/* 3D button utility */
+/* 3D button utility: Hand-Drawn Crisp Shadow */
 .btn-3d {
-  transition: all 0.12s ease;
+  border: 2px solid #18181b !important;
+  box-shadow: 3px 3px 0px #18181b !important;
+  transition: all 0.1s ease;
   position: relative;
 }
 
 .btn-3d:active:not(:disabled) {
-  transform: translateY(3px);
-  box-shadow: 0 1px 0 0 rgba(0, 0, 0, 0.4) !important;
+  transform: translate(2px, 2px) !important;
+  box-shadow: 1px 1px 0px #18181b !important;
 }
 
-/* Inputs with enhanced contrast and focus rings */
+/* Inputs with clean white paper background, crisp black ink border */
 .input-party {
-  background-color: rgba(28, 36, 64, 0.95);
-  border: 2px solid rgba(75, 93, 138, 0.9);
-  color: #ffffff;
-  font-size: 16px; /* Prevents auto-zoom on iOS Safari */
-  transition: all 0.18s ease;
+  background-color: #ffffff;
+  border: 2px solid #18181b;
+  color: #18181b;
+  font-family: 'Patrick Hand', 'Nunito', sans-serif;
+  font-size: 17px; /* Prevents auto-zoom on iOS Safari */
+  box-shadow: 2px 2px 0px rgba(24, 24, 27, 0.15);
+  transition: all 0.15s ease;
 }
 
 @media (min-width: 640px) {
   .input-party {
-    font-size: 0.875rem; /* 14px on desktop/tablets where desired */
+    font-size: 1.05rem;
   }
 }
 
 .input-party:focus {
-  background-color: rgba(35, 46, 80, 1);
-  border-color: #facc15;
-  box-shadow: 0 0 0 4px rgba(250, 204, 21, 0.3);
+  background-color: #ffffff;
+  border-color: #18181b;
+  box-shadow: 0 0 0 3px #fef08a, 3px 3px 0px #18181b;
   outline: none;
+}
+
+/* Fita adesiva sutil (washi/crepe tape) */
+.sketch-tape {
+  position: relative;
+}
+
+.sketch-tape::before {
+  content: '';
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  transform: translateX(-50%) rotate(-1deg);
+  width: 70px;
+  height: 16px;
+  background: rgba(254, 240, 138, 0.85);
+  border: 1px dashed rgba(24, 24, 27, 0.25);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  pointer-events: none;
+  z-index: 20;
 }
 
 /* Custom scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.25);
+  background: #f4f3ee;
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--color-border-bright);
+  background: #a1a1aa;
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #facc15;
+  background: #18181b;
 }
 
 /* Shaking animation for validation */
 @keyframes shakeAnim {
   0%, 100% { transform: translateX(0); }
-  20%, 60% { transform: translateX(-8px); }
-  40%, 80% { transform: translateX(8px); }
+  20%, 60% { transform: translateX(-6px); }
+  40%, 80% { transform: translateX(6px); }
 }
 
 .animate-shake {
-  animation: shakeAnim 0.4s ease-in-out;
+  animation: shakeAnim 0.35s ease-in-out;
 }
 
 @keyframes floatAnim {
   0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-6px); }
+  50% { transform: translateY(-4px); }
 }
 
 .float-bounce {
