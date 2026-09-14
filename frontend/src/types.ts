@@ -63,7 +63,7 @@ export interface ReactionItem {
 }
 
 export const AVATARS = [
-  '🦊', '🦁', '🐸', '🐼', '🦄', '🤖', 
-  '👻', '👽', '🦖', '🐱', '🐶', '🍕', 
-  '🚀', '👑', '🎨', '🕶️', '⚡', '🥑'
+  'doodle-stickman', 'doodle-cat', 'doodle-dog', 'doodle-frog', 'doodle-alien', 'doodle-robot',
+  'doodle-ghost', 'doodle-dino', 'doodle-bear', 'doodle-star', 'doodle-octopus', 'doodle-potato',
+  'doodle-skull', 'doodle-wizard', 'doodle-cloud', 'doodle-flower', 'doodle-sun', 'doodle-penguin'
 ];

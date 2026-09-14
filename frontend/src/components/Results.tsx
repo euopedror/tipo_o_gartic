@@ -6,6 +6,7 @@ import { Trophy, ArrowRight, Sparkles, Laugh, Medal, Download, Share2 } from 'lu
 import type { GameState } from '../types';
 import { sounds } from '../utils/audioFx';
 import { downloadDrawing } from '../utils/downloadDrawing';
+import AvatarIcon from './common/AvatarIcon';
 
 interface ResultsProps {
   socket: Socket;
@@ -91,7 +92,7 @@ export default function Results({ socket, gameState }: ResultsProps) {
               Grande Campeão!
             </h2>
             <div className="mt-4 inline-flex items-center gap-3 bg-yellow-50 border-2 border-zinc-900 px-5 sm:px-7 py-2.5 sm:py-3.5 rounded-2xl shadow-[3px_3px_0px_#18181b]">
-              <span className="text-3xl sm:text-4xl">{sortedPlayers[0]?.avatar || '🏆'}</span>
+              <AvatarIcon avatar={sortedPlayers[0]?.avatar} className="w-10 h-10 sm:w-12 sm:h-12" />
               <div className="text-left font-kalam">
                 <div className="text-2xl sm:text-3xl font-bold text-zinc-900">{sortedPlayers[0]?.name}</div>
                 <div className="text-xs sm:text-sm text-zinc-600 font-sketch font-bold">{sortedPlayers[0]?.score} pontos no total</div>
@@ -128,8 +129,8 @@ export default function Results({ socket, gameState }: ResultsProps) {
 
             <div className="mt-2 text-zinc-600 text-sm sm:text-base font-sketch flex items-center justify-center gap-2">
               <span>Mestre da rodada:</span>
-              <span className="bg-white px-3 py-1 rounded-xl border-2 border-zinc-900 text-zinc-900 font-bold inline-flex items-center gap-1.5 shadow-[2px_2px_0px_#18181b]">
-                <span>{master?.avatar || '👑'}</span>
+              <span className="bg-white px-3 py-1 rounded-xl border-2 border-zinc-900 text-zinc-900 font-bold inline-flex items-center gap-2 shadow-[2px_2px_0px_#18181b]">
+                <AvatarIcon avatar={master?.avatar} className="w-5 h-5 sm:w-6 sm:h-6" />
                 <span>{master?.name}</span>
               </span>
             </div>
@@ -276,7 +277,7 @@ export default function Results({ socket, gameState }: ResultsProps) {
                       {idx + 1}º
                     </div>
 
-                    <span className="text-xl sm:text-2xl shrink-0">{player.avatar || '🎨'}</span>
+                    <AvatarIcon avatar={player.avatar} className="w-7 h-7 sm:w-8 sm:h-8" />
 
                     <div className="min-w-0">
                       <span className="text-base sm:text-lg font-bold text-zinc-900 truncate block">

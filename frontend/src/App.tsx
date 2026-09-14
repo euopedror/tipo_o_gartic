@@ -12,6 +12,7 @@ import Results from './components/Results';
 import FloatingReactions from './components/common/FloatingReactions';
 import PartyChat from './components/common/PartyChat';
 import VoiceChat from './components/common/VoiceChat';
+import AvatarIcon from './components/common/AvatarIcon';
 import type { GameState, ReactionItem, ChatMessage } from './types';
 import { sounds } from './utils/audioFx';
 
@@ -341,10 +342,10 @@ export default function App() {
 
           {/* User profile tag */}
           <div 
-            className="flex items-center gap-1 sm:gap-2 bg-white px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl border-2 border-zinc-900 shadow-[2px_2px_0px_#18181b]"
+            className="flex items-center gap-1.5 sm:gap-2 bg-white px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl border-2 border-zinc-900 shadow-[2px_2px_0px_#18181b]"
             title={playerName || myPlayer?.name}
           >
-            <span className="text-base sm:text-lg">{myPlayer?.avatar || playerAvatar}</span>
+            <AvatarIcon avatar={myPlayer?.avatar || playerAvatar} className="w-5 h-5 sm:w-6 sm:h-6" />
             <span className="text-xs md:text-sm font-bold text-zinc-900 max-w-[70px] sm:max-w-[100px] truncate hidden xs:inline font-sketch">
               {playerName || myPlayer?.name}
             </span>
@@ -525,9 +526,9 @@ export default function App() {
                             }`}
                           >
                             <div className="flex items-center gap-2.5 min-w-0">
-                              <span className="text-2xl">{p.avatar || '🎨'}</span>
-                              <span className="font-bold text-base text-zinc-900 truncate">
-                                {p.name} {isMe && <span className="text-blue-700 text-xs">(Você)</span>}
+                              <AvatarIcon avatar={p.avatar} className="w-8 h-8 sm:w-9 sm:h-9" />
+                              <span className="font-bold text-base text-zinc-900 truncate font-kalam">
+                                {p.name} {isMe && <span className="text-blue-700 text-xs font-sketch">(Você)</span>}
                               </span>
                             </div>
 

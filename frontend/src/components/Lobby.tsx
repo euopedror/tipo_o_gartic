@@ -5,6 +5,7 @@ import {
   Sparkles, Volume2, VolumeX, Settings2 
 } from 'lucide-react';
 import AvatarPicker from './common/AvatarPicker';
+import AvatarIcon from './common/AvatarIcon';
 import { AVATARS } from '../types';
 import { sounds } from '../utils/audioFx';
 
@@ -228,9 +229,9 @@ export default function Lobby({ onJoin, error }: LobbyProps) {
                   initial={{ scale: 0.8 }}
                   animate={{ scale: 1 }}
                   transition={{ type: "spring", stiffness: 500, damping: 20 }}
-                  className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl bg-amber-100 border-2 border-zinc-900 text-3xl sm:text-4xl flex items-center justify-center shadow-[2px_2px_0px_#18181b] shrink-0 select-none"
+                  className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl bg-amber-100 border-2 border-zinc-900 flex items-center justify-center shadow-[2px_2px_0px_#18181b] shrink-0 select-none p-1.5"
                 >
-                  {avatar}
+                  <AvatarIcon avatar={avatar} className="w-10 h-10 sm:w-12 sm:h-12" />
                 </motion.div>
 
                 <div className="flex-1 relative">

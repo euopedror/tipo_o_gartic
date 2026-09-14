@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { Send, Crown, Sparkles, MessageCircle, X, Volume2, VolumeX } from 'lucide-react';
 import type { ChatMessage, Player } from '../../types';
 import { sounds } from '../../utils/audioFx';
+import AvatarIcon from './AvatarIcon';
 
 interface PartyChatProps {
   socket: Socket;
@@ -303,7 +304,7 @@ export default function PartyChat({
               >
                 {/* Avatar */}
                 <div className="relative shrink-0 select-none">
-                  <span className="text-base">{msg.senderAvatar || '🎨'}</span>
+                  <AvatarIcon avatar={msg.senderAvatar} className="w-6 h-6 sm:w-7 sm:h-7" />
                   {isHostSender && (
                     <span 
                       title="Host da Sala" 

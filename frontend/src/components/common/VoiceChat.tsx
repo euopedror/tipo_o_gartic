@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import type { Player } from '../../types';
 import { sounds } from '../../utils/audioFx';
+import AvatarIcon from './AvatarIcon';
 
 interface VoiceChatProps {
   socket: Socket;
@@ -743,13 +744,7 @@ export default function VoiceChat({
                     >
                       <div className="flex items-center justify-between mb-1.5 font-kalam">
                         <div className="flex items-center gap-2">
-                          <span
-                            className={`text-xl transition-transform ${
-                              isPeerSpeaking ? 'scale-125' : ''
-                            }`}
-                          >
-                            {p.avatar || '🎨'}
-                          </span>
+                          <AvatarIcon avatar={p.avatar} className="w-6 h-6 sm:w-7 sm:h-7" />
                           <span className="font-bold text-zinc-900 text-xs truncate max-w-[120px]">
                             {p.name} {isMe && <span className="text-blue-700 text-[10px] font-sketch">(Você)</span>}
                           </span>

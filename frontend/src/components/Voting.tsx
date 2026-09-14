@@ -5,6 +5,7 @@ import { Clock, Laugh, Sparkles, ZoomIn, X, Check, Download } from 'lucide-react
 import type { GameState, Player } from '../types';
 import { sounds } from '../utils/audioFx';
 import { downloadDrawing } from '../utils/downloadDrawing';
+import AvatarIcon from './common/AvatarIcon';
 
 interface VotingProps {
   socket: Socket;
@@ -133,7 +134,7 @@ export default function Voting({ socket, gameState, myPlayer: _myPlayer, timer }
               {/* Card Header */}
               <div className="p-3 px-4 bg-zinc-100 border-b-2 border-zinc-900 flex items-center justify-between">
                 <div className="flex items-center gap-2 min-w-0 font-kalam">
-                  <span className="text-2xl">{player?.avatar || '🎨'}</span>
+                  <AvatarIcon avatar={player?.avatar} className="w-7 h-7 sm:w-8 sm:h-8" />
                   <span className="font-bold text-base text-zinc-900 truncate">
                     {player?.name || 'Artista'} {isMe && <span className="text-blue-700 text-xs font-sketch">(Seu)</span>}
                   </span>
