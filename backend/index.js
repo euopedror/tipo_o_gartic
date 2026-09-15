@@ -45,6 +45,8 @@ function createRoom(roomId) {
     hostId: null,
     isChatMuted: false,
     masterId: null,
+    masterHistory: [],
+    lastMasterId: null,
     character: null,
     drawings: {}, // { playerId: imageDataUrl }
     tips: [],
@@ -231,7 +233,7 @@ io.on('connection', (socket) => {
 
     if (!room.messages) room.messages = [];
     room.messages.push(message);
-    if (room.messages.length > 100) {
+    if (room.messages.length > 50) {
       room.messages.shift();
     }
 
@@ -271,6 +273,27 @@ io.on('connection', (socket) => {
     io.to(cleanRoomId).emit('room_update', getRoomPublicState(cleanRoomId));
   });
 
+  socket.on('clear_chat', ({ roomId }) => {
+    if (!roomId) return;
+    const cleanRoomId = String(roomId).trim().toUpperCase();
+    const room = rooms[cleanRoomId];
+    if (!room) return;
+    const player = room.players[socket.id];
+    
+    room.messages = [{
+      id: Date.now() + '-' + Math.random().toString(36).substring(2, 7),
+      senderId: 'system',
+      senderName: 'Sistema',
+      senderAvatar: '🧹',
+      text: `O chat foi limpo por ${player?.name || 'um jogador'}.`,
+      isSystem: true,
+      timestamp: Date.now()
+    }];
+
+    io.to(cleanRoomId).emit('chat_cleared');
+    io.to(cleanRoomId).emit('room_update', getRoomPublicState(cleanRoomId));
+  });
+
   socket.on('start_game', ({ roomId }) => {
     if (!roomId) return;
     const cleanRoomId = String(roomId).trim().toUpperCase();
@@ -282,15 +305,30 @@ io.on('connection', (socket) => {
       return;
     }
 
-    // Pick a random master
+    // Pick master with rotation so everyone gets a turn and no one repeats back-to-back
     const playerIds = Object.keys(room.players);
     if (playerIds.length < 2) {
       socket.emit('error', 'São necessários pelo menos 2 jogadores para iniciar.');
       return;
     }
 
-    const masterId = playerIds[Math.floor(Math.random() * playerIds.length)];
+    if (!room.masterHistory) room.masterHistory = [];
+
+    // Filter connected players who haven't had a turn as master in the current rotation cycle
+    let candidates = playerIds.filter(pid => !room.masterHistory.includes(pid));
+
+    // If everyone in this cycle has been master, start a new cycle
+    if (candidates.length === 0) {
+      // Exclude the immediate last master if there are 2 or more players
+      candidates = playerIds.filter(pid => pid !== room.lastMasterId);
+      if (candidates.length === 0) candidates = playerIds;
+      room.masterHistory = room.lastMasterId ? [room.lastMasterId] : [];
+    }
+
+    const masterId = candidates[Math.floor(Math.random() * candidates.length)];
     room.masterId = masterId;
+    room.lastMasterId = masterId;
+    room.masterHistory.push(masterId);
     
     // Reset round state
     playerIds.forEach(pid => {
@@ -309,16 +347,16 @@ io.on('connection', (socket) => {
     room.timer = Number(room.settings?.roundTime ?? 0);
 
     const masterPlayer = room.players[masterId];
-    if (!room.messages) room.messages = [];
-    room.messages.push({
+    // Clear old chat messages for the new round and show clean start announcement
+    room.messages = [{
       id: Date.now() + '-' + Math.random().toString(36).substring(2, 7),
       senderId: 'system',
       senderName: 'Sistema',
       senderAvatar: '👑',
-      text: `Rodada iniciada! ${masterPlayer?.name || 'Um jogador'} é o Mestre desta rodada.`,
+      text: `Rodada ${room.currentRound} iniciada! ${masterPlayer?.name || 'Um jogador'} é o Mestre das dicas nesta rodada.`,
       isSystem: true,
       timestamp: Date.now()
-    });
+    }];
 
     io.to(cleanRoomId).emit('room_update', getRoomPublicState(cleanRoomId));
     
@@ -473,7 +511,7 @@ io.on('connection', (socket) => {
 
     if (!room.messages) room.messages = [];
     room.messages.push(tipMessage);
-    if (room.messages.length > 100) {
+    if (room.messages.length > 50) {
       room.messages.shift();
     }
 
@@ -578,6 +616,8 @@ io.on('connection', (socket) => {
       // Reset tournament
       room.currentRound = 1;
       room.isGameOver = false;
+      room.masterHistory = [];
+      room.lastMasterId = null;
       Object.values(room.players).forEach(p => {
         p.score = 0;
         p.isMaster = false;
@@ -599,6 +639,7 @@ io.on('connection', (socket) => {
     room.drawings = {};
     room.tips = [];
     room.votes = {};
+    room.messages = [];
 
     io.to(cleanRoomId).emit('room_update', getRoomPublicState(cleanRoomId));
   });

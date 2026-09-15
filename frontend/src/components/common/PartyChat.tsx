@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Socket } from 'socket.io-client';
 import { motion } from 'framer-motion';
-import { Send, Crown, Sparkles, MessageCircle, X, Volume2, VolumeX } from 'lucide-react';
+import { Send, Crown, Sparkles, MessageCircle, X, Volume2, VolumeX, Trash2 } from 'lucide-react';
 import type { ChatMessage, Player } from '../../types';
 import { sounds } from '../../utils/audioFx';
 import AvatarIcon from './AvatarIcon';
@@ -36,25 +36,30 @@ export default function PartyChat({
   const [localMessages, setLocalMessages] = useState<ChatMessage[]>(() => messages);
   const chatScrollRef = useRef<HTMLDivElement>(null);
 
-  // Sync external messages without wiping local additions
+  // Sync external messages from room_update without hoarding obsolete messages
   useEffect(() => {
-    if (messages && messages.length > 0) {
-      setLocalMessages((prev) => {
-        const map = new Map<string, ChatMessage>();
-        prev.forEach((m) => map.set(m.id, m));
-        messages.forEach((m) => {
-          // Replace matching optimistic local message if present
-          for (const [key, val] of map.entries()) {
-            if (key.startsWith('local-') && val.text === m.text && (val.senderName === m.senderName || val.senderId === m.senderId)) {
-              map.delete(key);
-            }
-          }
-          map.set(m.id, m);
-        });
-        return Array.from(map.values()).sort((a, b) => a.timestamp - b.timestamp);
-      });
-    }
+    setLocalMessages((prev) => {
+      // Retain only very recent (<3s) unacknowledged local optimistic messages
+      const pendingOptimistic = prev.filter(
+        (m) =>
+          m.id.startsWith('local-') &&
+          Date.now() - m.timestamp < 3000 &&
+          !messages.some((serverMsg) => serverMsg.text === m.text && serverMsg.senderName === m.senderName)
+      );
+      return [...messages, ...pendingOptimistic].sort((a, b) => a.timestamp - b.timestamp);
+    });
   }, [messages]);
+
+  // Listen to chat_cleared
+  useEffect(() => {
+    const handleChatCleared = () => {
+      setLocalMessages([]);
+    };
+    socket.on('chat_cleared', handleChatCleared);
+    return () => {
+      socket.off('chat_cleared', handleChatCleared);
+    };
+  }, [socket]);
 
   // Listen to new_chat_message and new_tip in real time
   useEffect(() => {
@@ -101,6 +106,12 @@ export default function PartyChat({
   const handleToggleMute = () => {
     sounds.playPop();
     socket.emit('toggle_chat_mute', { roomId });
+  };
+
+  const handleClearChat = () => {
+    sounds.playPop();
+    setLocalMessages([]);
+    socket.emit('clear_chat', { roomId });
   };
 
   const handleSendMessage = (e?: React.FormEvent) => {
@@ -193,6 +204,17 @@ export default function PartyChat({
         </div>
 
         <div className="flex items-center gap-1.5">
+          {/* Clear Chat Control */}
+          <button
+            type="button"
+            onClick={handleClearChat}
+            title="Limpar mensagens do chat"
+            className="p-1 sm:px-2 sm:py-1 rounded-xl text-xs font-bold transition-all flex items-center gap-1 border-2 border-zinc-900 bg-white hover:bg-zinc-100 text-zinc-700 shadow-[2px_2px_0px_#18181b] active:scale-95"
+          >
+            <Trash2 className="w-3.5 h-3.5 text-zinc-600" />
+            <span className="hidden sm:inline">Limpar</span>
+          </button>
+
           {/* Host Mute/Unmute Control */}
           {isHost && (
             <button

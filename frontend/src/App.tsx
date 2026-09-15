@@ -135,6 +135,11 @@ export default function App() {
       }
     });
 
+    socket.on('chat_cleared', () => {
+      setGameState((prev) => (prev ? { ...prev, messages: [] } : prev));
+      setUnreadChatCount(0);
+    });
+
     socket.on('new_tip', (tip: string) => {
       sounds.playPop();
       setGameState((prev) => {
@@ -170,6 +175,7 @@ export default function App() {
       socket.off('room_update');
       socket.off('left_room_success');
       socket.off('new_chat_message');
+      socket.off('chat_cleared');
       socket.off('new_tip');
       socket.off('timer_update');
       socket.off('new_reaction');
