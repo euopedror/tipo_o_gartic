@@ -55,6 +55,7 @@ export default function MobileGame({ socket, gameState, myPlayer, timer }: Mobil
   // Sync submission state from server
   const hasSubmittedRef = useRef(Boolean(myPlayer?.hasSubmitted));
   hasSubmittedRef.current = hasSubmitted;
+  const prevTimerRef = useRef<number | undefined>(timer);
 
   useEffect(() => {
     if (myPlayer?.hasSubmitted) {
@@ -62,9 +63,12 @@ export default function MobileGame({ socket, gameState, myPlayer, timer }: Mobil
     }
   }, [myPlayer?.hasSubmitted]);
 
-  // Auto-submit on timer 0
+  // Auto-submit apenas quando o tempo LIMITADO expira (>0 -> 0).
+  // Timer 0 = "Tempo Livre", não pode entregar sozinho.
   useEffect(() => {
-    if (!isMaster && timer === 0 && !hasSubmittedRef.current && canvasRef.current) {
+    const prev = prevTimerRef.current ?? 0;
+    prevTimerRef.current = timer;
+    if (!isMaster && timer === 0 && prev > 0 && !hasSubmittedRef.current && canvasRef.current) {
       try {
         const dataUrl = canvasRef.current.toDataURL('image/png');
         socket.emit('submit_drawing', { roomId: gameState.id, dataUrl, imageDataUrl: dataUrl });
@@ -388,7 +392,7 @@ export default function MobileGame({ socket, gameState, myPlayer, timer }: Mobil
 
       {/* Bottom Tool Dock (Artist Mode Only) */}
       {!isMaster && (
-        <div className="bg-white/98 border-t-2 border-zinc-900 p-2.5 sm:p-3 shrink-0 shadow-[0_-3px_10px_rgba(0,0,0,0.08)] z-20">
+        <div className="bg-white/98 border-t-2 border-zinc-900 p-2.5 sm:p-3 pb-safe shrink-0 shadow-[0_-3px_10px_rgba(0,0,0,0.08)] z-20">
           <div className="max-w-md mx-auto flex flex-col gap-2">
             {/* Horizontal Color Swatches Slider with Large 34px Circles */}
             <div className="flex items-center gap-2.5 overflow-x-auto py-1 px-1 no-scrollbar">

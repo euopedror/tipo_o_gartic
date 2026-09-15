@@ -2,6 +2,9 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Dices, Volume2, VolumeX, Settings2, AlertCircle, ArrowRight } from 'lucide-react';
 import AvatarIcon, { AVATAR_NAMES } from '../common/AvatarIcon';
+import DeviceToggle from '../common/DeviceToggle';
+import InviteBanner from '../common/InviteBanner';
+import { getInvitedRoom, loadIdentity, saveIdentity } from '../../utils/identity';
 import { AVATARS } from '../../types';
 import { sounds } from '../../utils/audioFx';
 
@@ -19,11 +22,13 @@ const FUNNY_NICKNAMES = [
 ];
 
 export default function MobileLobby({ onJoin, error }: MobileLobbyProps) {
-  const queryRoom = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('room') : null;
-  const [name, setName] = useState('');
+  const queryRoom = typeof window !== 'undefined' ? getInvitedRoom() : null;
+  const [savedIdentity] = useState(() => (typeof window !== 'undefined' ? loadIdentity() : { name: '', avatar: AVATARS[0] }));
+  const [name, setName] = useState(() => savedIdentity.name);
   const [roomId, setRoomId] = useState(() => (queryRoom ? queryRoom.toUpperCase() : ''));
-  const [avatar, setAvatar] = useState(() => AVATARS[Math.floor(Math.random() * AVATARS.length)]);
+  const [avatar, setAvatar] = useState(() => savedIdentity.avatar || AVATARS[Math.floor(Math.random() * AVATARS.length)]);
   const [mode, setMode] = useState<'create' | 'join'>(() => (queryRoom ? 'join' : 'create'));
+  const [inviteMode, setInviteMode] = useState(() => Boolean(queryRoom));
   const [soundEnabled, setSoundEnabled] = useState(() => sounds.enabled);
   const [showServerModal, setShowServerModal] = useState(false);
   const [nameShake, setNameShake] = useState(false);
@@ -57,16 +62,19 @@ export default function MobileLobby({ onJoin, error }: MobileLobbyProps) {
     }
 
     let targetRoom = roomId.trim().toUpperCase();
-    if (mode === 'create' && !targetRoom) {
+    if (inviteMode && queryRoom) {
+      targetRoom = queryRoom;
+    } else if (mode === 'create' && !targetRoom) {
       targetRoom = Math.random().toString(36).substring(2, 8).toUpperCase();
     }
 
-    if (mode === 'join' && !targetRoom) {
+    if (!inviteMode && mode === 'join' && !targetRoom) {
       return;
     }
 
     if (targetRoom && name.trim()) {
       sounds.playClick();
+      saveIdentity(name.trim(), avatar);
       onJoin(targetRoom, name.trim(), avatar);
     }
   };
@@ -80,6 +88,7 @@ export default function MobileLobby({ onJoin, error }: MobileLobbyProps) {
         </div>
 
         <div className="flex items-center gap-2">
+          <DeviceToggle compact />
           <button
             type="button"
             onClick={toggleSound}
@@ -130,7 +139,19 @@ export default function MobileLobby({ onJoin, error }: MobileLobbyProps) {
           )}
         </AnimatePresence>
 
-        {/* Large Mode Switcher Tabs */}
+        {/* Banner de convite direto no lugar das abas */}
+        {inviteMode && queryRoom ? (
+          <div className="mb-4">
+            <InviteBanner
+              roomCode={queryRoom}
+              onSwitchRoom={() => {
+                sounds.playClick();
+                setInviteMode(false);
+                setMode('join');
+              }}
+            />
+          </div>
+        ) : (
         <div className="grid grid-cols-2 gap-2 p-1.5 bg-amber-100/70 border-2 border-zinc-900 rounded-2xl mb-4 shadow-[2px_2px_0px_#18181b]">
           <button
             type="button"
@@ -161,6 +182,7 @@ export default function MobileLobby({ onJoin, error }: MobileLobbyProps) {
             🔑 Entrar na Sala
           </button>
         </div>
+        )}
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4 text-left">
           {/* Nickname Input & Random Name Button */}
@@ -201,8 +223,8 @@ export default function MobileLobby({ onJoin, error }: MobileLobbyProps) {
             </div>
           </div>
 
-          {/* Room Code Input (if in Join mode) */}
-          {mode === 'join' && (
+          {/* Room Code Input (se não for convite direto) */}
+          {!(inviteMode && queryRoom) && mode === 'join' && (
             <div>
               <label className="text-xs sm:text-sm font-black uppercase text-zinc-800 tracking-wider block mb-1.5">
                 🔑 Código da Sala:
@@ -261,7 +283,7 @@ export default function MobileLobby({ onJoin, error }: MobileLobbyProps) {
             type="submit"
             className="w-full h-14 sm:h-16 btn-arcade-gold rounded-2xl flex items-center justify-center gap-2.5 text-lg sm:text-xl font-black tracking-wide mt-2 shadow-[4px_4px_0px_#18181b] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
           >
-            <span>{mode === 'create' ? 'Criar Minha Sala!' : 'Entrar na Sala!'}</span>
+            <span>{inviteMode && queryRoom ? `Entrar na Sala ${queryRoom}!` : mode === 'create' ? 'Criar Minha Sala!' : 'Entrar na Sala!'}</span>
             <ArrowRight className="w-6 h-6 stroke-[3]" />
           </button>
         </form>

@@ -52,12 +52,14 @@ function createRoom(roomId) {
     tips: [],
     messages: [], // Live chat messages for all players
     votes: {}, // { playerId: { similar: count, funny: count } }
+    voteRecords: {}, // { voterId: { similar: votedPlayerId|null, funny: votedPlayerId|null } } — anti voto duplo
     timer: 0,
     timerInterval: null,
     settings: {
       roundTime: 0, // 0 = Sem limite de tempo (modo padrão para descrição)
       maxRounds: 3,
-      voiceEnabled: true
+      voiceEnabled: false, // Voz começa DESLIGADA — host ativa nas regras se quiser
+      reactionsEnabled: true // Reações flutuantes começam LIGADAS — host pode mutar
     },
     voiceUsers: new Set(),
     activeArtistIds: new Set(),
@@ -100,6 +102,8 @@ io.on('connection', (socket) => {
     if (existingPlayer && !isOldSocketAlive) {
       // Re-bind to the new socket ID seamlessly
       const oldId = existingPlayer.id;
+      existingPlayer.connected = true; // voltou (estava marcado como caído)
+      const wasMasterBack = Boolean(existingPlayer.isMaster);
       if (oldId !== socket.id) {
         delete room.players[oldId];
         existingPlayer.id = socket.id;
@@ -134,7 +138,20 @@ io.on('connection', (socket) => {
         }
         room.players[socket.id] = existingPlayer;
       }
+      if (wasMasterBack && (room.state === GAME_STATES.PLAYING || room.state === GAME_STATES.VOTING)) {
+        if (!room.messages) room.messages = [];
+        room.messages.push({
+          id: Date.now() + '-' + Math.random().toString(36).substring(2, 7),
+          senderId: 'system',
+          senderName: 'Sistema',
+          senderAvatar: '🔌',
+          text: `${existingPlayer.name} reconectou e voltou para a partida!`,
+          isSystem: true,
+          timestamp: Date.now()
+        });
+      }
       io.to(cleanRoomId).emit('room_update', getRoomPublicState(cleanRoomId));
+      socket.emit('timer_update', room.timer ?? 0);
       return;
     }
     
@@ -158,8 +175,22 @@ io.on('connection', (socket) => {
       isMaster: false,
       isHost: (socket.id === room.hostId),
       hasSubmitted: false,
-      hasVoted: false
+      hasVoted: false,
+      connected: true
     };
+
+    // Late joiners entram como artistas/espectadores da rodada atual:
+    // - No PLAYING: NÃO entram em activeArtistIds de propósito — os originais
+    //   decidem o fim, e o novato ganha 20s de tolerância no modo Livre.
+    // - No VOTING: NÃO entram em activeVoterIds — podem votar, mas não travam o fim.
+    const phaseHint =
+      room.state === GAME_STATES.PLAYING
+        ? ` ${finalPlayerName} entrou no meio da rodada — veja as dicas e desenhe rápido!`
+        : room.state === GAME_STATES.VOTING
+          ? ` ${finalPlayerName} entrou no meio da votação — vote nos desenhos!`
+          : room.state === GAME_STATES.RESULTS
+            ? ` ${finalPlayerName} chegou para ver o resultado e jogar a próxima!`
+            : '';
 
     // Add entry message to chat
     if (!room.messages) room.messages = [];
@@ -168,12 +199,14 @@ io.on('connection', (socket) => {
       senderId: 'system',
       senderName: 'Sistema',
       senderAvatar: '🎉',
-      text: `${cleanPlayerName} entrou na sala!`,
+      text: `${cleanPlayerName} entrou na sala!${phaseHint}`,
       isSystem: true,
       timestamp: Date.now()
     });
 
     io.to(cleanRoomId).emit('room_update', getRoomPublicState(cleanRoomId));
+    // Sincroniza o timer na hora para quem entrou no meio (mobile usa para auto-submit)
+    socket.emit('timer_update', room.timer ?? 0);
   });
 
   socket.on('send_chat_message', ({ roomId, text, playerName, avatar }) => {
@@ -182,16 +215,24 @@ io.on('connection', (socket) => {
     const room = rooms[cleanRoomId];
     if (!room) return;
 
+    // Anti-flood do chat: 1 mensagem a cada 600ms por pessoa
+    const nowChat = Date.now();
+    if (!room.lastChatAt) room.lastChatAt = {};
+    if (nowChat - (room.lastChatAt[socket.id] || 0) < 600) return;
+    room.lastChatAt[socket.id] = nowChat;
+
     // Ensure socket is joined to room
     socket.join(cleanRoomId);
 
     // Find player by socket.id or re-bind by playerName if socket reconnected
     let player = room.players[socket.id];
+    if (player) player.connected = true;
     if (!player && playerName) {
       const existingPlayer = Object.values(room.players).find(p => p.name === playerName);
       if (existingPlayer) {
         delete room.players[existingPlayer.id];
         existingPlayer.id = socket.id;
+        existingPlayer.connected = true;
         room.players[socket.id] = existingPlayer;
         player = existingPlayer;
       }
@@ -206,7 +247,8 @@ io.on('connection', (socket) => {
         isMaster: false,
         isHost: (socket.id === room.hostId),
         hasSubmitted: false,
-        hasVoted: false
+        hasVoted: false,
+        connected: true
       };
       room.players[socket.id] = player;
     }
@@ -307,9 +349,12 @@ io.on('connection', (socket) => {
     }
 
     // Pick master with rotation so everyone gets a turn and no one repeats back-to-back
-    const playerIds = Object.keys(room.players);
+    // (só conta quem está conectado — fantasma que fechou sem sair não entra)
+    const playerIds = Object.values(room.players)
+      .filter((p) => p.connected !== false)
+      .map((p) => p.id);
     if (playerIds.length < 2) {
-      socket.emit('error', 'São necessários pelo menos 2 jogadores para iniciar.');
+      socket.emit('error', 'São necessários pelo menos 2 jogadores conectados para iniciar.');
       return;
     }
 
@@ -340,6 +385,7 @@ io.on('connection', (socket) => {
     room.drawings = {};
     room.tips = [];
     room.votes = {};
+    room.voteRecords = {};
     room.character = null;
     room.activeArtistIds = new Set(playerIds.filter(pid => pid !== masterId));
     room.activeVoterIds = new Set();
@@ -348,7 +394,8 @@ io.on('connection', (socket) => {
     room.timer = Number(room.settings?.roundTime ?? 0);
 
     const masterPlayer = room.players[masterId];
-    // Clear old chat messages for the new round and show clean start announcement
+    // Clear old chat messages for the new round and show clean start announcement.
+    // chat_cleared primeiro (zera otimistas), room_update depois (traz o aviso).
     room.messages = [{
       id: Date.now() + '-' + Math.random().toString(36).substring(2, 7),
       senderId: 'system',
@@ -359,6 +406,7 @@ io.on('connection', (socket) => {
       timestamp: Date.now()
     }];
 
+    io.to(cleanRoomId).emit('chat_cleared');
     io.to(cleanRoomId).emit('room_update', getRoomPublicState(cleanRoomId));
     
     // Start Timer only if roundTime > 0
@@ -378,7 +426,7 @@ io.on('connection', (socket) => {
     }
   });
 
-  socket.on('update_settings', ({ roomId, roundTime, maxRounds, voiceEnabled }) => {
+  socket.on('update_settings', ({ roomId, roundTime, maxRounds, voiceEnabled, reactionsEnabled }) => {
     if (!roomId) return;
     const cleanRoomId = String(roomId).trim().toUpperCase();
     const room = rooms[cleanRoomId];
@@ -387,6 +435,9 @@ io.on('connection', (socket) => {
 
     if (roundTime !== undefined) room.settings.roundTime = Number(roundTime);
     if (maxRounds !== undefined) room.settings.maxRounds = Number(maxRounds);
+    if (reactionsEnabled !== undefined) {
+      room.settings.reactionsEnabled = Boolean(reactionsEnabled);
+    }
     if (voiceEnabled !== undefined) {
       room.settings.voiceEnabled = Boolean(voiceEnabled);
       if (!room.settings.voiceEnabled && room.voiceUsers && room.voiceUsers.size > 0) {
@@ -466,8 +517,8 @@ io.on('connection', (socket) => {
     const room = rooms[cleanRoomId];
     if (!room || room.state !== GAME_STATES.PLAYING) return;
     
-    const isMaster = socket.id === room.masterId;
-    const isHost = Object.keys(room.players)[0] === socket.id;
+    const isMaster = socket.id === room.masterId || Boolean(room.players[socket.id]?.isMaster);
+    const isHost = socket.id === room.hostId || Boolean(room.players[socket.id]?.isHost);
     if (!isMaster && !isHost) return;
 
     if (room.timerInterval) clearInterval(room.timerInterval);
@@ -544,10 +595,17 @@ io.on('connection', (socket) => {
     const cleanRoomId = String(roomId).trim().toUpperCase();
     const room = rooms[cleanRoomId];
     if (!room) return;
+    // Host pode mutar as reações nas regras da sala
+    if (room.settings?.reactionsEnabled === false) return;
+    // Anti-flood: 1 reação por pessoa a cada 1.2s (o resto é descartado)
+    const now = Date.now();
+    if (!room.lastReactionAt) room.lastReactionAt = {};
+    if (now - (room.lastReactionAt[socket.id] || 0) < 1200) return;
+    room.lastReactionAt[socket.id] = now;
     const player = room.players[socket.id];
     io.to(cleanRoomId).emit('new_reaction', {
-      id: Date.now() + Math.random(),
-      emoji,
+      id: now + Math.random(),
+      emoji: String(emoji || '🎨').slice(0, 8),
       senderName: player?.name || '',
       x: Math.floor(Math.random() * 70) + 15
     });
@@ -626,11 +684,12 @@ io.on('connection', (socket) => {
     io.to(cleanRoomId).emit('room_update', getRoomPublicState(cleanRoomId));
     
     // Check if artists who were present at the start of the round have all submitted
+    // (desconectados sem clicar em sair NÃO contam — não travam a rodada)
     if (room.state === GAME_STATES.PLAYING) {
-      const originalArtists = Object.values(room.players).filter(p => !p.isMaster && room.activeArtistIds?.has(p.id));
+      const originalArtists = Object.values(room.players).filter(p => !p.isMaster && p.connected !== false && room.activeArtistIds?.has(p.id));
       const allOriginalSubmitted = originalArtists.length > 0 && originalArtists.every(p => p.hasSubmitted);
       
-      const allCurrentArtists = Object.values(room.players).filter(p => !p.isMaster);
+      const allCurrentArtists = Object.values(room.players).filter(p => !p.isMaster && p.connected !== false);
       const allCurrentSubmitted = allCurrentArtists.length > 0 && allCurrentArtists.every(p => p.hasSubmitted);
         
       if (allCurrentSubmitted || (allOriginalSubmitted && originalArtists.length === allCurrentArtists.length)) {
@@ -660,6 +719,19 @@ io.on('connection', (socket) => {
     const cleanRoomId = String(roomId).trim().toUpperCase();
     const room = rooms[cleanRoomId];
     if (!room || room.state !== GAME_STATES.VOTING) return;
+    if (type !== 'similar' && type !== 'funny') return;
+    if (!room.players[socket.id] || !room.players[votedPlayerId]) return;
+    // Não pode votar em si mesmo nem no Mestre (que não desenhou)
+    if (votedPlayerId === socket.id) return;
+    if (votedPlayerId === room.masterId) return;
+    // Só pode votar em desenho que existe na galeria
+    if (!room.drawings[votedPlayerId]) return;
+
+    // Anti voto duplo na mesma categoria (frontend já bloqueia, backend garante)
+    if (!room.voteRecords) room.voteRecords = {};
+    if (!room.voteRecords[socket.id]) room.voteRecords[socket.id] = { similar: null, funny: null };
+    if (room.voteRecords[socket.id][type]) return;
+    room.voteRecords[socket.id][type] = votedPlayerId;
 
     if (!room.votes[votedPlayerId]) {
       room.votes[votedPlayerId] = { similar: 0, funny: 0 };
@@ -667,17 +739,19 @@ io.on('connection', (socket) => {
     room.votes[votedPlayerId][type]++;
     
     if (room.players[socket.id]) {
-      room.players[socket.id].hasVoted = true;
+      const rec = room.voteRecords[socket.id];
+      room.players[socket.id].hasVoted = Boolean(rec.similar && rec.funny);
     }
 
     io.to(cleanRoomId).emit('room_update', getRoomPublicState(cleanRoomId));
 
-    // Check if voters who started voting have all voted
-    const originalVoters = Object.values(room.players).filter(p => room.activeVoterIds?.has(p.id));
+    // Check if voters who started voting have all voted (fantasmas não travam)
+    const connectedPlayers = Object.values(room.players).filter(p => p.connected !== false);
+    const originalVoters = connectedPlayers.filter(p => room.activeVoterIds?.has(p.id));
     const allOriginalVoted = originalVoters.length > 0 && originalVoters.every(p => p.hasVoted);
-    const allCurrentVoted = Object.values(room.players).every(p => p.hasVoted);
+    const allCurrentVoted = connectedPlayers.length > 0 && connectedPlayers.every(p => p.hasVoted);
 
-    if (allCurrentVoted || (allOriginalVoted && originalVoters.length === Object.keys(room.players).length)) {
+    if (allCurrentVoted || (allOriginalVoted && originalVoters.length === connectedPlayers.length)) {
       if (room.timerInterval) clearInterval(room.timerInterval);
       endVotingPhase(cleanRoomId);
     }
@@ -718,8 +792,11 @@ io.on('connection', (socket) => {
     room.drawings = {};
     room.tips = [];
     room.votes = {};
+    room.voteRecords = {};
     room.messages = [];
 
+    // Nova partida = chat zerado em todo mundo (antes do estado novo chegar)
+    io.to(cleanRoomId).emit('chat_cleared');
     io.to(cleanRoomId).emit('room_update', getRoomPublicState(cleanRoomId));
   });
 
@@ -745,6 +822,36 @@ io.on('connection', (socket) => {
       const room = rooms[rId];
       if (room && room.players[socket.id]) {
         const p = room.players[socket.id];
+        // Marca como caído NA HORA: fantasmas não travam desenho/votação nem host.
+        // A remoção definitiva continua após 25s (graça p/ reconectar sem perder nada).
+        p.connected = false;
+
+        let extraMsg = '';
+        if (room.hostId === socket.id) {
+          const nextHost = Object.values(room.players).find(
+            (pl) => pl.id !== socket.id && pl.connected !== false
+          );
+          if (nextHost) {
+            room.hostId = nextHost.id;
+            Object.values(room.players).forEach((pl) => { pl.isHost = (pl.id === nextHost.id); });
+            extraMsg += ` 👑 ${nextHost.name} agora é o Host da sala.`;
+          }
+        }
+        if (room.masterId === socket.id && (room.state === GAME_STATES.PLAYING || room.state === GAME_STATES.VOTING)) {
+          extraMsg += ' O Mestre caiu — a rodada continua e ele pode voltar.';
+        }
+        if (!room.messages) room.messages = [];
+        room.messages.push({
+          id: Date.now() + '-' + Math.random().toString(36).substring(2, 7),
+          senderId: 'system',
+          senderName: 'Sistema',
+          senderAvatar: '🔌',
+          text: `${p.name} caiu da sala (aguardando reconexão...).${extraMsg}`,
+          isSystem: true,
+          timestamp: Date.now()
+        });
+        io.to(rId).emit('room_update', getRoomPublicState(rId));
+
         const timerKey = `${rId}:${p.name}`;
         if (pendingDisconnects.has(timerKey)) {
           clearTimeout(pendingDisconnects.get(timerKey));
@@ -818,6 +925,7 @@ function removePlayerFromRoom(socket, roomId) {
     room.drawings = {};
     room.tips = [];
     room.votes = {};
+    room.voteRecords = {};
     Object.values(room.players).forEach(p => {
       p.isMaster = false;
       p.hasSubmitted = false;
@@ -840,7 +948,7 @@ function removePlayerFromRoom(socket, roomId) {
 
   // If an artist left during PLAYING phase, check if remaining artists are all done
   if (room.state === GAME_STATES.PLAYING) {
-    const remainingArtists = Object.values(room.players).filter(p => !p.isMaster);
+    const remainingArtists = Object.values(room.players).filter(p => !p.isMaster && p.connected !== false);
     if (remainingArtists.length === 0) {
       if (room.timerInterval) clearInterval(room.timerInterval);
       room.state = GAME_STATES.LOBBY;
@@ -857,8 +965,8 @@ function removePlayerFromRoom(socket, roomId) {
 
   // If a player left during VOTING phase, check if remaining players all voted
   if (room.state === GAME_STATES.VOTING) {
-    const remainingPlayers = Object.values(room.players);
-    const allVoted = remainingPlayers.every(p => p.hasVoted);
+    const remainingPlayers = Object.values(room.players).filter(p => p.connected !== false);
+    const allVoted = remainingPlayers.length > 0 && remainingPlayers.every(p => p.hasVoted);
     if (allVoted) {
       if (room.timerInterval) clearInterval(room.timerInterval);
       endVotingPhase(roomId);
@@ -875,6 +983,7 @@ function endPlayingPhase(roomId) {
   room.state = GAME_STATES.VOTING;
   room.timer = 30; // 30 seconds to vote
   room.activeVoterIds = new Set(Object.keys(room.players));
+  room.voteRecords = {};
   
   // reset vote tracking
   Object.values(room.players).forEach(p => p.hasVoted = false);
@@ -928,12 +1037,14 @@ function getRoomPublicState(roomId) {
     players: Object.values(room.players).map(p => ({
       ...p,
       isHost: (p.id === room.hostId),
-      isVoiceMutedByHost: Boolean(p.isVoiceMutedByHost)
+      isVoiceMutedByHost: Boolean(p.isVoiceMutedByHost),
+      connected: p.connected !== false
     })),
     masterId: room.masterId,
     hostId: room.hostId,
     isChatMuted: Boolean(room.isChatMuted),
     isVoiceDisabled: room.settings?.voiceEnabled === false,
+    isReactionsDisabled: room.settings?.reactionsEnabled === false,
     character: room.state === GAME_STATES.RESULTS ? room.character : null,
     tips: room.tips || [],
     messages: room.messages || [],

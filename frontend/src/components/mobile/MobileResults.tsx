@@ -253,7 +253,7 @@ export default function MobileResults({ socket, gameState, isHost }: MobileResul
       </div>
 
       {/* Sticky Bottom Action Bar with High Contrast and Guaranteed Visibility */}
-      <div className="fixed bottom-0 left-0 right-0 p-3.5 bg-white/98 backdrop-blur border-t-2 border-zinc-900 z-30 shadow-[0_-3px_10px_rgba(0,0,0,0.08)]">
+      <div className="fixed bottom-0 left-0 right-0 p-3.5 pb-safe bg-white/98 backdrop-blur border-t-2 border-zinc-900 z-30 shadow-[0_-3px_10px_rgba(0,0,0,0.08)]">
         <div className="max-w-md mx-auto">
           {isHost ? (
             <button

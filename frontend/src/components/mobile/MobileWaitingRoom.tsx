@@ -1,12 +1,14 @@
 import { useState } from 'react';
-import { Socket } from 'socket.io-client';
-import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Copy, Check, Share2, Link2, Crown, Sliders, Play, 
-  MessageCircle, X 
+import type { Socket } from 'socket.io-client';
+import { AnimatePresence, motion } from 'framer-motion';
+import {
+  Copy, Check, Sliders, Play,
+  MessageCircle, X
 } from 'lucide-react';
-import AvatarIcon from '../common/AvatarIcon';
 import PartyChat from '../common/PartyChat';
+import InviteBar from '../common/InviteBar';
+import HostSettings from '../common/HostSettings';
+import PlayerList from '../common/PlayerList';
 import type { GameState, Player } from '../../types';
 import { sounds } from '../../utils/audioFx';
 
@@ -16,7 +18,7 @@ interface MobileWaitingRoomProps {
   myPlayer?: Player;
   isHost: boolean;
   onStartGame: () => void;
-  onUpdateSettings: (roundTime?: number, maxRounds?: number, voiceEnabled?: boolean) => void;
+  onUpdateSettings: (roundTime?: number, maxRounds?: number, voiceEnabled?: boolean, reactionsEnabled?: boolean) => void;
 }
 
 export default function MobileWaitingRoom({
@@ -28,7 +30,6 @@ export default function MobileWaitingRoom({
   onUpdateSettings,
 }: MobileWaitingRoomProps) {
   const [copiedCode, setCopiedCode] = useState(false);
-  const [copiedLink, setCopiedLink] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [showRulesSheet, setShowRulesSheet] = useState(false);
 
@@ -37,21 +38,6 @@ export default function MobileWaitingRoom({
     navigator.clipboard.writeText(gameState.id);
     setCopiedCode(true);
     setTimeout(() => setCopiedCode(false), 2000);
-  };
-
-  const handleCopyLink = () => {
-    sounds.playPop();
-    const link = `${window.location.origin}${window.location.pathname}?room=${gameState.id}`;
-    navigator.clipboard.writeText(link);
-    setCopiedLink(true);
-    setTimeout(() => setCopiedLink(false), 2000);
-  };
-
-  const handleShareWhatsApp = () => {
-    sounds.playPop();
-    const link = `${window.location.origin}${window.location.pathname}?room=${gameState.id}`;
-    const text = encodeURIComponent(`✏️ Vem jogar Desenho Cego comigo!\nCódigo da sala: ${gameState.id}\nEntra aí direto pelo link: ${link}`);
-    window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
   };
 
   return (
@@ -90,25 +76,9 @@ export default function MobileWaitingRoom({
             </button>
           </div>
 
-          {/* 1-Tap Mobile Invite Buttons */}
-          <div className="grid grid-cols-2 gap-2.5 mb-3.5">
-            <button
-              onClick={handleShareWhatsApp}
-              type="button"
-              className="h-13 flex items-center justify-center gap-2 bg-[#25D366] active:bg-[#20bd5a] text-zinc-950 font-black text-sm px-3 rounded-2xl border-2 border-zinc-900 shadow-[3px_3px_0px_#18181b] active:translate-x-[1px] active:translate-y-[1px]"
-            >
-              <Share2 className="w-4.5 h-4.5 stroke-[2.5]" />
-              <span>WhatsApp</span>
-            </button>
-
-            <button
-              onClick={handleCopyLink}
-              type="button"
-              className="h-13 flex items-center justify-center gap-2 bg-white active:bg-zinc-100 text-zinc-900 font-black text-sm px-3 rounded-2xl border-2 border-zinc-900 shadow-[3px_3px_0px_#18181b] active:translate-x-[1px] active:translate-y-[1px]"
-            >
-              {copiedLink ? <Check className="w-4.5 h-4.5 text-green-700 stroke-[2.5]" /> : <Link2 className="w-4.5 h-4.5 text-blue-600" />}
-              <span>{copiedLink ? 'Link Copiado!' : 'Copiar Link'}</span>
-            </button>
+          {/* 1-Tap Mobile Invite Buttons — componente único */}
+          <div className="mb-3.5">
+            <InviteBar roomId={gameState.id} layout="grid" />
           </div>
 
           {/* Quick Rules Preview / Trigger */}
@@ -118,8 +88,8 @@ export default function MobileWaitingRoom({
               <span>•</span>
               <span>🏁 {gameState.settings?.maxRounds ? `${gameState.settings.maxRounds} Rodadas` : 'Sem Fim'}</span>
               <span>•</span>
-              <span className={gameState.settings?.voiceEnabled === false ? 'text-red-600 font-black' : 'text-emerald-700 font-black'}>
-                {gameState.settings?.voiceEnabled === false ? '🎙️ Voz Off' : '🎙️ Voz On'}
+              <span className={gameState.settings?.voiceEnabled === true ? 'text-emerald-700 font-black' : 'text-red-600 font-black'}>
+                {gameState.settings?.voiceEnabled === true ? '🎙️ Voz On' : '🎙️ Voz Off'}
               </span>
             </div>
 
@@ -135,7 +105,7 @@ export default function MobileWaitingRoom({
             )}
           </div>
 
-          {/* Expandable Host Rules Sheet */}
+          {/* Expandable Host Rules Sheet — usa HostSettings compartilhado */}
           <AnimatePresence>
             {showRulesSheet && isHost && (
               <motion.div
@@ -144,129 +114,25 @@ export default function MobileWaitingRoom({
                 exit={{ opacity: 0, height: 0 }}
                 className="mt-3 p-3 bg-amber-100/90 rounded-2xl border-2 border-zinc-900 text-left overflow-hidden shadow-inner"
               >
-                <span className="text-xs font-black uppercase text-zinc-800 block mb-1.5">⏱️ Tempo por Rodada:</span>
-                <div className="grid grid-cols-4 gap-1.5 mb-3">
-                  {[
-                    { label: 'Livre', val: 0 },
-                    { label: '60s', val: 60 },
-                    { label: '90s', val: 90 },
-                    { label: '120s', val: 120 },
-                  ].map((opt) => (
-                    <button
-                      key={opt.val}
-                      type="button"
-                      onClick={() => onUpdateSettings(opt.val, undefined)}
-                      className={`py-2 text-xs sm:text-sm rounded-xl font-black border-2 transition-all ${
-                        (gameState.settings?.roundTime ?? 0) === opt.val
-                          ? 'bg-zinc-900 text-white border-zinc-900 shadow-sm'
-                          : 'bg-white text-zinc-800 border-zinc-300'
-                      }`}
-                    >
-                      {opt.label}
-                    </button>
-                  ))}
-                </div>
-
-                <span className="text-xs font-black uppercase text-zinc-800 block mb-1.5">🏁 Duração do Torneio:</span>
-                <div className="grid grid-cols-3 gap-1.5 mb-3">
-                  {[
-                    { label: '3 Rodadas', val: 3 },
-                    { label: '5 Rodadas', val: 5 },
-                    { label: 'Sem Fim', val: 0 },
-                  ].map((opt) => (
-                    <button
-                      key={opt.val}
-                      type="button"
-                      onClick={() => onUpdateSettings(undefined, opt.val)}
-                      className={`py-2 text-xs sm:text-sm rounded-xl font-black border-2 transition-all ${
-                        (gameState.settings?.maxRounds ?? 3) === opt.val
-                          ? 'bg-amber-300 text-zinc-900 border-zinc-900 shadow-sm'
-                          : 'bg-white text-zinc-800 border-zinc-300'
-                      }`}
-                    >
-                      {opt.label}
-                    </button>
-                  ))}
-                </div>
-
-                <span className="text-xs font-black uppercase text-zinc-800 block mb-1.5">🎙️ Chat de Voz na Sala:</span>
-                <div className="grid grid-cols-2 gap-1.5">
-                  <button
-                    type="button"
-                    onClick={() => onUpdateSettings(undefined, undefined, true)}
-                    className={`py-2 text-xs sm:text-sm rounded-xl font-black border-2 transition-all flex items-center justify-center gap-1.5 ${
-                      gameState.settings?.voiceEnabled !== false
-                        ? 'bg-emerald-300 text-zinc-900 border-zinc-900 shadow-sm'
-                        : 'bg-white text-zinc-800 border-zinc-300'
-                    }`}
-                  >
-                    <span>🟢 Permitido</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => onUpdateSettings(undefined, undefined, false)}
-                    className={`py-2 text-xs sm:text-sm rounded-xl font-black border-2 transition-all flex items-center justify-center gap-1.5 ${
-                      gameState.settings?.voiceEnabled === false
-                        ? 'bg-red-300 text-zinc-900 border-zinc-900 shadow-sm'
-                        : 'bg-white text-zinc-800 border-zinc-300'
-                    }`}
-                  >
-                    <span>🔴 Desativado</span>
-                  </button>
-                </div>
+                <HostSettings
+                  gameState={gameState}
+                  isHost={isHost}
+                  onUpdateSettings={onUpdateSettings}
+                  compact
+                />
               </motion.div>
             )}
           </AnimatePresence>
         </div>
 
-        {/* Friends in Room List */}
+        {/* Friends in Room List — componente único */}
         <div className="bg-white border-3 border-zinc-900 rounded-3xl p-4 shadow-[4px_5px_0px_#18181b]">
-          <div className="flex items-center justify-between text-xs sm:text-sm font-black uppercase text-zinc-800 mb-2.5 px-1">
-            <span>Amigos na Sala:</span>
-            <span className="bg-amber-200 border-2 border-zinc-900 text-zinc-900 px-3 py-0.5 rounded-full font-black">
-              {gameState.players.length} {gameState.players.length === 1 ? 'amigo' : 'amigos'}
-            </span>
-          </div>
-
-          <div className="flex flex-col gap-2 max-h-56 overflow-y-auto pr-0.5">
-            {gameState.players.map((p) => {
-              const isMe = p.id === socket.id;
-              const isPlayerHost = Boolean(p.isHost || (gameState.hostId ? p.id === gameState.hostId : false));
-              return (
-                <div
-                  key={p.id}
-                  className={`flex items-center justify-between p-2.5 rounded-2xl border-2 border-zinc-900 shadow-[2px_2px_0px_#18181b] ${
-                    isMe ? 'bg-amber-100/90' : 'bg-zinc-50'
-                  }`}
-                >
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    <AvatarIcon avatar={p.avatar} className="w-10 h-10 shrink-0 drop-shadow-sm" />
-                    <span className="font-bold text-base text-zinc-900 truncate font-kalam">
-                      {p.name} {isMe && <span className="text-blue-700 text-xs font-sketch">(Você)</span>}
-                    </span>
-                  </div>
-
-                  {isPlayerHost && (
-                    <span className="flex items-center gap-1 text-xs font-black text-zinc-900 bg-amber-300 px-2 py-1 rounded-xl border border-zinc-900 shrink-0 shadow-xs">
-                      <Crown className="w-3.5 h-3.5" /> Host
-                    </span>
-                  )}
-                </div>
-              );
-            })}
-
-            {gameState.players.length < 2 && (
-              <div className="p-3.5 rounded-2xl border-2 border-dashed border-zinc-400 text-zinc-600 text-xs sm:text-sm font-bold text-center flex items-center justify-center gap-2">
-                <span className="animate-pulse text-lg">⏳</span>
-                <span>Esperando mais 1 amigo entrar...</span>
-              </div>
-            )}
-          </div>
+          <PlayerList gameState={gameState} socket={socket} compact />
         </div>
       </div>
 
-      {/* Floating Chat Trigger Button (Bottom Right) */}
-      <div className="fixed bottom-22 right-3.5 z-30">
+      {/* Chat flutuante — deslocado para não cobrir reactions (reactions só em votação) */}
+      <div className="fixed bottom-24 right-3.5 z-30">
         <button
           type="button"
           onClick={() => setIsChatOpen(true)}
@@ -277,8 +143,8 @@ export default function MobileWaitingRoom({
         </button>
       </div>
 
-      {/* Sticky Bottom Action Bar */}
-      <div className="fixed bottom-0 left-0 right-0 p-3.5 bg-white/98 backdrop-blur border-t-2 border-zinc-900 z-30 shadow-[0_-3px_10px_rgba(0,0,0,0.08)]">
+      {/* Sticky Bottom Action Bar com safe-area */}
+      <div className="fixed bottom-0 left-0 right-0 p-3.5 pb-safe bg-white/98 backdrop-blur border-t-2 border-zinc-900 z-30 shadow-[0_-3px_10px_rgba(0,0,0,0.08)]">
         <div className="max-w-md mx-auto">
           {isHost ? (
             <button

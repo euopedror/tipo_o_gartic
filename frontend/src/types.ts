@@ -10,6 +10,8 @@ export interface Player {
   hasSubmitted: boolean;
   hasVoted?: boolean;
   isVoiceMutedByHost?: boolean;
+  /** false quando fechou/perdeu conexão sem clicar em sair (fantasma em graça de 25s) */
+  connected?: boolean;
 }
 
 export interface PlayerVotes {
@@ -21,6 +23,7 @@ export interface GameSettings {
   roundTime: number;
   maxRounds: number;
   voiceEnabled?: boolean;
+  reactionsEnabled?: boolean;
 }
 
 export interface ChatMessage {
@@ -44,6 +47,7 @@ export interface GameState {
   hostId?: string | null;
   isChatMuted?: boolean;
   isVoiceDisabled?: boolean;
+  isReactionsDisabled?: boolean;
   character?: string | null;
   tips: string[];
   messages?: ChatMessage[];

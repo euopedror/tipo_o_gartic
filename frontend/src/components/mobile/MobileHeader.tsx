@@ -1,13 +1,10 @@
 import { useState } from 'react';
-import { Socket } from 'socket.io-client';
 import { Copy, Check, Volume2, VolumeX, LogOut } from 'lucide-react';
 import AvatarIcon from '../common/AvatarIcon';
-import VoiceChat from '../common/VoiceChat';
 import type { GameState, Player } from '../../types';
 import { sounds } from '../../utils/audioFx';
 
 interface MobileHeaderProps {
-  socket: Socket;
   gameState: GameState;
   myPlayer?: Player;
   playerName: string;
@@ -18,7 +15,6 @@ interface MobileHeaderProps {
 }
 
 export default function MobileHeader({
-  socket,
   gameState,
   myPlayer,
   playerName,
@@ -37,9 +33,9 @@ export default function MobileHeader({
   };
 
   return (
-    <header className="h-14 sm:h-16 bg-white/95 border-b-2 border-zinc-900 px-3 sm:px-4 flex items-center justify-between shadow-[0_2px_6px_rgba(0,0,0,0.06)] shrink-0 z-30 font-sketch">
+    <header className="h-14 sm:h-16 bg-white/95 border-b-2 border-zinc-900 px-3 sm:px-4 flex items-center justify-between gap-2 shadow-[0_2px_6px_rgba(0,0,0,0.06)] shrink-0 z-30 font-sketch overflow-hidden">
       {/* Left: Room code & round indicator */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 min-w-0 shrink-0">
         <button
           onClick={handleCopyCode}
           type="button"
@@ -62,18 +58,8 @@ export default function MobileHeader({
         )}
       </div>
 
-      {/* Right: Voice Chat, Sound, Avatar, Leave */}
-      <div className="flex items-center gap-1.5 sm:gap-2">
-        <VoiceChat
-          socket={socket}
-          roomId={gameState.id}
-          players={gameState.players}
-          myPlayer={myPlayer}
-          voiceUserIds={gameState.voiceUserIds}
-          isVoiceDisabled={Boolean(gameState.isVoiceDisabled || gameState.settings?.voiceEnabled === false)}
-          isHost={Boolean(myPlayer?.isHost || (gameState.hostId && myPlayer?.id === gameState.hostId))}
-        />
-
+      {/* Right: Sound, Avatar, Leave — voz agora é FAB flutuante */}
+      <div className="flex items-center gap-1.5 sm:gap-2 min-w-0 shrink-0">
         <button
           onClick={onToggleSound}
           type="button"

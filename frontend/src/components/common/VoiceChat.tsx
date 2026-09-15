@@ -18,6 +18,8 @@ interface VoiceChatProps {
   voiceUserIds?: string[];
   isVoiceDisabled?: boolean;
   isHost?: boolean;
+  /** header = pill atual no header · fab = botão flutuante único fora do header */
+  variant?: 'header' | 'fab';
 }
 
 const ICE_SERVERS: RTCConfiguration = {
@@ -40,6 +42,7 @@ export default function VoiceChat({
   voiceUserIds: serverVoiceUserIds = [],
   isVoiceDisabled = false,
   isHost = false,
+  variant = 'header',
 }: VoiceChatProps) {
   const [isInVoice, setIsInVoice] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
@@ -646,12 +649,62 @@ export default function VoiceChat({
     new Set([...voicePeerIds, ...serverVoiceUserIds, ...(isInVoice ? [socket.id || ''] : [])])
   ).filter(Boolean);
 
-  const activeVoicePlayers = players.filter((p) => activeVoiceUserIds.includes(p.id));
+  const activeVoicePlayers = players.filter((p) => activeVoiceUserIds.includes(p.id) && p.connected !== false);
   const otherVoicePlayers = activeVoicePlayers.filter((p) => p.id !== socket.id);
   const allOtherMutedByHost = otherVoicePlayers.length > 0 && otherVoicePlayers.every((p) => p.isVoiceMutedByHost);
 
+  // Variante FAB: botão flutuante único fora do header.
+  // Um toque abre a CONFIG primeiro — nada de pedir microfone de surpresa.
+  // Lá dentro o usuário decide ativar ou não. Começa sempre desativado (fora da chamada).
+  // Ações rápidas (mutar/sair) ficam dentro do painel.
+  if (variant === 'fab' && isVoiceDisabled && !isHost) return null;
+  const fabActive = isInVoice;
+  const fabMuted = isMuted || isMutedByHost;
+  const fabTrigger = (
+      <div className="flex flex-col items-end gap-1.5 select-none font-sketch">
+        <button
+          type="button"
+          onClick={() => {
+            sounds.playClick();
+            setIsExpanded(!isExpanded);
+          }}
+          title={isInVoice ? 'Abrir configurações de voz' : 'Configurar voz (desativada)'}
+          className={`relative w-11 h-11 rounded-full border-2 border-zinc-900 flex items-center justify-center shadow-[2px_2px_0px_#18181b] transition-all active:scale-95 opacity-90 hover:opacity-100 ${
+            fabActive
+              ? fabMuted
+                ? 'bg-rose-200 text-rose-950'
+                : 'bg-amber-300 text-zinc-900'
+              : 'bg-white/95 text-zinc-500 hover:text-zinc-900 hover:bg-amber-50'
+          }`}
+        >
+          {fabActive && !fabMuted && (isSpeaking ? (
+            <span className="absolute inset-0 rounded-full bg-emerald-400/50 animate-ping" />
+          ) : null)}
+          {isMutedByHost ? (
+            <Lock className="w-4.5 h-4.5 relative" />
+          ) : fabMuted && fabActive ? (
+            <MicOff className="w-4.5 h-4.5 relative text-rose-800" />
+          ) : (
+            <Mic className="w-4.5 h-4.5 relative" />
+          )}
+          {activeVoicePlayers.length > 0 && (
+            <span className="absolute -top-1.5 -right-1.5 bg-emerald-300 border-2 border-zinc-900 text-zinc-900 text-[10px] font-black w-6 h-6 rounded-full flex items-center justify-center shadow-[1px_1px_0px_#18181b]">
+              {activeVoicePlayers.length}
+            </span>
+          )}
+        </button>
+        {!isExpanded && (
+          <span className="text-[10px] font-bold text-zinc-500 bg-white/85 border border-zinc-400 px-2 py-0.5 rounded-full">
+            {isInVoice ? '🎙️ Voz on' : '🎙️ Voz off'}
+          </span>
+        )}
+      </div>
+  );
+
   return (
-    <div className="relative">
+    <div className={variant === 'fab' ? 'fixed bottom-40 right-3.5 sm:bottom-6 sm:right-6 z-40' : 'relative'}>
+      {variant === 'fab' ? fabTrigger : (
+      <>
       {/* Primary Voice Pill */}
       {isVoiceDisabled ? (
         // Voice Disabled State
@@ -775,6 +828,7 @@ export default function VoiceChat({
           </button>
         </div>
       )}
+      </>)}
 
       {/* Warning/Error notification toast */}
       <AnimatePresence>
@@ -783,7 +837,9 @@ export default function VoiceChat({
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 10 }}
-            className="fixed sm:absolute top-14 sm:top-12 right-2 sm:right-0 z-50 bg-rose-100 border-2 border-zinc-900 text-rose-950 text-xs p-3 rounded-2xl shadow-[4px_4px_0px_#18181b] flex items-start gap-2 max-w-xs font-sketch"
+            className={`z-50 bg-rose-100 border-2 border-zinc-900 text-rose-950 text-xs p-3 rounded-2xl shadow-[4px_4px_0px_#18181b] flex items-start gap-2 max-w-xs font-sketch ${
+              variant === 'fab' ? 'fixed top-14 right-2' : 'fixed sm:absolute top-14 sm:top-12 right-2 sm:right-0'
+            }`}
           >
             <AlertCircle className="w-4 h-4 text-rose-700 shrink-0 mt-0.5" />
             <div className="flex-1">
@@ -807,7 +863,9 @@ export default function VoiceChat({
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 10 }}
-            className="fixed sm:absolute top-14 sm:top-12 right-2 sm:right-0 z-50 bg-emerald-100 border-2 border-zinc-900 text-emerald-950 text-xs p-3 rounded-2xl shadow-[4px_4px_0px_#18181b] flex items-start gap-2 max-w-xs font-sketch"
+            className={`z-50 bg-emerald-100 border-2 border-zinc-900 text-emerald-950 text-xs p-3 rounded-2xl shadow-[4px_4px_0px_#18181b] flex items-start gap-2 max-w-xs font-sketch ${
+              variant === 'fab' ? 'fixed top-14 right-2' : 'fixed sm:absolute top-14 sm:top-12 right-2 sm:right-0'
+            }`}
           >
             <Sparkles className="w-4 h-4 text-emerald-700 shrink-0 mt-0.5" />
             <div className="flex-1">
@@ -819,18 +877,22 @@ export default function VoiceChat({
 
       {/* Expanded Voice Controls & Participants Drawer */}
       <AnimatePresence>
-        {isInVoice && isExpanded && (
+        {isExpanded && (isInVoice || !isVoiceDisabled || isHost) && (
           <motion.div
             initial={{ opacity: 0, y: 10, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 10, scale: 0.95 }}
-            className="fixed sm:absolute top-14 sm:top-12 right-2 sm:right-0 z-50 bg-white border-2 border-zinc-900 p-3.5 sm:p-4 rounded-2xl sm:rounded-3xl shadow-[6px_6px_0px_#18181b] w-[calc(100vw-1rem)] sm:w-84 max-w-sm text-xs space-y-3 font-sketch"
+            className={`z-50 bg-white border-2 border-zinc-900 p-3.5 sm:p-4 rounded-2xl sm:rounded-3xl shadow-[6px_6px_0px_#18181b] w-[calc(100vw-1rem)] sm:w-84 max-w-sm text-xs space-y-3 font-sketch ${
+              variant === 'fab'
+                ? 'fixed bottom-[13.5rem] right-3.5 sm:bottom-24 sm:right-6'
+                : 'fixed sm:absolute top-14 sm:top-12 right-2 sm:right-0'
+            }`}
           >
             {/* Header */}
             <div className="flex items-center justify-between pb-2 border-b-2 border-zinc-900 text-zinc-800 text-xs font-bold uppercase tracking-wider font-kalam">
               <div className="flex items-center gap-2 text-zinc-900">
                 <Users className="w-4 h-4 text-zinc-900" />
-                <span>Chat de Voz P2P 🎙️</span>
+                <span>Chat de Voz 🎙️</span>
               </div>
               <button
                 type="button"
@@ -840,6 +902,73 @@ export default function VoiceChat({
                 ✕
               </button>
             </div>
+
+            {/* Config inicial: voz começa DESLIGADA — usuário decide ativar aqui */}
+            {!isInVoice && (
+              <div className="bg-amber-50 border-2 border-zinc-900 p-3 rounded-2xl space-y-2 shadow-[2px_2px_0px_#18181b] text-center">
+                <p className="text-xs font-bold text-zinc-800">
+                  {isVoiceDisabled
+                    ? '🔇 A voz está desativada nesta sala.'
+                    : '🎙️ Sua voz está desativada. Ative para falar com a galera.'}
+                </p>
+                {!isVoiceDisabled && (
+                  <button
+                    type="button"
+                    onClick={() => void handleJoinVoice()}
+                    className="w-full py-2.5 rounded-xl text-sm font-black border-2 border-zinc-900 bg-emerald-300 hover:bg-emerald-400 text-zinc-900 flex items-center justify-center gap-2 shadow-[2px_2px_0px_#18181b] active:scale-95"
+                  >
+                    <Mic className="w-4 h-4" />
+                    <span>Ativar meu microfone</span>
+                  </button>
+                )}
+                {isVoiceDisabled && isHost && (
+                  <button
+                    type="button"
+                    onClick={handleToggleRoomVoice}
+                    className="w-full py-2.5 rounded-xl text-sm font-black border-2 border-zinc-900 bg-amber-300 hover:bg-amber-400 text-zinc-900 shadow-[2px_2px_0px_#18181b] active:scale-95"
+                  >
+                    Liberar voz da sala
+                  </button>
+                )}
+                <p className="text-[10px] text-zinc-500">
+                  O navegador vai pedir permissão do microfone só se você ativar.
+                </p>
+              </div>
+            )}
+
+            {/* Ações rápidas no modo flutuante (substituem os botões do pill) */}
+            {variant === 'fab' && isInVoice && (
+              <div className="grid grid-cols-3 gap-1.5">
+                <button
+                  type="button"
+                  onClick={handleToggleMute}
+                  className={`py-2 rounded-xl text-xs font-bold border-2 border-zinc-900 flex items-center justify-center gap-1.5 shadow-[1px_1px_0px_#18181b] active:scale-95 ${
+                    isMuted || isMutedByHost ? 'bg-rose-200 text-rose-950' : 'bg-white text-zinc-900'
+                  }`}
+                >
+                  {isMuted || isMutedByHost ? <MicOff className="w-3.5 h-3.5" /> : <Mic className="w-3.5 h-3.5" />}
+                  <span>{isMutedByHost ? 'Mutado 🔒' : isMuted ? 'Desmutar' : 'Mutar'}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handleToggleDeafen}
+                  className={`py-2 rounded-xl text-xs font-bold border-2 border-zinc-900 flex items-center justify-center gap-1.5 shadow-[1px_1px_0px_#18181b] active:scale-95 ${
+                    isDeafened ? 'bg-rose-200 text-rose-950' : 'bg-white text-zinc-900'
+                  }`}
+                >
+                  {isDeafened ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5" />}
+                  <span>{isDeafened ? 'Ouvir' : 'Ensurdecer'}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handleLeaveVoice}
+                  className="py-2 rounded-xl text-xs font-bold border-2 border-zinc-900 bg-rose-200 text-rose-950 flex items-center justify-center gap-1.5 shadow-[1px_1px_0px_#18181b] active:scale-95"
+                >
+                  <PhoneOff className="w-3.5 h-3.5" />
+                  <span>Sair</span>
+                </button>
+              </div>
+            )}
 
             {/* Host Moderation Panel (Exclusive for Host) */}
             {isHost && (
@@ -894,7 +1023,8 @@ export default function VoiceChat({
               />
             </div>
 
-            {/* Local Microphone Live Meter & Test */}
+            {/* Local Microphone Live Meter & Test — só faz sentido com mic ativo */}
+            {isInVoice && (
             <div className="bg-zinc-50 border-2 border-zinc-900 p-3 rounded-2xl space-y-2 shadow-[2px_2px_0px_#18181b]">
               <div className="flex items-center justify-between text-xs font-bold font-kalam">
                 <span className="flex items-center gap-1.5 text-zinc-900">
@@ -940,6 +1070,7 @@ export default function VoiceChat({
                 </button>
               </div>
             </div>
+            )}
 
             {/* Participants list with individual volume sliders and Host Mute controls */}
             <div className="space-y-2">

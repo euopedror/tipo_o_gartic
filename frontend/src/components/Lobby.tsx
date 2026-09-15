@@ -6,6 +6,9 @@ import {
 } from 'lucide-react';
 import AvatarPicker from './common/AvatarPicker';
 import AvatarIcon from './common/AvatarIcon';
+import DeviceToggle from './common/DeviceToggle';
+import InviteBanner from './common/InviteBanner';
+import { getInvitedRoom, loadIdentity, saveIdentity } from '../utils/identity';
 import { AVATARS } from '../types';
 import { sounds } from '../utils/audioFx';
 
@@ -36,11 +39,14 @@ const FUNNY_NICKNAMES = [
 ];
 
 export default function Lobby({ onJoin, error }: LobbyProps) {
-  const queryRoom = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('room') : null;
-  const [name, setName] = useState('');
+  const queryRoom = typeof window !== 'undefined' ? getInvitedRoom() : null;
+  const [savedIdentity] = useState(() => (typeof window !== 'undefined' ? loadIdentity() : { name: '', avatar: AVATARS[0] }));
+  const [name, setName] = useState(() => savedIdentity.name);
   const [roomId, setRoomId] = useState(() => (queryRoom ? queryRoom.toUpperCase() : ''));
-  const [avatar, setAvatar] = useState(() => AVATARS[Math.floor(Math.random() * AVATARS.length)]);
+  const [avatar, setAvatar] = useState(() => savedIdentity.avatar || AVATARS[Math.floor(Math.random() * AVATARS.length)]);
   const [mode, setMode] = useState<'create' | 'join'>(() => (queryRoom ? 'join' : 'create'));
+  // Modo convite direto: link com ?room= esconde abas e campo de código — foco em nome + personagem
+  const [inviteMode, setInviteMode] = useState(() => Boolean(queryRoom));
   const [nameShake, setNameShake] = useState(false);
   const [showNameWarning, setShowNameWarning] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(() => sounds.enabled);
@@ -88,16 +94,19 @@ export default function Lobby({ onJoin, error }: LobbyProps) {
     }
 
     let targetRoom = roomId.trim().toUpperCase();
-    if (mode === 'create' && !targetRoom) {
+    if (inviteMode && queryRoom) {
+      targetRoom = queryRoom;
+    } else if (mode === 'create' && !targetRoom) {
       targetRoom = Math.random().toString(36).substring(2, 8).toUpperCase();
     }
 
-    if (mode === 'join' && !targetRoom) {
+    if (!inviteMode && mode === 'join' && !targetRoom) {
       return;
     }
 
     if (targetRoom && name.trim()) {
       sounds.playClick();
+      saveIdentity(name.trim(), avatar);
       onJoin(targetRoom, name.trim(), avatar);
     }
   };
@@ -106,6 +115,7 @@ export default function Lobby({ onJoin, error }: LobbyProps) {
     <div className="min-h-screen w-full flex items-center justify-center p-2.5 sm:p-6 relative overflow-hidden bg-[#f8f7f2]">
       {/* Floating Sound & Server Config Toggles */}
       <div className="absolute top-3 right-3 sm:top-4 sm:right-4 z-50 flex items-center gap-1.5 sm:gap-2">
+        <DeviceToggle compact />
         <button
           type="button"
           onClick={() => setShowServerModal(true)}
@@ -171,7 +181,17 @@ export default function Lobby({ onJoin, error }: LobbyProps) {
           transition={{ delay: 0.15 }}
           className="bg-white border-2 border-zinc-900 rounded-2xl p-4 sm:p-7 relative shadow-[4px_5px_0px_#18181b] sketch-tape"
         >
-          {/* Mode Switcher Tabs */}
+          {/* Banner de convite direto no lugar das abas */}
+          {inviteMode && queryRoom ? (
+            <InviteBanner
+              roomCode={queryRoom}
+              onSwitchRoom={() => {
+                sounds.playClick();
+                setInviteMode(false);
+                setMode('join');
+              }}
+            />
+          ) : (
           <div className="flex bg-zinc-100 p-1 rounded-xl mb-4 sm:mb-5 border-2 border-zinc-900 font-sketch shadow-[2px_2px_0px_#18181b]">
             <button
               type="button"
@@ -202,6 +222,7 @@ export default function Lobby({ onJoin, error }: LobbyProps) {
               <span>🔑 Entrar com Código</span>
             </button>
           </div>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5 relative z-10">
             {/* Player Nickname & Big Avatar Badge */}
@@ -263,8 +284,8 @@ export default function Lobby({ onJoin, error }: LobbyProps) {
               <AvatarPicker selectedAvatar={avatar} onSelect={setAvatar} />
             </div>
 
-            {/* Room Code Section */}
-            {mode === 'join' ? (
+            {/* Room Code Section — escondida no modo convite (sala já travada) */}
+            {!(inviteMode && queryRoom) && (mode === 'join' ? (
               <div>
                 <label className="block text-xs sm:text-sm font-bold uppercase tracking-wider text-zinc-700 mb-1.5 font-sketch">
                   🔑 Digite o Código da Sala:
@@ -303,7 +324,7 @@ export default function Lobby({ onJoin, error }: LobbyProps) {
                   maxLength={10}
                 />
               </div>
-            )}
+            ))}
 
             {error && (
               <motion.div 
@@ -321,7 +342,7 @@ export default function Lobby({ onJoin, error }: LobbyProps) {
                 type="submit"
                 className="w-full btn-arcade-gold py-3.5 sm:py-4 px-4 sm:px-6 rounded-xl flex items-center justify-center gap-2 sm:gap-3 text-xl font-sketch font-bold tracking-wide min-h-[48px]"
               >
-                <span>{mode === 'create' ? 'CRIAR SALA E JOGAR ➔' : 'ENTRAR NA SALA ➔'}</span>
+                <span>{inviteMode && queryRoom ? `ENTRAR NA SALA ${queryRoom} ➔` : mode === 'create' ? 'CRIAR SALA E JOGAR ➔' : 'ENTRAR NA SALA ➔'}</span>
                 <ArrowRight className="w-5 h-5 sm:w-6 sm:h-6 stroke-[3] shrink-0" />
               </button>
             </div>

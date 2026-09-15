@@ -35,9 +35,16 @@ export default function PartyChat({
   const [sendAsTip, setSendAsTip] = useState(isMaster);
   const [localMessages, setLocalMessages] = useState<ChatMessage[]>(() => messages);
   const chatScrollRef = useRef<HTMLDivElement>(null);
+  // Anti-flood dos emojis rápidos: 1 por segundo (cada toque vira mensagem no chat de todos)
+  const lastQuickEmojiAt = useRef(0);
 
   // Sync external messages from room_update without hoarding obsolete messages
   useEffect(() => {
+    // Servidor zerou (nova partida): descarta TUDO, inclusive otimistas pendentes
+    if (messages.length === 0) {
+      setLocalMessages([]);
+      return;
+    }
     setLocalMessages((prev) => {
       // Retain only very recent (<3s) unacknowledged local optimistic messages
       const pendingOptimistic = prev.filter(
@@ -168,6 +175,8 @@ export default function PartyChat({
 
   const handleQuickEmoji = (emoji: string) => {
     if (!isHost && isChatMuted) return;
+    if (Date.now() - lastQuickEmojiAt.current < 1000) return;
+    lastQuickEmojiAt.current = Date.now();
     sounds.playPop();
     const senderName = myPlayer?.name || 'Você';
     const senderAvatar = myPlayer?.avatar || '🎨';
