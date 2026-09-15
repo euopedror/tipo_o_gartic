@@ -63,6 +63,27 @@ button, input, textarea, select {
   scrollbar-width: none;
 }
 
+/* Custom visible scrollbar for chat and scrollable containers */
+.custom-chat-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #a1a1aa #f4f4f5;
+}
+.custom-chat-scrollbar::-webkit-scrollbar {
+  width: 7px;
+}
+.custom-chat-scrollbar::-webkit-scrollbar-track {
+  background: #f4f4f5;
+  border-radius: 6px;
+}
+.custom-chat-scrollbar::-webkit-scrollbar-thumb {
+  background: #a1a1aa;
+  border-radius: 6px;
+  border: 1px solid #71717a;
+}
+.custom-chat-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #71717a;
+}
+
 /* Handwriting Fonts */
 .font-sketch {
   font-family: 'Patrick Hand', cursive, sans-serif;

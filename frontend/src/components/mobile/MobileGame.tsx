@@ -53,11 +53,41 @@ export default function MobileGame({ socket, gameState, myPlayer, timer }: Mobil
   const [chatDrawerOpen, setChatDrawerOpen] = useState(false);
 
   // Sync submission state from server
+  const hasSubmittedRef = useRef(Boolean(myPlayer?.hasSubmitted));
+  hasSubmittedRef.current = hasSubmitted;
+
   useEffect(() => {
     if (myPlayer?.hasSubmitted) {
       setHasSubmitted(true);
     }
   }, [myPlayer?.hasSubmitted]);
+
+  // Auto-submit on timer 0
+  useEffect(() => {
+    if (!isMaster && timer === 0 && !hasSubmittedRef.current && canvasRef.current) {
+      try {
+        const dataUrl = canvasRef.current.toDataURL('image/png');
+        socket.emit('submit_drawing', { roomId: gameState.id, dataUrl, imageDataUrl: dataUrl });
+        setHasSubmitted(true);
+      } catch (err) {
+        console.error('Mobile auto-submit failed:', err);
+      }
+    }
+  }, [timer, isMaster, gameState.id, socket]);
+
+  // Auto-submit on unmount / round change
+  useEffect(() => {
+    return () => {
+      if (!isMaster && !hasSubmittedRef.current && canvasRef.current) {
+        try {
+          const dataUrl = canvasRef.current.toDataURL('image/png');
+          socket.emit('submit_drawing', { roomId: gameState.id, dataUrl, imageDataUrl: dataUrl });
+        } catch (err) {
+          console.error('Mobile unmount auto-submit failed:', err);
+        }
+      }
+    };
+  }, [isMaster, gameState.id, socket]);
 
   // Setup canvas resolution and touch-action
   useEffect(() => {
@@ -163,7 +193,7 @@ export default function MobileGame({ socket, gameState, myPlayer, timer }: Mobil
     if (!canvasRef.current || hasSubmitted) return;
     sounds.playFanfare();
     const dataUrl = canvasRef.current.toDataURL('image/png');
-    socket.emit('submit_drawing', { roomId: gameState.id, dataUrl });
+    socket.emit('submit_drawing', { roomId: gameState.id, dataUrl, imageDataUrl: dataUrl });
     setHasSubmitted(true);
   };
 

@@ -492,43 +492,48 @@ io.on('connection', (socket) => {
     socket.to(cleanRoomId).emit('draw_line', { playerId: socket.id, line });
   });
 
-  socket.on('submit_drawing', ({ roomId, imageDataUrl }) => {
+  socket.on('submit_drawing', ({ roomId, imageDataUrl, dataUrl }) => {
     if (!roomId) return;
     const cleanRoomId = String(roomId).trim().toUpperCase();
     const room = rooms[cleanRoomId];
-    if (!room || room.state !== GAME_STATES.PLAYING) return;
+    if (!room || (room.state !== GAME_STATES.PLAYING && room.state !== GAME_STATES.VOTING)) return;
     if (!room.players[socket.id]) return;
     
-    room.drawings[socket.id] = imageDataUrl;
+    const img = imageDataUrl || dataUrl;
+    if (img) {
+      room.drawings[socket.id] = img;
+    }
     room.players[socket.id].hasSubmitted = true;
     
     io.to(cleanRoomId).emit('player_submitted', socket.id);
     io.to(cleanRoomId).emit('room_update', getRoomPublicState(cleanRoomId));
     
     // Check if artists who were present at the start of the round have all submitted
-    const originalArtists = Object.values(room.players).filter(p => !p.isMaster && room.activeArtistIds?.has(p.id));
-    const allOriginalSubmitted = originalArtists.length > 0 && originalArtists.every(p => p.hasSubmitted);
-    
-    const allCurrentArtists = Object.values(room.players).filter(p => !p.isMaster);
-    const allCurrentSubmitted = allCurrentArtists.length > 0 && allCurrentArtists.every(p => p.hasSubmitted);
+    if (room.state === GAME_STATES.PLAYING) {
+      const originalArtists = Object.values(room.players).filter(p => !p.isMaster && room.activeArtistIds?.has(p.id));
+      const allOriginalSubmitted = originalArtists.length > 0 && originalArtists.every(p => p.hasSubmitted);
       
-    if (allCurrentSubmitted || (allOriginalSubmitted && originalArtists.length === allCurrentArtists.length)) {
-      if (room.timerInterval) clearInterval(room.timerInterval);
-      endPlayingPhase(cleanRoomId);
-    } else if (allOriginalSubmitted && !allCurrentSubmitted) {
-      // Original artists finished, but a late joiner is still drawing.
-      // If round had no time limit, start a 20s countdown so original artists aren't blocked forever.
-      if (!room.timerInterval && room.timer === 0) {
-        room.timer = 20;
-        io.to(cleanRoomId).emit('timer_update', room.timer);
-        room.timerInterval = setInterval(() => {
-          room.timer--;
+      const allCurrentArtists = Object.values(room.players).filter(p => !p.isMaster);
+      const allCurrentSubmitted = allCurrentArtists.length > 0 && allCurrentArtists.every(p => p.hasSubmitted);
+        
+      if (allCurrentSubmitted || (allOriginalSubmitted && originalArtists.length === allCurrentArtists.length)) {
+        if (room.timerInterval) clearInterval(room.timerInterval);
+        endPlayingPhase(cleanRoomId);
+      } else if (allOriginalSubmitted && !allCurrentSubmitted) {
+        // Original artists finished, but a late joiner is still drawing.
+        // If round had no time limit, start a 20s countdown so original artists aren't blocked forever.
+        if (!room.timerInterval && room.timer === 0) {
+          room.timer = 20;
           io.to(cleanRoomId).emit('timer_update', room.timer);
-          if (room.timer <= 0) {
-            clearInterval(room.timerInterval);
-            endPlayingPhase(cleanRoomId);
-          }
-        }, 1000);
+          room.timerInterval = setInterval(() => {
+            room.timer--;
+            io.to(cleanRoomId).emit('timer_update', room.timer);
+            if (room.timer <= 0) {
+              clearInterval(room.timerInterval);
+              endPlayingPhase(cleanRoomId);
+            }
+          }, 1000);
+        }
       }
     }
   });

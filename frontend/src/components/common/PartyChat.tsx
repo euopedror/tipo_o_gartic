@@ -181,7 +181,7 @@ export default function PartyChat({
   };
 
   return (
-    <div className={`flex flex-col h-full bg-white font-sketch ${compact ? 'border-2 border-zinc-900 rounded-2xl shadow-[4px_4px_0px_#18181b] overflow-hidden' : ''}`}>
+    <div className={`flex flex-col h-full max-h-full min-h-0 bg-white font-sketch overflow-hidden ${compact ? 'border-2 border-zinc-900 rounded-2xl shadow-[4px_4px_0px_#18181b]' : ''}`}>
       {/* Header */}
       <div className="p-3 bg-zinc-100 border-b-2 border-zinc-900 flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
@@ -252,7 +252,7 @@ export default function PartyChat({
       {/* Messages stream */}
       <div 
         ref={chatScrollRef}
-        className="flex-1 overflow-y-auto p-3 space-y-2 min-h-[140px] text-xs bg-white"
+        className="flex-1 min-h-0 overflow-y-auto p-3 space-y-2 text-xs bg-white custom-chat-scrollbar"
       >
         {localMessages.length === 0 ? (
           <div className="h-full flex flex-col items-center justify-center text-center text-zinc-500 py-6">

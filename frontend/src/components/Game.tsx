@@ -141,10 +141,10 @@ export default function Game({ socket, gameState, myPlayer, timer }: GameProps) 
       {/* Desktop Sidebar (Always visible on md+, visible on mobile when mobileTab is 'chat' or 'tips') */}
       <div className={`
         ${mobileTab === 'main' ? 'hidden md:flex' : 'flex'}
-        w-full md:w-88 flex-col gap-3 shrink-0 h-full md:h-auto overflow-hidden
+        w-full md:w-88 flex-col gap-3 shrink-0 h-full md:h-full max-h-full min-h-0 overflow-hidden
       `}>
         {/* Desktop Timer Card */}
-        <div className="hidden md:flex bg-white rounded-2xl p-4 md:p-5 border-2 border-zinc-900 shadow-[4px_5px_0px_#18181b] items-center justify-between gap-2 font-sketch">
+        <div className="hidden md:flex bg-white rounded-2xl p-4 md:p-5 border-2 border-zinc-900 shadow-[4px_5px_0px_#18181b] items-center justify-between gap-2 font-sketch shrink-0">
           <div className="flex items-center gap-3">
             {timer > 0 ? (
               <>
@@ -197,9 +197,9 @@ export default function Game({ socket, gameState, myPlayer, timer }: GameProps) 
         </div>
 
         {/* Chat / Tips Feed */}
-        <div className="flex-1 bg-white rounded-2xl border-2 border-zinc-900 flex flex-col overflow-hidden shadow-[4px_5px_0px_#18181b] min-h-[300px]">
+        <div className="flex-1 min-h-0 max-h-full bg-white rounded-2xl border-2 border-zinc-900 flex flex-col overflow-hidden shadow-[4px_5px_0px_#18181b]">
           {/* Tab Switcher (Desktop) */}
-          <div className="hidden md:flex p-2 border-b-2 border-zinc-900 bg-zinc-50 items-center justify-between font-sketch">
+          <div className="hidden md:flex p-2 border-b-2 border-zinc-900 bg-zinc-50 items-center justify-between font-sketch shrink-0">
             <div className="flex items-center gap-1 bg-zinc-200 p-1 rounded-xl border border-zinc-400 w-full">
               <button
                 type="button"
@@ -243,23 +243,25 @@ export default function Game({ socket, gameState, myPlayer, timer }: GameProps) 
 
           {/* Chat or Tips display */}
           {((mobileTab === 'chat') || (mobileTab === 'main' && activeSidebarTab === 'chat') || (activeSidebarTab === 'chat' && mobileTab !== 'tips')) ? (
-            <PartyChat
-              socket={socket}
-              roomId={gameState.id}
-              messages={gameState.messages}
-              myPlayer={myPlayer}
-              isMaster={Boolean(isMaster)}
-              isHost={Boolean(myPlayer?.isHost || myPlayer?.id === gameState.hostId)}
-              isChatMuted={Boolean(gameState.isChatMuted)}
-            />
+            <div className="flex-1 min-h-0 h-full max-h-full overflow-hidden">
+              <PartyChat
+                socket={socket}
+                roomId={gameState.id}
+                messages={gameState.messages}
+                myPlayer={myPlayer}
+                isMaster={Boolean(isMaster)}
+                isHost={Boolean(myPlayer?.isHost || myPlayer?.id === gameState.hostId)}
+                isChatMuted={Boolean(gameState.isChatMuted)}
+              />
+            </div>
           ) : (
-            <div className="flex-1 flex flex-col overflow-hidden">
-              <div className="flex-1 overflow-y-auto p-4 space-y-3">
+            <div className="flex-1 min-h-0 h-full max-h-full flex flex-col overflow-hidden">
+              <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-3 custom-chat-scrollbar">
                 {gameState.tips.length === 0 ? (
-                  <div className="h-full flex flex-col items-center justify-center text-center text-text-muted text-xs p-4">
+                  <div className="h-full flex flex-col items-center justify-center text-center text-zinc-500 text-xs p-4">
                     <span className="text-3xl mb-2">👂</span>
-                    <p className="font-medium">O Mestre está preparando a primeira dica...</p>
-                    <p className="text-[11px] opacity-70 mt-1">Fique de olho aqui!</p>
+                    <p className="font-bold text-sm text-zinc-800 font-kalam">O Mestre está preparando a primeira dica...</p>
+                    <p className="text-xs text-zinc-500 mt-1">Fique de olho aqui!</p>
                   </div>
                 ) : (
                   gameState.tips.map((tip, idx) => (
@@ -267,13 +269,13 @@ export default function Game({ socket, gameState, myPlayer, timer }: GameProps) 
                       key={idx}
                       initial={{ opacity: 0, x: -10, scale: 0.95 }}
                       animate={{ opacity: 1, x: 0, scale: 1 }}
-                      className="bg-primary/15 border border-primary/30 p-3 rounded-2xl rounded-tl-sm text-white text-sm shadow-sm relative"
+                      className="bg-yellow-100/90 border-2 border-zinc-900 p-3 rounded-2xl shadow-[2px_2px_0px_#18181b] relative"
                     >
-                      <div className="text-[10px] text-accent-cyan font-bold uppercase tracking-wider mb-1 flex items-center gap-1">
+                      <div className="text-xs text-amber-900 font-black uppercase tracking-wider mb-1 flex items-center gap-1 font-kalam">
                         <span>👑 Mestre</span>
-                        <span className="text-text-muted">• Dica #{idx + 1}</span>
+                        <span className="text-zinc-600 font-sketch">• Dica #{idx + 1}</span>
                       </div>
-                      <p className="font-medium text-slate-100">{tip}</p>
+                      <p className="font-bold text-sm text-zinc-900 font-kalam leading-relaxed">{tip}</p>
                     </motion.div>
                   ))
                 )}
@@ -307,6 +309,7 @@ export default function Game({ socket, gameState, myPlayer, timer }: GameProps) 
             myPlayer={myPlayer} 
             tips={gameState.tips}
             onOpenTips={() => setMobileTab('tips')}
+            timer={gameState.timer}
           />
         )}
       </div>
@@ -551,13 +554,15 @@ function DrawingBoard({
   roomId, 
   myPlayer: _myPlayer,
   tips = [],
-  onOpenTips
+  onOpenTips,
+  timer
 }: { 
   socket: Socket; 
   roomId: string; 
   myPlayer?: Player; 
   tips?: string[];
   onOpenTips?: () => void;
+  timer?: number;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
@@ -568,6 +573,8 @@ function DrawingBoard({
   const [tipsMinimized, setTipsMinimized] = useState(true);
   const [newTipAlert, setNewTipAlert] = useState<string | null>(null);
   const prevTipsCount = useRef(tips.length);
+  const hasSubmittedRef = useRef(Boolean(_myPlayer?.hasSubmitted));
+  hasSubmittedRef.current = submitted;
 
   useEffect(() => {
     if (_myPlayer?.hasSubmitted) {
@@ -714,14 +721,48 @@ function DrawingBoard({
   };
 
   const submitDrawing = () => {
+    if (submitted) return;
     const canvas = canvasRef.current;
     if (canvas) {
       sounds.playPop();
       const dataUrl = canvas.toDataURL('image/png');
-      socket.emit('submit_drawing', { roomId, imageDataUrl: dataUrl });
+      socket.emit('submit_drawing', { roomId, imageDataUrl: dataUrl, dataUrl });
       setSubmitted(true);
     }
   };
+
+  // Auto-submit when timer hits 0
+  useEffect(() => {
+    if (timer === 0 && !hasSubmittedRef.current) {
+      const canvas = canvasRef.current;
+      if (canvas) {
+        try {
+          const dataUrl = canvas.toDataURL('image/png');
+          socket.emit('submit_drawing', { roomId, imageDataUrl: dataUrl, dataUrl });
+          setSubmitted(true);
+        } catch (e) {
+          console.error('Auto submit on timer 0 failed:', e);
+        }
+      }
+    }
+  }, [timer, roomId, socket]);
+
+  // Auto-submit on round exit / component unmount if not yet submitted
+  useEffect(() => {
+    return () => {
+      if (!hasSubmittedRef.current) {
+        const canvas = canvasRef.current;
+        if (canvas) {
+          try {
+            const dataUrl = canvas.toDataURL('image/png');
+            socket.emit('submit_drawing', { roomId, imageDataUrl: dataUrl, dataUrl });
+          } catch (e) {
+            console.error('Auto submit on unmount failed:', e);
+          }
+        }
+      }
+    };
+  }, [roomId, socket]);
 
   return (
     <div className="flex-1 flex flex-col w-full h-full relative bg-white border-2 border-zinc-900 rounded-2xl shadow-[4px_5px_0px_#18181b] overflow-hidden">
