@@ -13,6 +13,13 @@ import FloatingReactions from './components/common/FloatingReactions';
 import PartyChat from './components/common/PartyChat';
 import VoiceChat from './components/common/VoiceChat';
 import AvatarIcon from './components/common/AvatarIcon';
+import { useIsMobile } from './hooks/useIsMobile';
+import MobileHeader from './components/mobile/MobileHeader';
+import MobileLobby from './components/mobile/MobileLobby';
+import MobileWaitingRoom from './components/mobile/MobileWaitingRoom';
+import MobileGame from './components/mobile/MobileGame';
+import MobileVoting from './components/mobile/MobileVoting';
+import MobileResults from './components/mobile/MobileResults';
 import type { GameState, ReactionItem, ChatMessage } from './types';
 import { sounds } from './utils/audioFx';
 
@@ -47,6 +54,7 @@ const socket: Socket = io(backendUrl, {
 });
 
 export default function App() {
+  const { isMobile } = useIsMobile();
   const [gameState, setGameState] = useState<GameState | null>(null);
   const [roomId, setRoomId] = useState('');
   const [playerName, setPlayerName] = useState('');
@@ -276,7 +284,82 @@ export default function App() {
   );
 
   if (!gameState || !myPlayer) {
-    return <Lobby onJoin={handleJoin} error={error} />;
+    return isMobile ? (
+      <MobileLobby onJoin={handleJoin} error={error} />
+    ) : (
+      <Lobby onJoin={handleJoin} error={error} />
+    );
+  }
+
+  // Exclusive Layout for Mobile Devices
+  if (isMobile) {
+    return (
+      <div className="min-h-screen bg-[#f8f7f2] text-zinc-900 flex flex-col font-sans select-none overflow-x-hidden">
+        <MobileHeader
+          socket={socket}
+          gameState={gameState}
+          myPlayer={myPlayer}
+          playerName={playerName}
+          playerAvatar={playerAvatar}
+          soundEnabled={soundEnabled}
+          onToggleSound={toggleSound}
+          onLeaveRoom={handleLeaveRoom}
+        />
+
+        <main className="flex-1 overflow-hidden relative flex flex-col">
+          <AnimatePresence mode="wait">
+            {gameState.state === 'LOBBY' && (
+              <MobileWaitingRoom
+                key="mobile-waiting"
+                socket={socket}
+                gameState={gameState}
+                myPlayer={myPlayer}
+                isHost={isHost}
+                onStartGame={handleStartGame}
+                onUpdateSettings={handleUpdateSettings}
+              />
+            )}
+
+            {gameState.state === 'PLAYING' && (
+              <MobileGame
+                key="mobile-game"
+                socket={socket}
+                gameState={gameState}
+                myPlayer={myPlayer}
+                timer={timer}
+              />
+            )}
+
+            {gameState.state === 'VOTING' && (
+              <MobileVoting
+                key="mobile-voting"
+                socket={socket}
+                gameState={gameState}
+                myPlayer={myPlayer}
+                timer={timer}
+              />
+            )}
+
+            {gameState.state === 'RESULTS' && (
+              <MobileResults
+                key="mobile-results"
+                socket={socket}
+                gameState={gameState}
+                isHost={isHost}
+              />
+            )}
+          </AnimatePresence>
+
+          {/* Floating Reactions Layer on Mobile */}
+          {gameState.state !== 'LOBBY' && (
+            <FloatingReactions
+              reactions={reactions}
+              onSendReaction={handleSendReaction}
+            />
+          )}
+        </main>
+      </div>
+    );
   }
 
   return (
