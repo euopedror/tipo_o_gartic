@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Dices, Volume2, VolumeX, Settings2, AlertCircle } from 'lucide-react';
+import { Dices, Volume2, VolumeX, Settings2, AlertCircle, ArrowRight } from 'lucide-react';
 import AvatarIcon, { AVATAR_NAMES } from '../common/AvatarIcon';
 import { AVATARS } from '../../types';
 import { sounds } from '../../utils/audioFx';
@@ -72,45 +72,47 @@ export default function MobileLobby({ onJoin, error }: MobileLobbyProps) {
   };
 
   return (
-    <div className="min-h-screen w-full bg-[#f8f7f2] flex flex-col justify-between p-3 sm:p-4 font-sketch relative overflow-x-hidden">
-      {/* Top Floating Controls */}
-      <div className="flex items-center justify-between z-20">
-        <div className="flex items-center gap-1.5 bg-amber-200 border-2 border-zinc-900 px-2.5 py-0.5 rounded-full text-xs font-bold shadow-[1.5px_1.5px_0px_#18181b]">
-          <span>📱 Modo Celular</span>
+    <div className="min-h-[100dvh] w-full bg-[#f8f7f2] flex flex-col justify-between p-3.5 sm:p-5 font-sketch relative selection:bg-amber-200">
+      {/* Top Mobile Bar */}
+      <div className="w-full max-w-md mx-auto flex items-center justify-between pt-1 pb-2">
+        <div className="flex items-center gap-2 bg-amber-200 border-2 border-zinc-900 px-3 py-1 rounded-full text-xs font-black shadow-[1.5px_1.5px_0px_#18181b]">
+          <span>📱 Desenho Cego</span>
         </div>
 
         <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={toggleSound}
-            className="p-2 rounded-xl bg-white border-2 border-zinc-900 shadow-[2px_2px_0px_#18181b] active:translate-x-[1px] active:translate-y-[1px]"
+            className="w-10 h-10 rounded-2xl bg-white border-2 border-zinc-900 shadow-[2px_2px_0px_#18181b] active:translate-x-[1px] active:translate-y-[1px] flex items-center justify-center text-zinc-800"
             title={soundEnabled ? 'Silenciar som' : 'Ativar som'}
           >
-            {soundEnabled ? <Volume2 className="w-4 h-4 text-green-700" /> : <VolumeX className="w-4 h-4 text-red-600" />}
+            {soundEnabled ? <Volume2 className="w-5 h-5 text-green-700" /> : <VolumeX className="w-5 h-5 text-red-600" />}
           </button>
 
           <button
             type="button"
             onClick={() => setShowServerModal(true)}
-            className="p-2 rounded-xl bg-white border-2 border-zinc-900 shadow-[2px_2px_0px_#18181b] active:translate-x-[1px] active:translate-y-[1px] text-zinc-700"
-            title="Servidor"
+            className="w-10 h-10 rounded-2xl bg-white border-2 border-zinc-900 shadow-[2px_2px_0px_#18181b] active:translate-x-[1px] active:translate-y-[1px] flex items-center justify-center text-zinc-700"
+            title="Configurações do Servidor"
           >
-            <Settings2 className="w-4 h-4" />
+            <Settings2 className="w-5 h-5" />
           </button>
         </div>
       </div>
 
-      {/* Main Notebook Card */}
-      <div className="my-auto w-full max-w-sm mx-auto bg-white border-2 border-zinc-900 rounded-2xl p-4 sm:p-5 shadow-[4px_5px_0px_#18181b] relative text-center sketch-tape">
-        {/* Title & Doodle */}
-        <div className="mb-3">
-          <div className="flex items-center justify-center gap-1.5">
-            <span className="text-2xl animate-bounce">✏️</span>
-            <h1 className="text-2xl sm:text-3xl font-black text-zinc-900 tracking-tight">
+      {/* Main Expanded Notebook Sheet */}
+      <div className="w-full max-w-md mx-auto my-auto bg-white border-3 border-zinc-900 rounded-3xl p-5 sm:p-6 shadow-[5px_6px_0px_#18181b] relative text-center sketch-tape">
+        {/* Title Header with Big Doodle */}
+        <div className="mb-4">
+          <div className="flex items-center justify-center gap-2">
+            <span className="text-3xl sm:text-4xl animate-bounce">✏️</span>
+            <h1 className="text-3xl sm:text-4xl font-black text-zinc-900 tracking-tight font-kalam">
               Desenho Cego
             </h1>
           </div>
-          <p className="text-xs text-zinc-600">O jogo de rabisco no caderno com a galera!</p>
+          <p className="text-sm text-zinc-600 font-sketch mt-0.5">
+            O jogo de rabisco no caderno com a galera!
+          </p>
         </div>
 
         {/* Error Alert */}
@@ -120,26 +122,26 @@ export default function MobileLobby({ onJoin, error }: MobileLobbyProps) {
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              className="mb-3 p-2 bg-red-100 border-2 border-zinc-900 text-red-800 text-xs rounded-xl flex items-center gap-2 text-left shadow-[2px_2px_0px_#18181b]"
+              className="mb-4 p-3 bg-red-100 border-2 border-zinc-900 text-red-800 text-xs sm:text-sm font-bold rounded-2xl flex items-center gap-2 text-left shadow-[2px_2px_0px_#18181b]"
             >
-              <AlertCircle className="w-4 h-4 shrink-0 text-red-600" />
+              <AlertCircle className="w-5 h-5 shrink-0 text-red-600" />
               <span>{error}</span>
             </motion.div>
           )}
         </AnimatePresence>
 
-        {/* Mode Selector Tabs (Criar Sala vs Entrar na Sala) */}
-        <div className="grid grid-cols-2 gap-1.5 p-1 bg-amber-50 border-2 border-zinc-900 rounded-xl mb-4 shadow-[2px_2px_0px_#18181b]">
+        {/* Large Mode Switcher Tabs */}
+        <div className="grid grid-cols-2 gap-2 p-1.5 bg-amber-100/70 border-2 border-zinc-900 rounded-2xl mb-4 shadow-[2px_2px_0px_#18181b]">
           <button
             type="button"
             onClick={() => {
               sounds.playClick();
               setMode('create');
             }}
-            className={`py-1.5 rounded-lg text-xs font-black transition-all ${
+            className={`py-2.5 rounded-xl text-sm sm:text-base font-black transition-all ${
               mode === 'create'
-                ? 'bg-amber-300 text-zinc-900 border border-zinc-900 shadow-sm'
-                : 'text-zinc-600'
+                ? 'bg-amber-300 text-zinc-900 border-2 border-zinc-900 shadow-[2px_2px_0px_#18181b]'
+                : 'text-zinc-700 hover:text-zinc-900'
             }`}
           >
             ✨ Criar Sala
@@ -150,31 +152,31 @@ export default function MobileLobby({ onJoin, error }: MobileLobbyProps) {
               sounds.playClick();
               setMode('join');
             }}
-            className={`py-1.5 rounded-lg text-xs font-black transition-all ${
+            className={`py-2.5 rounded-xl text-sm sm:text-base font-black transition-all ${
               mode === 'join'
-                ? 'bg-amber-300 text-zinc-900 border border-zinc-900 shadow-sm'
-                : 'text-zinc-600'
+                ? 'bg-amber-300 text-zinc-900 border-2 border-zinc-900 shadow-[2px_2px_0px_#18181b]'
+                : 'text-zinc-700 hover:text-zinc-900'
             }`}
           >
             🔑 Entrar na Sala
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-3.5 text-left">
-          {/* Nickname Input */}
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4 text-left">
+          {/* Nickname Input & Random Name Button */}
           <div>
-            <div className="flex items-center justify-between mb-1">
-              <label className="text-xs font-black uppercase text-zinc-800">
-                Seu Apelido:
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="text-xs sm:text-sm font-black uppercase text-zinc-800 tracking-wider">
+                ✏️ Seu Apelido:
               </label>
               {showNameWarning && (
-                <span className="text-[11px] font-bold text-red-600 animate-pulse">
-                  Digite seu nome!
+                <span className="text-xs font-bold text-red-600 animate-pulse">
+                  Digite seu apelido!
                 </span>
               )}
             </div>
 
-            <div className="flex gap-1.5">
+            <div className="flex gap-2">
               <motion.input
                 animate={nameShake ? { x: [-8, 8, -6, 6, 0] } : {}}
                 type="text"
@@ -184,52 +186,52 @@ export default function MobileLobby({ onJoin, error }: MobileLobbyProps) {
                   if (showNameWarning) setShowNameWarning(false);
                 }}
                 maxLength={20}
-                placeholder="Ex: Monalisa do Pagode"
-                className="flex-1 bg-white border-2 border-zinc-900 rounded-xl px-3 py-2 text-sm text-zinc-900 placeholder:text-zinc-400 font-bold focus:outline-none focus:ring-2 focus:ring-amber-400 shadow-[2px_2px_0px_#18181b]"
+                placeholder="Ex: Picasso do Zap"
+                className="flex-1 h-13 bg-amber-50/40 border-2 border-zinc-900 rounded-2xl px-3.5 text-base sm:text-lg text-zinc-900 placeholder:text-zinc-400 font-bold font-kalam focus:outline-none focus:ring-2 focus:ring-amber-400 shadow-[2px_2px_0px_#18181b]"
               />
 
               <button
                 type="button"
                 onClick={handleRandomName}
                 title="Sortear apelido engraçado"
-                className="bg-amber-200 hover:bg-amber-300 border-2 border-zinc-900 px-3 py-2 rounded-xl text-zinc-900 font-bold shadow-[2px_2px_0px_#18181b] active:translate-x-[1px] active:translate-y-[1px] flex items-center justify-center shrink-0"
+                className="w-13 h-13 bg-amber-300 hover:bg-amber-400 border-2 border-zinc-900 rounded-2xl text-zinc-900 font-bold shadow-[2px_2px_0px_#18181b] active:translate-x-[1px] active:translate-y-[1px] flex items-center justify-center shrink-0"
               >
-                <Dices className="w-5 h-5 stroke-[2.5]" />
+                <Dices className="w-6 h-6 stroke-[2.5]" />
               </button>
             </div>
           </div>
 
-          {/* Room Code (if in Join mode) */}
+          {/* Room Code Input (if in Join mode) */}
           {mode === 'join' && (
             <div>
-              <label className="text-xs font-black uppercase text-zinc-800 block mb-1">
-                Código da Sala:
+              <label className="text-xs sm:text-sm font-black uppercase text-zinc-800 tracking-wider block mb-1.5">
+                🔑 Código da Sala:
               </label>
               <input
                 type="text"
                 value={roomId}
                 onChange={(e) => setRoomId(e.target.value.toUpperCase())}
                 maxLength={8}
-                placeholder="Ex: ABCD12"
-                className="w-full bg-white border-2 border-zinc-900 rounded-xl px-3 py-2 text-sm text-zinc-900 font-mono font-black tracking-widest placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-amber-400 shadow-[2px_2px_0px_#18181b]"
+                placeholder="Ex: ABC123"
+                className="w-full h-13 bg-amber-50/40 border-2 border-zinc-900 rounded-2xl px-4 text-lg font-mono font-black tracking-widest text-blue-700 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-amber-400 shadow-[2px_2px_0px_#18181b]"
               />
             </div>
           )}
 
-          {/* Mobile Character Avatar Selector */}
+          {/* Big, Clear Hand-Drawn Character Selector */}
           <div>
-            <div className="flex items-center justify-between mb-1.5">
-              <label className="text-xs font-black uppercase text-zinc-800">
-                Escolha seu Rabisco:
+            <div className="flex items-center justify-between mb-2">
+              <label className="text-xs sm:text-sm font-black uppercase text-zinc-800 tracking-wider">
+                🎨 Escolha seu Personagem:
               </label>
-              <span className="text-[11px] font-bold text-zinc-900 bg-amber-200 border border-zinc-900 px-2 py-0.5 rounded-full flex items-center gap-1 shadow-sm">
-                <AvatarIcon avatar={avatar} className="w-3.5 h-3.5" />
+              <span className="text-xs sm:text-sm font-black text-zinc-900 bg-amber-200 border-2 border-zinc-900 px-3 py-1 rounded-full flex items-center gap-1.5 shadow-[1.5px_1.5px_0px_#18181b]">
+                <AvatarIcon avatar={avatar} className="w-5 h-5 shrink-0" />
                 <span>{AVATAR_NAMES[avatar] || 'Personagem'}</span>
               </span>
             </div>
 
-            {/* Compact Mobile Avatar Grid */}
-            <div className="grid grid-cols-6 gap-1.5 p-2 bg-amber-50/70 border-2 border-zinc-900 rounded-xl max-h-36 overflow-y-auto shadow-[2px_2px_0px_#18181b]">
+            {/* Spacious 6-Column Grid without clipping or overflow scroll */}
+            <div className="grid grid-cols-6 gap-2 sm:gap-2.5 p-3 bg-amber-50/80 border-2 border-zinc-900 rounded-2xl shadow-[2px_2px_0px_#18181b]">
               {AVATARS.map((av) => {
                 const isSelected = avatar === av;
                 return (
@@ -241,50 +243,51 @@ export default function MobileLobby({ onJoin, error }: MobileLobbyProps) {
                       sounds.playPop();
                       setAvatar(av);
                     }}
-                    className={`aspect-square rounded-lg flex items-center justify-center p-0.5 transition-all ${
+                    className={`aspect-square w-full rounded-xl flex items-center justify-center p-1 sm:p-1.5 transition-all cursor-pointer relative ${
                       isSelected
-                        ? 'bg-amber-300 border-2 border-zinc-900 shadow-[1.5px_1.5px_0px_#18181b] scale-105 ring-2 ring-amber-400'
-                        : 'bg-white border border-zinc-300 active:bg-amber-100'
+                        ? 'bg-amber-300 border-2 border-zinc-900 shadow-[2px_2px_0px_#18181b] scale-110 ring-2 ring-amber-400 z-10'
+                        : 'bg-white hover:bg-yellow-50 border-2 border-zinc-300 active:scale-95'
                     }`}
                   >
-                    <AvatarIcon avatar={av} className="w-full h-full object-contain" />
+                    <AvatarIcon avatar={av} className="w-full h-full object-contain filter drop-shadow-sm" />
                   </button>
                 );
               })}
             </div>
           </div>
 
-          {/* Submit Action CTA Button */}
+          {/* Big Thumb-Friendly Primary Action Button */}
           <button
             type="submit"
-            className="w-full btn-arcade-gold py-3 px-4 rounded-xl flex items-center justify-center gap-2 text-base font-black tracking-wide mt-1 active:translate-x-[2px] active:translate-y-[2px]"
+            className="w-full h-14 sm:h-16 btn-arcade-gold rounded-2xl flex items-center justify-center gap-2.5 text-lg sm:text-xl font-black tracking-wide mt-2 shadow-[4px_4px_0px_#18181b] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
           >
-            <span>{mode === 'create' ? 'Criar Minha Sala! ➔' : 'Entrar na Sala! ➔'}</span>
+            <span>{mode === 'create' ? 'Criar Minha Sala!' : 'Entrar na Sala!'}</span>
+            <ArrowRight className="w-6 h-6 stroke-[3]" />
           </button>
         </form>
       </div>
 
       {/* Footer Info */}
-      <footer className="text-center text-[11px] text-zinc-500 py-1 font-sketch">
+      <footer className="w-full max-w-md mx-auto text-center text-xs text-zinc-500 py-2 font-sketch">
         Caderno escolar interativo • Desenhe & adivinhe em tempo real
       </footer>
 
-      {/* Server Config Modal */}
+      {/* Server Configuration Modal */}
       <AnimatePresence>
         {showServerModal && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4"
+            className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4 backdrop-blur-sm"
           >
             <motion.div
               initial={{ scale: 0.9, y: 20 }}
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.9, y: 20 }}
-              className="bg-white border-2 border-zinc-900 rounded-2xl p-5 max-w-xs w-full shadow-[4px_5px_0px_#18181b] font-sketch"
+              className="bg-white border-3 border-zinc-900 rounded-3xl p-5 sm:p-6 max-w-xs w-full shadow-[5px_6px_0px_#18181b] font-sketch"
             >
-              <h3 className="text-lg font-black text-zinc-900 mb-2">⚙️ Conexão do Servidor</h3>
+              <h3 className="text-xl font-black text-zinc-900 mb-2">⚙️ Conexão do Servidor</h3>
               <p className="text-xs text-zinc-600 mb-3">
                 URL do backend do jogo (Render ou Local):
               </p>
@@ -292,13 +295,13 @@ export default function MobileLobby({ onJoin, error }: MobileLobbyProps) {
                 type="text"
                 value={customServer}
                 onChange={(e) => setCustomServer(e.target.value)}
-                className="w-full bg-zinc-50 border-2 border-zinc-900 rounded-xl px-3 py-2 text-xs font-mono font-bold mb-3 focus:outline-none"
+                className="w-full bg-amber-50/50 border-2 border-zinc-900 rounded-xl px-3 py-2 text-xs font-mono font-bold mb-4 focus:outline-none shadow-sm"
               />
               <div className="flex gap-2">
                 <button
                   type="button"
                   onClick={() => setShowServerModal(false)}
-                  className="flex-1 py-2 rounded-xl bg-zinc-100 border border-zinc-900 text-xs font-bold"
+                  className="flex-1 py-2.5 rounded-xl bg-zinc-100 border-2 border-zinc-900 text-xs font-bold active:scale-95"
                 >
                   Cancelar
                 </button>
@@ -310,7 +313,7 @@ export default function MobileLobby({ onJoin, error }: MobileLobbyProps) {
                       window.location.reload();
                     }
                   }}
-                  className="flex-1 py-2 rounded-xl bg-amber-300 border-2 border-zinc-900 text-xs font-black shadow-[2px_2px_0px_#18181b]"
+                  className="flex-1 py-2.5 rounded-xl bg-amber-300 border-2 border-zinc-900 text-xs font-black shadow-[2px_2px_0px_#18181b] active:translate-x-[1px] active:translate-y-[1px]"
                 >
                   Salvar
                 </button>

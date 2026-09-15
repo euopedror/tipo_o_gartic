@@ -355,6 +355,7 @@ export default function App() {
             <FloatingReactions
               reactions={reactions}
               onSendReaction={handleSendReaction}
+              isMobile={true}
             />
           )}
         </main>

@@ -135,7 +135,7 @@ export default function MobileGame({ socket, gameState, myPlayer, timer }: Mobil
     if (!canvasRef.current || history.length <= 1) return;
     sounds.playPop();
     const newHistory = [...history];
-    newHistory.pop(); // Remove current
+    newHistory.pop();
     const prev = newHistory[newHistory.length - 1];
     setHistory(newHistory);
 
@@ -183,19 +183,19 @@ export default function MobileGame({ socket, gameState, myPlayer, timer }: Mobil
   };
 
   return (
-    <div className="flex-1 flex flex-col justify-between bg-[#f8f7f2] overflow-hidden select-none font-sketch relative h-[calc(100dvh-52px)]">
-      {/* Top Mobile Status Strip */}
-      <div className="bg-white/95 border-b-2 border-zinc-900 px-2.5 py-1.5 flex items-center justify-between shadow-[0_1px_3px_rgba(0,0,0,0.06)] shrink-0 z-20">
+    <div className="flex-1 flex flex-col justify-between bg-[#f8f7f2] overflow-hidden select-none font-sketch relative h-[calc(100dvh-56px)]">
+      {/* Top Mobile Status Bar */}
+      <div className="bg-white/95 border-b-2 border-zinc-900 px-3 py-2 flex items-center justify-between shadow-[0_2px_4px_rgba(0,0,0,0.06)] shrink-0 z-20">
         {/* Timer & Delivery count */}
-        <div className="flex items-center gap-1.5">
-          <div className={`flex items-center gap-1 px-2 py-0.5 rounded-lg font-mono font-bold text-xs border-2 border-zinc-900 ${
+        <div className="flex items-center gap-2">
+          <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-xl font-mono font-black text-xs sm:text-sm border-2 border-zinc-900 shadow-xs ${
             timer <= 20 && timer > 0 ? 'bg-red-200 text-red-800 animate-pulse' : 'bg-amber-100 text-zinc-900'
           }`}>
             <Clock className="w-3.5 h-3.5" />
             <span>{timer > 0 ? `${timer}s` : '♾️'}</span>
           </div>
 
-          <div className="text-[11px] font-bold text-zinc-800 bg-zinc-50 px-2 py-0.5 rounded-lg border border-zinc-900">
+          <div className="text-xs sm:text-sm font-black text-zinc-800 bg-zinc-50 px-2.5 py-1 rounded-xl border-2 border-zinc-900 shadow-xs">
             🎨 {submittedCount}/{artists.length}
           </div>
 
@@ -203,7 +203,7 @@ export default function MobileGame({ socket, gameState, myPlayer, timer }: Mobil
             <button
               onClick={handleFinishRoundEarly}
               type="button"
-              className="bg-amber-300 active:bg-amber-400 border border-zinc-900 px-2 py-0.5 rounded-lg text-[11px] font-black shadow-sm"
+              className="bg-amber-300 active:bg-amber-400 border-2 border-zinc-900 px-3 py-1 rounded-xl text-xs font-black shadow-[1.5px_1.5px_0px_#18181b]"
             >
               🏁 Votar
             </button>
@@ -211,14 +211,14 @@ export default function MobileGame({ socket, gameState, myPlayer, timer }: Mobil
         </div>
 
         {/* Action Triggers: Dicas & Chat */}
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-2">
           {!isMaster && (
             <button
               onClick={() => setTipsDrawerOpen(true)}
               type="button"
-              className="flex items-center gap-1 bg-yellow-100 active:bg-yellow-200 border border-zinc-900 px-2 py-0.5 rounded-lg text-xs font-bold text-zinc-900 shadow-sm"
+              className="flex items-center gap-1.5 bg-yellow-100 active:bg-yellow-200 border-2 border-zinc-900 px-2.5 py-1 rounded-xl text-xs font-black text-zinc-900 shadow-xs"
             >
-              <Lightbulb className="w-3.5 h-3.5 text-amber-600 fill-amber-300" />
+              <Lightbulb className="w-4 h-4 text-amber-600 fill-amber-300" />
               <span>Dicas ({gameState.tips?.length || 0})</span>
             </button>
           )}
@@ -226,9 +226,9 @@ export default function MobileGame({ socket, gameState, myPlayer, timer }: Mobil
           <button
             onClick={() => setChatDrawerOpen(true)}
             type="button"
-            className="flex items-center gap-1 bg-white active:bg-zinc-100 border border-zinc-900 px-2 py-0.5 rounded-lg text-xs font-bold text-zinc-900 shadow-sm"
+            className="flex items-center gap-1.5 bg-white active:bg-zinc-100 border-2 border-zinc-900 px-2.5 py-1 rounded-xl text-xs font-black text-zinc-900 shadow-xs"
           >
-            <MessageCircle className="w-3.5 h-3.5" />
+            <MessageCircle className="w-4 h-4" />
             <span>Chat ({gameState.messages?.length || 0})</span>
           </button>
         </div>
@@ -237,26 +237,26 @@ export default function MobileGame({ socket, gameState, myPlayer, timer }: Mobil
       {/* Main Center Area: Artist Canvas OR Master Panel */}
       {!isMaster ? (
         /* Artist Mode: Full Touch Canvas */
-        <div className="flex-1 flex flex-col items-center justify-center p-2 relative overflow-hidden">
+        <div className="flex-1 flex flex-col items-center justify-center p-2.5 sm:p-3 relative overflow-hidden">
           {/* Latest Tip Marquee Pill */}
           {gameState.tips && gameState.tips.length > 0 && (
             <button
               type="button"
               onClick={() => setTipsDrawerOpen(true)}
-              className="w-full max-w-sm mb-1.5 bg-amber-100/90 border-2 border-zinc-900 px-2.5 py-1 rounded-xl text-left shadow-[2px_2px_0px_#18181b] flex items-center justify-between shrink-0"
+              className="w-full max-w-md mb-2 bg-amber-100/90 border-2 border-zinc-900 px-3 py-1.5 rounded-2xl text-left shadow-[2px_2px_0px_#18181b] flex items-center justify-between shrink-0"
             >
-              <div className="flex items-center gap-1.5 truncate">
-                <span className="text-xs">💡</span>
-                <span className="text-xs font-bold text-zinc-900 truncate">
+              <div className="flex items-center gap-2 truncate">
+                <span className="text-sm">💡</span>
+                <span className="text-xs sm:text-sm font-black text-zinc-900 truncate font-kalam">
                   Última dica: {gameState.tips[gameState.tips.length - 1]}
                 </span>
               </div>
-              <span className="text-[10px] text-blue-700 underline shrink-0 font-bold">Ver todas</span>
+              <span className="text-xs text-blue-700 underline shrink-0 font-black">Ver todas</span>
             </button>
           )}
 
           {/* Touch Drawing Canvas Box */}
-          <div className="relative w-full max-w-sm aspect-square bg-white border-2 border-zinc-900 rounded-2xl shadow-[4px_4px_0px_#18181b] overflow-hidden touch-none flex items-center justify-center">
+          <div className="relative w-full max-w-md aspect-square bg-white border-3 border-zinc-900 rounded-3xl shadow-[5px_6px_0px_#18181b] overflow-hidden touch-none flex items-center justify-center">
             <canvas
               ref={canvasRef}
               onTouchStart={handleTouchStart}
@@ -269,12 +269,12 @@ export default function MobileGame({ socket, gameState, myPlayer, timer }: Mobil
 
             {/* Submitted Overlay */}
             {hasSubmitted && (
-              <div className="absolute inset-0 bg-white/80 backdrop-blur-[2px] flex flex-col items-center justify-center p-4 text-center z-10">
-                <div className="w-14 h-14 bg-green-200 border-2 border-zinc-900 rounded-full flex items-center justify-center mb-2 shadow-[2px_2px_0px_#18181b] animate-bounce">
-                  <CheckCircle2 className="w-8 h-8 text-green-700 stroke-[2.5]" />
+              <div className="absolute inset-0 bg-white/85 backdrop-blur-xs flex flex-col items-center justify-center p-5 text-center z-10">
+                <div className="w-16 h-16 bg-green-200 border-3 border-zinc-900 rounded-full flex items-center justify-center mb-3 shadow-[3px_3px_0px_#18181b] animate-bounce">
+                  <CheckCircle2 className="w-10 h-10 text-green-700 stroke-[2.5]" />
                 </div>
-                <h3 className="text-xl font-black text-zinc-900">Desenho Entregue!</h3>
-                <p className="text-xs text-zinc-600 mt-0.5">
+                <h3 className="text-2xl font-black text-zinc-900 font-kalam">Desenho Entregue!</h3>
+                <p className="text-xs sm:text-sm text-zinc-600 mt-1 font-sketch">
                   Aguardando os outros artistas terminarem... ({submittedCount}/{artists.length})
                 </p>
               </div>
@@ -283,54 +283,56 @@ export default function MobileGame({ socket, gameState, myPlayer, timer }: Mobil
         </div>
       ) : (
         /* Master Mode Panel */
-        <div className="flex-1 flex flex-col justify-between p-3 overflow-y-auto">
-          <div className="w-full max-w-sm mx-auto flex flex-col gap-3">
+        <div className="flex-1 flex flex-col justify-between p-3.5 sm:p-5 overflow-y-auto">
+          <div className="w-full max-w-md mx-auto flex flex-col gap-4">
             {/* Secret Character Card */}
-            <div className="bg-amber-100 border-2 border-zinc-900 rounded-2xl p-4 shadow-[4px_4px_0px_#18181b] text-center relative sketch-tape">
-              <span className="text-xs uppercase font-bold text-zinc-700 tracking-wider">Você é o Mestre! 👑</span>
-              <h2 className="text-2xl font-black text-zinc-900 my-1 font-kalam">
+            <div className="bg-amber-100 border-3 border-zinc-900 rounded-3xl p-5 shadow-[5px_6px_0px_#18181b] text-center relative sketch-tape">
+              <span className="text-xs uppercase font-black text-zinc-700 tracking-wider">Você é o Mestre! 👑</span>
+              <h2 className="text-3xl sm:text-4xl font-black text-zinc-900 my-2 font-kalam">
                 {gameState.character || 'Personagem Secreto'}
               </h2>
-              <p className="text-xs text-red-700 font-bold bg-white/80 border border-zinc-900 px-2 py-1 rounded-lg inline-block">
-                ⚠️ Regra: NÃO FALE o nome do personagem! Descreva apenas formas, cores e detalhes.
+              <p className="text-xs text-red-700 font-bold bg-white/90 border-2 border-zinc-900 px-3 py-1.5 rounded-xl inline-block shadow-xs">
+                ⚠️ Regra: NÃO FALE o nome do personagem! Descreva apenas formas, cores e pistas.
               </p>
             </div>
 
             {/* Master Tips Sender */}
-            <div className="bg-white border-2 border-zinc-900 rounded-2xl p-3.5 shadow-[3px_3px_0px_#18181b]">
-              <span className="text-xs font-black uppercase text-zinc-800 block mb-1">
+            <div className="bg-white border-3 border-zinc-900 rounded-3xl p-4 shadow-[4px_5px_0px_#18181b]">
+              <span className="text-xs sm:text-sm font-black uppercase text-zinc-800 block mb-2">
                 🗣️ Envie Dicas para os Artistas:
               </span>
-              <form onSubmit={handleSendTip} className="flex gap-1.5 mb-2">
+              <form onSubmit={handleSendTip} className="flex gap-2 mb-3">
                 <input
                   type="text"
                   value={newTip}
                   onChange={(e) => setNewTip(e.target.value)}
                   placeholder="Ex: Tem orelhas pontudas e rabo listrado..."
-                  className="flex-1 bg-zinc-50 border-2 border-zinc-900 rounded-xl px-3 py-2 text-xs font-bold text-zinc-900 focus:outline-none"
+                  className="flex-1 h-12 bg-amber-50/40 border-2 border-zinc-900 rounded-2xl px-3.5 text-xs sm:text-sm font-bold text-zinc-900 focus:outline-none shadow-xs"
                 />
                 <button
                   type="submit"
-                  className="bg-amber-300 border-2 border-zinc-900 px-3 py-2 rounded-xl text-zinc-900 font-black text-xs shadow-[2px_2px_0px_#18181b] active:translate-x-[1px] active:translate-y-[1px]"
+                  className="h-12 bg-amber-300 border-2 border-zinc-900 px-4 rounded-2xl text-zinc-900 font-black text-xs sm:text-sm shadow-[2px_2px_0px_#18181b] active:translate-x-[1px] active:translate-y-[1px]"
                 >
                   Enviar
                 </button>
               </form>
 
               {/* Tips history list */}
-              <div className="max-h-36 overflow-y-auto flex flex-col gap-1 pr-1">
+              <div className="max-h-44 overflow-y-auto flex flex-col gap-1.5 pr-1">
                 {gameState.tips && gameState.tips.length > 0 ? (
                   gameState.tips.map((tip, idx) => (
                     <div
                       key={idx}
-                      className="p-1.5 bg-yellow-50 border border-zinc-900 rounded-lg text-xs font-bold text-zinc-800 flex items-start gap-1"
+                      className="p-2 bg-yellow-50 border-2 border-zinc-900 rounded-xl text-xs sm:text-sm font-bold text-zinc-800 flex items-start gap-2 shadow-xs"
                     >
-                      <span className="text-amber-600 font-mono text-[10px]">{idx + 1}.</span>
-                      <span className="flex-1">{tip}</span>
+                      <span className="bg-amber-300 border border-zinc-900 px-1.5 rounded text-xs font-black">
+                        #{idx + 1}
+                      </span>
+                      <span className="flex-1 font-kalam">{tip}</span>
                     </div>
                   ))
                 ) : (
-                  <p className="text-xs text-zinc-500 italic text-center py-2">
+                  <p className="text-xs text-zinc-500 italic text-center py-4">
                     Nenhuma dica enviada ainda. Descreva como desenhar!
                   </p>
                 )}
@@ -338,12 +340,12 @@ export default function MobileGame({ socket, gameState, myPlayer, timer }: Mobil
             </div>
 
             {/* Delivery Progress Bar */}
-            <div className="bg-white border-2 border-zinc-900 rounded-xl p-3 shadow-[2px_2px_0px_#18181b]">
-              <div className="flex justify-between text-xs font-bold mb-1">
+            <div className="bg-white border-2 border-zinc-900 rounded-2xl p-3.5 shadow-[3px_3px_0px_#18181b]">
+              <div className="flex justify-between text-xs sm:text-sm font-bold mb-1.5">
                 <span>Progresso dos Desenhos:</span>
-                <span>{submittedCount} de {artists.length}</span>
+                <span className="font-mono font-black">{submittedCount} de {artists.length}</span>
               </div>
-              <div className="w-full h-3 bg-zinc-100 border border-zinc-900 rounded-full overflow-hidden">
+              <div className="w-full h-3.5 bg-zinc-100 border-2 border-zinc-900 rounded-full overflow-hidden">
                 <div
                   className="h-full bg-green-500 transition-all duration-300"
                   style={{ width: `${artists.length > 0 ? (submittedCount / artists.length) * 100 : 0}%` }}
@@ -356,10 +358,10 @@ export default function MobileGame({ socket, gameState, myPlayer, timer }: Mobil
 
       {/* Bottom Tool Dock (Artist Mode Only) */}
       {!isMaster && (
-        <div className="bg-white/98 border-t-2 border-zinc-900 p-2 shrink-0 shadow-[0_-2px_6px_rgba(0,0,0,0.06)] z-20">
-          <div className="max-w-sm mx-auto flex flex-col gap-1.5">
-            {/* Horizontal Color Swatches Slider */}
-            <div className="flex items-center gap-2 overflow-x-auto py-1 px-0.5 no-scrollbar">
+        <div className="bg-white/98 border-t-2 border-zinc-900 p-2.5 sm:p-3 shrink-0 shadow-[0_-3px_10px_rgba(0,0,0,0.08)] z-20">
+          <div className="max-w-md mx-auto flex flex-col gap-2">
+            {/* Horizontal Color Swatches Slider with Large 34px Circles */}
+            <div className="flex items-center gap-2.5 overflow-x-auto py-1 px-1 no-scrollbar">
               {COLOR_PALETTE.map((c) => {
                 const isSelected = !isEraser && color === c;
                 return (
@@ -371,8 +373,8 @@ export default function MobileGame({ socket, gameState, myPlayer, timer }: Mobil
                       setColor(c);
                       setIsEraser(false);
                     }}
-                    className={`w-7 h-7 rounded-full border-2 border-zinc-900 shrink-0 transition-transform ${
-                      isSelected ? 'scale-125 shadow-[1.5px_1.5px_0px_#18181b] ring-2 ring-amber-400' : 'active:scale-95'
+                    className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full border-2 border-zinc-900 shrink-0 transition-transform ${
+                      isSelected ? 'scale-125 shadow-[2px_2px_0px_#18181b] ring-2 ring-amber-400' : 'active:scale-95'
                     }`}
                     style={{ backgroundColor: c }}
                   />
@@ -381,9 +383,9 @@ export default function MobileGame({ socket, gameState, myPlayer, timer }: Mobil
             </div>
 
             {/* Tool Toggles & Action Row */}
-            <div className="flex items-center justify-between gap-1.5 pt-0.5">
+            <div className="flex items-center justify-between gap-2 pt-0.5">
               {/* Brush Thickness Buttons */}
-              <div className="flex items-center gap-1 bg-zinc-100 p-1 rounded-xl border border-zinc-900">
+              <div className="flex items-center gap-1 bg-zinc-100 p-1 rounded-2xl border-2 border-zinc-900">
                 {[
                   { label: 'Fino', val: 3 },
                   { label: 'Médio', val: 6 },
@@ -396,7 +398,7 @@ export default function MobileGame({ socket, gameState, myPlayer, timer }: Mobil
                       sounds.playClick();
                       setLineWidth(size.val);
                     }}
-                    className={`px-1.5 py-0.5 rounded-lg text-[10px] font-bold ${
+                    className={`px-2.5 py-1 rounded-xl text-xs font-black transition-all ${
                       lineWidth === size.val
                         ? 'bg-zinc-900 text-white shadow-sm'
                         : 'text-zinc-700 active:bg-zinc-200'
@@ -408,41 +410,41 @@ export default function MobileGame({ socket, gameState, myPlayer, timer }: Mobil
               </div>
 
               {/* Eraser, Undo, Clear */}
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-1.5">
                 <button
                   type="button"
                   onClick={() => {
                     sounds.playClick();
                     setIsEraser(!isEraser);
                   }}
-                  className={`p-1.5 rounded-xl border-2 border-zinc-900 ${
+                  className={`w-10 h-10 rounded-2xl border-2 border-zinc-900 flex items-center justify-center ${
                     isEraser
-                      ? 'bg-amber-300 text-zinc-900 shadow-[1.5px_1.5px_0px_#18181b]'
+                      ? 'bg-amber-300 text-zinc-900 shadow-[2px_2px_0px_#18181b]'
                       : 'bg-white text-zinc-700'
                   }`}
                   title="Borracha"
                 >
-                  <Eraser className="w-4 h-4" />
+                  <Eraser className="w-5 h-5" />
                 </button>
 
                 <button
                   type="button"
                   onClick={handleUndo}
                   disabled={history.length <= 1 || hasSubmitted}
-                  className="p-1.5 rounded-xl bg-white border-2 border-zinc-900 text-zinc-700 disabled:opacity-30 disabled:border-zinc-300 shadow-sm"
+                  className="w-10 h-10 rounded-2xl bg-white border-2 border-zinc-900 text-zinc-700 disabled:opacity-30 disabled:border-zinc-300 shadow-sm flex items-center justify-center"
                   title="Desfazer"
                 >
-                  <RotateCcw className="w-4 h-4" />
+                  <RotateCcw className="w-5 h-5" />
                 </button>
 
                 <button
                   type="button"
                   onClick={handleClear}
                   disabled={hasSubmitted}
-                  className="p-1.5 rounded-xl bg-white border-2 border-zinc-900 text-zinc-700 disabled:opacity-30 shadow-sm"
+                  className="w-10 h-10 rounded-2xl bg-white border-2 border-zinc-900 text-zinc-700 disabled:opacity-30 shadow-sm flex items-center justify-center"
                   title="Limpar"
                 >
-                  <Trash2 className="w-4 h-4" />
+                  <Trash2 className="w-5 h-5" />
                 </button>
               </div>
 
@@ -451,9 +453,9 @@ export default function MobileGame({ socket, gameState, myPlayer, timer }: Mobil
                 type="button"
                 onClick={handleSubmitDrawing}
                 disabled={hasSubmitted}
-                className="btn-arcade-gold py-1.5 px-3 rounded-xl text-xs font-black flex items-center gap-1 shrink-0 disabled:opacity-50"
+                className="h-10 px-4 btn-arcade-gold rounded-2xl text-xs sm:text-sm font-black flex items-center gap-1.5 shrink-0 disabled:opacity-50 shadow-[2px_2px_0px_#18181b]"
               >
-                <Check className="w-3.5 h-3.5 stroke-[2.5]" />
+                <Check className="w-4 h-4 stroke-[3]" />
                 <span>{hasSubmitted ? 'Pronto!' : 'Entregar'}</span>
               </button>
             </div>
@@ -468,44 +470,44 @@ export default function MobileGame({ socket, gameState, myPlayer, timer }: Mobil
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-black/50 flex flex-col justify-end"
+            className="fixed inset-0 z-50 bg-black/60 flex flex-col justify-end backdrop-blur-xs"
           >
             <motion.div
               initial={{ y: '100%' }}
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              className="bg-white border-t-2 border-zinc-900 rounded-t-3xl max-h-[70vh] flex flex-col p-4 shadow-2xl"
+              className="bg-white border-t-3 border-zinc-900 rounded-t-3xl max-h-[75vh] flex flex-col p-5 shadow-2xl"
             >
-              <div className="flex items-center justify-between pb-3 border-b-2 border-zinc-900 mb-3">
-                <div className="flex items-center gap-1.5 font-black text-base text-zinc-900">
-                  <Lightbulb className="w-5 h-5 text-amber-500 fill-amber-300" />
+              <div className="flex items-center justify-between pb-3.5 border-b-2 border-zinc-900 mb-3.5">
+                <div className="flex items-center gap-2 font-black text-lg text-zinc-900">
+                  <Lightbulb className="w-6 h-6 text-amber-500 fill-amber-300" />
                   <span>Dicas Dadas pelo Mestre</span>
                 </div>
                 <button
                   onClick={() => setTipsDrawerOpen(false)}
                   type="button"
-                  className="p-1 rounded-lg bg-zinc-100 border border-zinc-900"
+                  className="p-1.5 rounded-xl bg-zinc-100 border border-zinc-900 active:scale-95"
                 >
-                  <X className="w-4 h-4" />
+                  <X className="w-5 h-5" />
                 </button>
               </div>
 
-              <div className="flex-1 overflow-y-auto flex flex-col gap-2">
+              <div className="flex-1 overflow-y-auto flex flex-col gap-2.5">
                 {gameState.tips && gameState.tips.length > 0 ? (
                   gameState.tips.map((tip, idx) => (
                     <div
                       key={idx}
-                      className="p-2.5 bg-yellow-50 border-2 border-zinc-900 rounded-xl text-xs font-bold text-zinc-800 shadow-[2px_2px_0px_#18181b] flex items-start gap-2"
+                      className="p-3 bg-yellow-50 border-2 border-zinc-900 rounded-2xl text-xs sm:text-sm font-bold text-zinc-800 shadow-[2px_2px_0px_#18181b] flex items-start gap-2.5"
                     >
-                      <span className="bg-amber-300 border border-zinc-900 px-1.5 rounded text-[10px] font-black">
+                      <span className="bg-amber-300 border border-zinc-900 px-2 py-0.5 rounded-lg text-xs font-black">
                         #{idx + 1}
                       </span>
-                      <span className="flex-1">{tip}</span>
+                      <span className="flex-1 font-kalam">{tip}</span>
                     </div>
                   ))
                 ) : (
-                  <p className="text-xs text-zinc-500 italic text-center py-6">
+                  <p className="text-sm text-zinc-500 italic text-center py-8">
                     O mestre ainda não enviou dicas. Aguarde um instante!
                   </p>
                 )}
@@ -514,7 +516,7 @@ export default function MobileGame({ socket, gameState, myPlayer, timer }: Mobil
               <button
                 type="button"
                 onClick={() => setTipsDrawerOpen(false)}
-                className="mt-3 w-full py-2 bg-amber-300 border-2 border-zinc-900 rounded-xl text-xs font-black shadow-[2px_2px_0px_#18181b]"
+                className="mt-4 w-full h-12 bg-amber-300 border-2 border-zinc-900 rounded-2xl text-sm font-black shadow-[3px_3px_0px_#18181b] active:scale-98"
               >
                 Voltar a Desenhar
               </button>
@@ -530,26 +532,26 @@ export default function MobileGame({ socket, gameState, myPlayer, timer }: Mobil
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-black/50 flex flex-col justify-end"
+            className="fixed inset-0 z-50 bg-black/60 flex flex-col justify-end backdrop-blur-xs"
           >
             <motion.div
               initial={{ y: '100%' }}
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              className="bg-white border-t-2 border-zinc-900 rounded-t-3xl h-[80vh] flex flex-col overflow-hidden shadow-2xl"
+              className="bg-white border-t-3 border-zinc-900 rounded-t-3xl h-[82vh] flex flex-col overflow-hidden shadow-2xl"
             >
-              <div className="flex items-center justify-between p-3 border-b-2 border-zinc-900 bg-amber-100">
-                <div className="flex items-center gap-1.5 font-sketch font-bold text-zinc-900">
-                  <MessageCircle className="w-4 h-4" />
+              <div className="flex items-center justify-between p-3.5 border-b-2 border-zinc-900 bg-amber-100">
+                <div className="flex items-center gap-2 font-sketch font-black text-base text-zinc-900">
+                  <MessageCircle className="w-5 h-5" />
                   <span>Chat da Turma</span>
                 </div>
                 <button
                   onClick={() => setChatDrawerOpen(false)}
                   type="button"
-                  className="p-1 rounded-lg bg-white border border-zinc-900 text-zinc-800"
+                  className="p-1.5 rounded-xl bg-white border border-zinc-900 text-zinc-800 active:scale-95"
                 >
-                  <X className="w-4 h-4" />
+                  <X className="w-5 h-5" />
                 </button>
               </div>
 
