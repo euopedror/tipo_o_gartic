@@ -16,7 +16,7 @@ interface MobileWaitingRoomProps {
   myPlayer?: Player;
   isHost: boolean;
   onStartGame: () => void;
-  onUpdateSettings: (roundTime?: number, maxRounds?: number) => void;
+  onUpdateSettings: (roundTime?: number, maxRounds?: number, voiceEnabled?: boolean) => void;
 }
 
 export default function MobileWaitingRoom({
@@ -117,6 +117,10 @@ export default function MobileWaitingRoom({
               <span>⏱️ {gameState.settings?.roundTime === 0 ? 'Tempo Livre' : `${gameState.settings?.roundTime}s`}</span>
               <span>•</span>
               <span>🏁 {gameState.settings?.maxRounds ? `${gameState.settings.maxRounds} Rodadas` : 'Sem Fim'}</span>
+              <span>•</span>
+              <span className={gameState.settings?.voiceEnabled === false ? 'text-red-600 font-black' : 'text-emerald-700 font-black'}>
+                {gameState.settings?.voiceEnabled === false ? '🎙️ Voz Off' : '🎙️ Voz On'}
+              </span>
             </div>
 
             {isHost && (
@@ -164,7 +168,7 @@ export default function MobileWaitingRoom({
                 </div>
 
                 <span className="text-xs font-black uppercase text-zinc-800 block mb-1.5">🏁 Duração do Torneio:</span>
-                <div className="grid grid-cols-3 gap-1.5">
+                <div className="grid grid-cols-3 gap-1.5 mb-3">
                   {[
                     { label: '3 Rodadas', val: 3 },
                     { label: '5 Rodadas', val: 5 },
@@ -183,6 +187,32 @@ export default function MobileWaitingRoom({
                       {opt.label}
                     </button>
                   ))}
+                </div>
+
+                <span className="text-xs font-black uppercase text-zinc-800 block mb-1.5">🎙️ Chat de Voz na Sala:</span>
+                <div className="grid grid-cols-2 gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => onUpdateSettings(undefined, undefined, true)}
+                    className={`py-2 text-xs sm:text-sm rounded-xl font-black border-2 transition-all flex items-center justify-center gap-1.5 ${
+                      gameState.settings?.voiceEnabled !== false
+                        ? 'bg-emerald-300 text-zinc-900 border-zinc-900 shadow-sm'
+                        : 'bg-white text-zinc-800 border-zinc-300'
+                    }`}
+                  >
+                    <span>🟢 Permitido</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => onUpdateSettings(undefined, undefined, false)}
+                    className={`py-2 text-xs sm:text-sm rounded-xl font-black border-2 transition-all flex items-center justify-center gap-1.5 ${
+                      gameState.settings?.voiceEnabled === false
+                        ? 'bg-red-300 text-zinc-900 border-zinc-900 shadow-sm'
+                        : 'bg-white text-zinc-800 border-zinc-300'
+                    }`}
+                  >
+                    <span>🔴 Desativado</span>
+                  </button>
                 </div>
               </motion.div>
             )}

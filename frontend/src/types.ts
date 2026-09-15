@@ -9,6 +9,7 @@ export interface Player {
   isHost?: boolean;
   hasSubmitted: boolean;
   hasVoted?: boolean;
+  isVoiceMutedByHost?: boolean;
 }
 
 export interface PlayerVotes {
@@ -19,6 +20,7 @@ export interface PlayerVotes {
 export interface GameSettings {
   roundTime: number;
   maxRounds: number;
+  voiceEnabled?: boolean;
 }
 
 export interface ChatMessage {
@@ -41,6 +43,7 @@ export interface GameState {
   masterId: string | null;
   hostId?: string | null;
   isChatMuted?: boolean;
+  isVoiceDisabled?: boolean;
   character?: string | null;
   tips: string[];
   messages?: ChatMessage[];

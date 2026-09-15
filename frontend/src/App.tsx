@@ -234,12 +234,13 @@ export default function App() {
     window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
   };
 
-  const handleUpdateSettings = (roundTime?: number, maxRounds?: number) => {
+  const handleUpdateSettings = (roundTime?: number, maxRounds?: number, voiceEnabled?: boolean) => {
     sounds.playClick();
     socket.emit('update_settings', {
       roomId: gameState?.id,
       roundTime: roundTime !== undefined ? roundTime : (gameState?.settings?.roundTime ?? 0),
-      maxRounds: maxRounds !== undefined ? maxRounds : (gameState?.settings?.maxRounds ?? 3)
+      maxRounds: maxRounds !== undefined ? maxRounds : (gameState?.settings?.maxRounds ?? 3),
+      voiceEnabled: voiceEnabled !== undefined ? voiceEnabled : (gameState?.settings?.voiceEnabled ?? true)
     });
   };
 
@@ -420,6 +421,8 @@ export default function App() {
             players={gameState.players}
             myPlayer={myPlayer}
             voiceUserIds={gameState.voiceUserIds}
+            isVoiceDisabled={Boolean(gameState.isVoiceDisabled || gameState.settings?.voiceEnabled === false)}
+            isHost={Boolean(isHost)}
           />
 
           <button
@@ -520,7 +523,7 @@ export default function App() {
                         <span>Regras da Partida (Host)</span>
                       </div>
 
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
                         {/* Round Time */}
                         <div>
                           <span className="text-xs text-zinc-600 font-bold uppercase block mb-1 font-sketch">⏱️ Tempo por Rodada:</span>
@@ -571,6 +574,30 @@ export default function App() {
                             ))}
                           </div>
                         </div>
+
+                        {/* Voice Chat */}
+                        <div>
+                          <span className="text-xs text-zinc-600 font-bold uppercase block mb-1 font-sketch">🎙️ Chat de Voz:</span>
+                          <div className="grid grid-cols-2 gap-1 bg-white p-1 rounded-xl border-2 border-zinc-900">
+                            {[
+                              { label: '🟢 Ligado', val: true },
+                              { label: '🔴 Mudo', val: false },
+                            ].map((opt) => (
+                              <button
+                                key={String(opt.val)}
+                                type="button"
+                                onClick={() => handleUpdateSettings(undefined, undefined, opt.val)}
+                                className={`py-1 rounded-lg text-xs font-bold transition-all font-sketch ${
+                                  (gameState.settings?.voiceEnabled !== false) === opt.val
+                                    ? 'bg-emerald-300 text-zinc-900 shadow-sm font-black'
+                                    : 'text-zinc-600 hover:text-zinc-900'
+                                }`}
+                              >
+                                {opt.label}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
                       </div>
                     </div>
                   ) : (
@@ -586,6 +613,13 @@ export default function App() {
                         <span>🏁 Torneio:</span>
                         <span className="font-bold text-zinc-900">
                           {gameState.settings?.maxRounds ? `${gameState.settings.maxRounds} Rodadas` : 'Sem Limite'}
+                        </span>
+                      </div>
+                      <div className="w-px h-4 bg-zinc-300" />
+                      <div className="flex items-center gap-1.5 text-zinc-600">
+                        <span>🎙️ Voz:</span>
+                        <span className={`font-bold ${gameState.settings?.voiceEnabled === false ? 'text-red-600' : 'text-emerald-700'}`}>
+                          {gameState.settings?.voiceEnabled === false ? 'Desativada' : 'Ativada'}
                         </span>
                       </div>
                     </div>

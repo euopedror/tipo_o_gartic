@@ -70,6 +70,8 @@ export default function MobileHeader({
           players={gameState.players}
           myPlayer={myPlayer}
           voiceUserIds={gameState.voiceUserIds}
+          isVoiceDisabled={Boolean(gameState.isVoiceDisabled || gameState.settings?.voiceEnabled === false)}
+          isHost={Boolean(myPlayer?.isHost || (gameState.hostId && myPlayer?.id === gameState.hostId))}
         />
 
         <button

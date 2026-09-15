@@ -56,7 +56,8 @@ function createRoom(roomId) {
     timerInterval: null,
     settings: {
       roundTime: 0, // 0 = Sem limite de tempo (modo padrão para descrição)
-      maxRounds: 3
+      maxRounds: 3,
+      voiceEnabled: true
     },
     voiceUsers: new Set(),
     activeArtistIds: new Set(),
@@ -377,14 +378,85 @@ io.on('connection', (socket) => {
     }
   });
 
-  socket.on('update_settings', ({ roomId, roundTime, maxRounds }) => {
+  socket.on('update_settings', ({ roomId, roundTime, maxRounds, voiceEnabled }) => {
     if (!roomId) return;
     const cleanRoomId = String(roomId).trim().toUpperCase();
     const room = rooms[cleanRoomId];
     if (!room || room.state !== GAME_STATES.LOBBY) return;
+    if (socket.id !== room.hostId) return;
 
     if (roundTime !== undefined) room.settings.roundTime = Number(roundTime);
     if (maxRounds !== undefined) room.settings.maxRounds = Number(maxRounds);
+    if (voiceEnabled !== undefined) {
+      room.settings.voiceEnabled = Boolean(voiceEnabled);
+      if (!room.settings.voiceEnabled && room.voiceUsers && room.voiceUsers.size > 0) {
+        room.voiceUsers.clear();
+        io.to(cleanRoomId).emit('voice_room_disabled');
+      }
+    }
+    io.to(cleanRoomId).emit('room_update', getRoomPublicState(cleanRoomId));
+  });
+
+  socket.on('toggle_room_voice', ({ roomId }) => {
+    if (!roomId) return;
+    const cleanRoomId = String(roomId).trim().toUpperCase();
+    const room = rooms[cleanRoomId];
+    if (!room || socket.id !== room.hostId) return;
+
+    room.settings.voiceEnabled = !room.settings.voiceEnabled;
+    if (!room.settings.voiceEnabled && room.voiceUsers) {
+      room.voiceUsers.clear();
+      io.to(cleanRoomId).emit('voice_room_disabled');
+    }
+
+    const hostPlayer = room.players[socket.id];
+    if (!room.messages) room.messages = [];
+    room.messages.push({
+      id: Date.now() + '-' + Math.random().toString(36).substring(2, 7),
+      senderId: 'system',
+      senderName: 'Sistema',
+      senderAvatar: room.settings.voiceEnabled ? '🎙️' : '🔇',
+      text: room.settings.voiceEnabled
+        ? `🎙️ O Host (${hostPlayer?.name || 'Host'}) ativou o chat de voz da sala!`
+        : `🔇 O Host (${hostPlayer?.name || 'Host'}) desativou o chat de voz da sala.`,
+      isSystem: true,
+      timestamp: Date.now()
+    });
+
+    io.to(cleanRoomId).emit('room_update', getRoomPublicState(cleanRoomId));
+  });
+
+  socket.on('host_toggle_user_voice_mute', ({ roomId, targetUserId }) => {
+    if (!roomId || !targetUserId) return;
+    const cleanRoomId = String(roomId).trim().toUpperCase();
+    const room = rooms[cleanRoomId];
+    if (!room || socket.id !== room.hostId) return;
+    if (!room.players[targetUserId]) return;
+
+    const targetPlayer = room.players[targetUserId];
+    targetPlayer.isVoiceMutedByHost = !targetPlayer.isVoiceMutedByHost;
+
+    io.to(targetUserId).emit('user_voice_muted_by_host', { 
+      isMuted: targetPlayer.isVoiceMutedByHost 
+    });
+
+    io.to(cleanRoomId).emit('room_update', getRoomPublicState(cleanRoomId));
+  });
+
+  socket.on('host_mute_all_voice', ({ roomId, muteAll }) => {
+    if (!roomId) return;
+    const cleanRoomId = String(roomId).trim().toUpperCase();
+    const room = rooms[cleanRoomId];
+    if (!room || socket.id !== room.hostId) return;
+
+    const shouldMute = muteAll !== undefined ? Boolean(muteAll) : true;
+    Object.keys(room.players).forEach((pid) => {
+      if (pid !== room.hostId) {
+        room.players[pid].isVoiceMutedByHost = shouldMute;
+        io.to(pid).emit('user_voice_muted_by_host', { isMuted: shouldMute });
+      }
+    });
+
     io.to(cleanRoomId).emit('room_update', getRoomPublicState(cleanRoomId));
   });
 
@@ -408,6 +480,13 @@ io.on('connection', (socket) => {
     const cleanRoomId = String(roomId).trim().toUpperCase();
     const room = rooms[cleanRoomId];
     if (!room) return;
+    if (room.settings?.voiceEnabled === false) {
+      socket.emit('error', 'O chat de voz foi desativado pelo Host nesta sala.');
+      return;
+    }
+    if (room.players[socket.id]?.isVoiceMutedByHost) {
+      socket.emit('user_voice_muted_by_host', { isMuted: true });
+    }
     if (!room.voiceUsers) room.voiceUsers = new Set();
 
     // Broadcast to other voice users that a new peer joined
@@ -848,11 +927,13 @@ function getRoomPublicState(roomId) {
     state: room.state,
     players: Object.values(room.players).map(p => ({
       ...p,
-      isHost: (p.id === room.hostId)
+      isHost: (p.id === room.hostId),
+      isVoiceMutedByHost: Boolean(p.isVoiceMutedByHost)
     })),
     masterId: room.masterId,
     hostId: room.hostId,
     isChatMuted: Boolean(room.isChatMuted),
+    isVoiceDisabled: room.settings?.voiceEnabled === false,
     character: room.state === GAME_STATES.RESULTS ? room.character : null,
     tips: room.tips || [],
     messages: room.messages || [],
